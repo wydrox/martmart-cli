@@ -1,0 +1,297 @@
+// Package httpclient provides a thin HTTP client for the Frisco API.
+// It handles auth headers, query params, body serialisation, automatic token
+// refresh on 401, and sensitive-data sanitisation in error messages.
+package httpclient
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"regexp"
+	"strings"
+	"time"
+
+	"github.com/rrudol/frisco/internal/session"
+)
+
+// DataFormat specifies how the request body should be encoded.
+type DataFormat string
+
+// DataFormat constants define supported body encoding formats.
+const (
+	FormatJSON DataFormat = "json" // encode body as JSON
+	FormatForm DataFormat = "form" // encode body as application/x-www-form-urlencoded
+	FormatRaw  DataFormat = "raw"  // send body string as-is
+)
+
+// RequestOpts bundles optional arguments for RequestJSON.
+type RequestOpts struct {
+	Query        []string
+	Data         any
+	DataFormat   DataFormat
+	ExtraHeaders map[string]string
+	Client       *http.Client
+}
+
+// maxErrorBodyLen is the maximum number of bytes included in an error body excerpt.
+const maxErrorBodyLen = 1024
+
+var (
+	bearerTokenRe  = regexp.MustCompile(`(?i)Bearer\s+[A-Za-z0-9\-._~+/]+=*`)
+	refreshTokenRe = regexp.MustCompile(`(?i)(refresh_token["=: ]+)([^",;\s]+)`)
+	accessTokenRe  = regexp.MustCompile(`(?i)(access_token["=: ]+)([^",;\s]+)`)
+	cookiePairRe   = regexp.MustCompile(`(?i)([a-z0-9_-]*rtoken[a-z0-9_-]*=)([^;,\s]+)`)
+)
+
+var defaultHTTPClient = &http.Client{Timeout: 30 * time.Second}
+
+// makeURL joins base with path or returns absolute URL.
+func makeURL(baseURL, pathOrURL string) (string, error) {
+	if strings.HasPrefix(pathOrURL, "http://") || strings.HasPrefix(pathOrURL, "https://") {
+		return pathOrURL, nil
+	}
+	base, err := url.Parse(baseURL)
+	if err != nil {
+		return "", err
+	}
+	ref, err := url.Parse(pathOrURL)
+	if err != nil {
+		return "", err
+	}
+	return base.ResolveReference(ref).String(), nil
+}
+
+// headerKeyPresent reports whether key is present in h (case-insensitive lookup).
+func headerKeyPresent(h map[string]string, key string) bool {
+	for k := range h {
+		if strings.EqualFold(k, key) {
+			return true
+		}
+	}
+	return false
+}
+
+// RequestJSON performs an HTTP request and returns the parsed JSON response.
+func RequestJSON(s *session.Session, method, pathOrURL string, opts RequestOpts) (any, error) {
+	return requestJSONWithAutoRefresh(s, method, pathOrURL, opts, true)
+}
+
+func requestJSONWithAutoRefresh(
+	s *session.Session,
+	method, pathOrURL string,
+	opts RequestOpts,
+	allowAutoRefresh bool,
+) (any, error) {
+	if opts.Client == nil {
+		opts.Client = defaultHTTPClient
+	}
+	baseURL := s.BaseURL
+	if baseURL == "" {
+		baseURL = session.DefaultBaseURL
+	}
+	fullURL, err := makeURL(baseURL, pathOrURL)
+	if err != nil {
+		return nil, err
+	}
+
+	params := url.Values{}
+	for _, p := range opts.Query {
+		idx := strings.IndexByte(p, '=')
+		if idx < 0 {
+			return nil, fmt.Errorf("bad query parameter: %s, expected key=value", p)
+		}
+		params.Add(p[:idx], p[idx+1:])
+	}
+	if len(params) > 0 {
+		u, err := url.Parse(fullURL)
+		if err != nil {
+			return nil, err
+		}
+		q := u.Query()
+		for k, vs := range params {
+			for _, v := range vs {
+				q.Add(k, v)
+			}
+		}
+		u.RawQuery = q.Encode()
+		fullURL = u.String()
+	}
+
+	headers := make(map[string]string)
+	for k, v := range session.NormalizeHeaders(s.Headers) {
+		headers[k] = v
+	}
+	if tok := session.TokenString(s); tok != "" && !headerKeyPresent(headers, "authorization") {
+		headers["Authorization"] = "Bearer " + tok
+	}
+	for k, v := range opts.ExtraHeaders {
+		headers[k] = v
+	}
+
+	var bodyReader io.Reader
+	if opts.Data != nil {
+		switch opts.DataFormat {
+		case FormatJSON:
+			b, err := json.Marshal(opts.Data)
+			if err != nil {
+				return nil, err
+			}
+			bodyReader = bytes.NewReader(b)
+			if !headerKeyPresent(headers, "content-type") {
+				headers["Content-Type"] = "application/json"
+			}
+		case FormatForm:
+			switch d := opts.Data.(type) {
+			case map[string]any:
+				uv := url.Values{}
+				for k, v := range d {
+					uv.Set(k, fmt.Sprint(v))
+				}
+				bodyReader = strings.NewReader(uv.Encode())
+			case string:
+				bodyReader = strings.NewReader(d)
+			default:
+				return nil, errors.New("for data_format=form provide map or string")
+			}
+			if !headerKeyPresent(headers, "content-type") {
+				headers["Content-Type"] = "application/x-www-form-urlencoded"
+			}
+		case FormatRaw:
+			str, ok := opts.Data.(string)
+			if !ok {
+				return nil, errors.New("for data_format=raw provide string")
+			}
+			bodyReader = strings.NewReader(str)
+		default:
+			return nil, errors.New("unsupported data_format, use: json, form, raw")
+		}
+	}
+
+	req, err := http.NewRequest(strings.ToUpper(method), fullURL, bodyReader)
+	if err != nil {
+		return nil, err
+	}
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := opts.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("connection error: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	text := string(raw)
+
+	if resp.StatusCode >= 400 {
+		if resp.StatusCode == http.StatusUnauthorized && allowAutoRefresh && !isTokenEndpoint(fullURL) {
+			if refreshed, refreshErr := refreshAccessToken(s, opts.Client); refreshErr == nil && refreshed {
+				return requestJSONWithAutoRefresh(s, method, pathOrURL, opts, false)
+			}
+		}
+		msg := map[string]any{
+			"status": resp.StatusCode,
+			"reason": http.StatusText(resp.StatusCode),
+			"url":    sanitizeErrorURL(fullURL),
+			"body":   sanitizeErrorBody(text),
+		}
+		b, _ := json.MarshalIndent(msg, "", "  ")
+		return nil, fmt.Errorf("%s", string(b))
+	}
+
+	ct := resp.Header.Get("Content-Type")
+	if strings.Contains(ct, "application/json") {
+		if len(text) == 0 {
+			return map[string]any{}, nil
+		}
+		var out any
+		if err := json.Unmarshal(raw, &out); err != nil {
+			return nil, err
+		}
+		return out, nil
+	}
+	return map[string]any{"status": resp.StatusCode, "body": text}, nil
+}
+
+// sanitizeErrorURL strips query params and fragments from rawURL before including it
+// in an error message to avoid leaking sensitive query values.
+func sanitizeErrorURL(rawURL string) string {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return rawURL
+	}
+	u.RawQuery = ""
+	u.Fragment = ""
+	return u.String()
+}
+
+// sanitizeErrorBody redacts tokens and credentials from an HTTP error body and
+// truncates it to maxErrorBodyLen.
+func sanitizeErrorBody(body string) string {
+	body = strings.TrimSpace(body)
+	if body == "" {
+		return body
+	}
+	body = bearerTokenRe.ReplaceAllString(body, "Bearer ***")
+	body = refreshTokenRe.ReplaceAllString(body, "${1}***")
+	body = accessTokenRe.ReplaceAllString(body, "${1}***")
+	body = cookiePairRe.ReplaceAllString(body, "${1}***")
+	if len(body) > maxErrorBodyLen {
+		body = body[:maxErrorBodyLen] + "...[truncated]"
+	}
+	return body
+}
+
+// isTokenEndpoint reports whether fullURL is the Frisco token endpoint, used to
+// prevent infinite refresh loops.
+func isTokenEndpoint(fullURL string) bool {
+	return strings.Contains(fullURL, "/app/commerce/connect/token")
+}
+
+// refreshAccessToken attempts to obtain a new access token using the session's
+// refresh token and updates the session in place on success.
+func refreshAccessToken(s *session.Session, client *http.Client) (bool, error) {
+	rt := session.RefreshTokenString(s)
+	if rt == "" {
+		return false, errors.New("missing refresh token")
+	}
+	payload := map[string]any{
+		"grant_type":    "refresh_token",
+		"refresh_token": rt,
+	}
+	result, err := requestJSONWithAutoRefresh(s, "POST", "/app/commerce/connect/token", RequestOpts{
+		Data:       payload,
+		DataFormat: FormatForm,
+		Client:     client,
+	}, false)
+	if err != nil {
+		return false, err
+	}
+	m, ok := result.(map[string]any)
+	if !ok {
+		return false, errors.New("unexpected token endpoint response")
+	}
+	accessToken, _ := m["access_token"].(string)
+	if strings.TrimSpace(accessToken) == "" {
+		return false, errors.New("missing access_token in refresh response")
+	}
+	s.Token = accessToken
+	if s.Headers == nil {
+		s.Headers = map[string]string{}
+	}
+	s.Headers["Authorization"] = "Bearer " + accessToken
+	if newRefresh, ok := m["refresh_token"].(string); ok && strings.TrimSpace(newRefresh) != "" {
+		s.RefreshToken = newRefresh
+	}
+	if err := session.Save(s); err != nil {
+		return false, err
+	}
+	return true, nil
+}

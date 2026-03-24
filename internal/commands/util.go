@@ -1,0 +1,295 @@
+package commands
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"sort"
+	"strings"
+	"text/tabwriter"
+)
+
+// outputFormat controls the global output mode ("table" or "json") for all commands.
+var outputFormat = "table"
+
+// printJSON prints v as indented JSON when outputFormat is "json", otherwise
+// delegates to printPretty for a human-readable table/text layout.
+func printJSON(v any) error {
+	if strings.EqualFold(outputFormat, "json") {
+		b, err := json.MarshalIndent(v, "", "  ")
+		if err != nil {
+			return err
+		}
+		_, err = fmt.Println(string(b))
+		return err
+	}
+	return printPretty(v)
+}
+
+// printPretty renders v as a human-readable table, dispatching on the concrete type.
+func printPretty(v any) error {
+	switch t := v.(type) {
+	case map[string]any:
+		return printPrettyMap(t)
+	case []any:
+		return printPrettyList(t, "")
+	default:
+		_, err := fmt.Println(v)
+		return err
+	}
+}
+
+// printPrettyMap renders a map as a table, with special handling for common list
+// payload shapes (orders, items, products, slots) and day/slot structures.
+func printPrettyMap(m map[string]any) error {
+	// Special-case the most common list payload shapes.
+	for _, key := range []string{"orders", "items", "products", "slots"} {
+		if raw, ok := m[key]; ok {
+			if list, ok := raw.([]any); ok && len(list) > 0 {
+				if key == "slots" {
+					return printPrettySlots(map[string]any{"days": []any{m}})
+				}
+				_ = printScalarMap(m, []string{key})
+				return printPrettyList(list, key)
+			}
+		}
+	}
+	if rawDays, ok := m["days"]; ok {
+		if days, ok := rawDays.([]any); ok {
+			return printPrettySlots(map[string]any{"days": days})
+		}
+	}
+	return printScalarMap(m, nil)
+}
+
+// printScalarMap prints scalar fields of m as a key-value table, then recursively
+// renders non-scalar values; keys in skip are excluded from both passes.
+func printScalarMap(m map[string]any, skip []string) error {
+	skipSet := map[string]struct{}{}
+	for _, k := range skip {
+		skipSet[k] = struct{}{}
+	}
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		if _, exists := skipSet[k]; !exists {
+			keys = append(keys, k)
+		}
+	}
+	sort.Strings(keys)
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	for _, k := range keys {
+		val := m[k]
+		if isScalar(val) {
+			_, _ = fmt.Fprintf(w, "%s\t%v\n", k, val)
+		}
+	}
+	_ = w.Flush()
+	for _, k := range keys {
+		val := m[k]
+		if !isScalar(val) {
+			_, _ = fmt.Printf("\n%s:\n", k)
+			switch nested := val.(type) {
+			case map[string]any:
+				_ = printScalarMap(nested, nil)
+			case []any:
+				_ = printPrettyList(nested, k)
+			default:
+				_, _ = fmt.Println(nested)
+			}
+		}
+	}
+	return nil
+}
+
+// printPrettyList renders a list of values as a tabwriter table when all items are
+// maps; falls back to a numbered/bulleted text layout for mixed or scalar lists.
+func printPrettyList(list []any, _ string) error {
+	rows := listOfMaps(list)
+	if len(rows) > 0 {
+		cols := inferColumns(rows)
+		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		_, _ = fmt.Fprintln(w, strings.Join(cols, "\t"))
+		for _, row := range rows {
+			cells := make([]string, 0, len(cols))
+			for _, col := range cols {
+				cells = append(cells, cellValue(row[col]))
+			}
+			_, _ = fmt.Fprintln(w, strings.Join(cells, "\t"))
+		}
+		_ = w.Flush()
+		return nil
+	}
+
+	for i, item := range list {
+		if isScalar(item) {
+			_, _ = fmt.Printf("- %v\n", item)
+			continue
+		}
+		_, _ = fmt.Printf("[%d]\n", i+1)
+		switch t := item.(type) {
+		case map[string]any:
+			_ = printScalarMap(t, nil)
+		default:
+			_, _ = fmt.Println(t)
+		}
+	}
+	return nil
+}
+
+// printPrettySlots renders a {days:[{date, slots:[...]}]} payload as a per-day slot table.
+func printPrettySlots(payload map[string]any) error {
+	raw, ok := payload["days"].([]any)
+	if !ok {
+		return printScalarMap(payload, nil)
+	}
+	for _, d := range raw {
+		day, ok := d.(map[string]any)
+		if !ok {
+			continue
+		}
+		date := cellValue(day["date"])
+		_, _ = fmt.Printf("%s\n", date)
+		slots, _ := day["slots"].([]any)
+		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		_, _ = fmt.Fprintln(w, "from\tto\tmethod\twarehouse")
+		for _, s := range slots {
+			slot, ok := s.(map[string]any)
+			if !ok {
+				continue
+			}
+			from := hhmm(slot["startsAt"])
+			to := hhmm(slot["endsAt"])
+			_, _ = fmt.Fprintf(
+				w,
+				"%s\t%s\t%s\t%s\n",
+				from,
+				to,
+				cellValue(slot["deliveryMethod"]),
+				cellValue(slot["warehouse"]),
+			)
+		}
+		_ = w.Flush()
+		_, _ = fmt.Println()
+	}
+	return nil
+}
+
+// listOfMaps filters a []any slice to only those elements that are map[string]any.
+func listOfMaps(list []any) []map[string]any {
+	out := make([]map[string]any, 0, len(list))
+	for _, item := range list {
+		if m, ok := item.(map[string]any); ok {
+			out = append(out, m)
+		}
+	}
+	return out
+}
+
+// inferColumns determines an ordered column list for tabwriter output by promoting
+// priority keys first and then adding remaining scalar fields.
+func inferColumns(rows []map[string]any) []string {
+	if len(rows) == 0 {
+		return []string{"value"}
+	}
+	seen := map[string]struct{}{}
+	cols := make([]string, 0, 12)
+	priority := []string{"id", "status", "createdAt", "name", "productId", "quantity", "totalPLN", "startsAt", "endsAt"}
+	for _, p := range priority {
+		for _, row := range rows {
+			if _, ok := row[p]; ok {
+				if _, exists := seen[p]; !exists {
+					cols = append(cols, p)
+					seen[p] = struct{}{}
+				}
+				break
+			}
+		}
+	}
+	for _, row := range rows {
+		for k, v := range row {
+			if !isScalar(v) {
+				continue
+			}
+			if _, exists := seen[k]; !exists {
+				seen[k] = struct{}{}
+				cols = append(cols, k)
+			}
+		}
+	}
+	if len(cols) == 0 {
+		return []string{"value"}
+	}
+	return cols
+}
+
+// isScalar reports whether v can be rendered as a single table cell value.
+func isScalar(v any) bool {
+	switch v.(type) {
+	case nil, string, bool, int, int32, int64, float32, float64, json.Number:
+		return true
+	default:
+		return false
+	}
+}
+
+// cellValue converts v to a display string, returning "—" for nil or blank strings
+// and compacting small JSON objects into a single line.
+func cellValue(v any) string {
+	if v == nil {
+		return "—"
+	}
+	if s, ok := v.(string); ok {
+		if strings.TrimSpace(s) == "" {
+			return "—"
+		}
+		return s
+	}
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err == nil && len(b) < 80 {
+		return string(b)
+	}
+	return fmt.Sprint(v)
+}
+
+// hhmm extracts the HH:MM portion from an ISO 8601 timestamp cell value.
+func hhmm(v any) string {
+	s := cellValue(v)
+	if s == "—" {
+		return s
+	}
+	parts := strings.SplitN(s, "T", 2)
+	if len(parts) != 2 {
+		return s
+	}
+	if len(parts[1]) >= 5 {
+		return parts[1][:5]
+	}
+	return parts[1]
+}
+
+// loadJSONFile reads a file at path and unmarshals its contents as JSON.
+func loadJSONFile(path string) (any, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var v any
+	if err := json.Unmarshal(raw, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+// stringField converts v to a trimmed string and reports whether it is non-empty.
+func stringField(v any) (string, bool) {
+	if v == nil {
+		return "", false
+	}
+	switch t := v.(type) {
+	case string:
+		return t, true
+	default:
+		s := strings.TrimSpace(fmt.Sprint(v))
+		return s, s != ""
+	}
+}

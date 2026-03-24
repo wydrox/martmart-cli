@@ -1,0 +1,39 @@
+# Build artifacts
+bin/
+.bin/
+/frisco
+
+# Go
+.gopath/
+vendor/
+
+# Session & credentials
+*.har
+*.env
+.env.*
+session.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code
+CLAUDE.md
+.claude/
+
+# Test
+coverage.out
+
+# Logs
+*.log
+
+# Python (legacy)
+*.pyc
+__pycache__/
