@@ -11,6 +11,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"github.com/rrudol/frisco/internal/httpclient"
+	"github.com/rrudol/frisco/internal/login"
 	"github.com/rrudol/frisco/internal/session"
 )
 
@@ -67,6 +68,11 @@ func registerAccountSessionAuthTools(server *mcp.Server) {
 	}, toolAccountMembershipPoints)
 
 	mcp.AddTool(server, &mcp.Tool{
+		Name:        "session_login",
+		Description: "Opens a Chrome browser window for interactive Frisco.pl login. Captures auth credentials automatically and saves the session. Requires Chrome/Chromium installed. Use this when the user is not authenticated.",
+	}, toolSessionLogin)
+
+	mcp.AddTool(server, &mcp.Tool{
 		Name:        "session_show",
 		Description: "Current session with secrets redacted (same as CLI session show).",
 	}, toolSessionShow)
@@ -93,11 +99,7 @@ type accountProfileIn struct {
 }
 
 func toolAccountProfile(_ context.Context, _ *mcp.CallToolRequest, in accountProfileIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -110,11 +112,7 @@ func toolAccountProfile(_ context.Context, _ *mcp.CallToolRequest, in accountPro
 }
 
 func toolAccountAddressesList(_ context.Context, _ *mcp.CallToolRequest, in accountAddressesListIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -136,11 +134,7 @@ func toolAccountAddressesAdd(_ context.Context, _ *mcp.CallToolRequest, in accou
 	if len(in.Payload) == 0 {
 		return nil, mcpCPFriscoToolOut{}, errors.New("payload is required")
 	}
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -170,11 +164,7 @@ func toolAccountAddressesUpdate(_ context.Context, _ *mcp.CallToolRequest, in ac
 	if len(in.Payload) == 0 {
 		return nil, mcpCPFriscoToolOut{}, errors.New("payload is required")
 	}
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -200,11 +190,7 @@ func toolAccountAddressesDelete(_ context.Context, _ *mcp.CallToolRequest, in ac
 	if strings.TrimSpace(in.AddressID) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("address_id is required")
 	}
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -235,11 +221,7 @@ func toolAccountConsentsUpdate(_ context.Context, _ *mcp.CallToolRequest, in acc
 	if len(in.Payload) == 0 {
 		return nil, mcpCPFriscoToolOut{}, errors.New("payload is required")
 	}
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -515,11 +497,7 @@ type accountVouchersIn struct {
 }
 
 func toolAccountVouchers(_ context.Context, _ *mcp.CallToolRequest, in accountVouchersIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -537,11 +515,7 @@ type accountPaymentsIn struct {
 }
 
 func toolAccountPayments(_ context.Context, _ *mcp.CallToolRequest, in accountPaymentsIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -559,11 +533,7 @@ type accountMembershipCardsIn struct {
 }
 
 func toolAccountMembershipCards(_ context.Context, _ *mcp.CallToolRequest, in accountMembershipCardsIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -583,11 +553,7 @@ type accountMembershipPointsIn struct {
 }
 
 func toolAccountMembershipPoints(_ context.Context, _ *mcp.CallToolRequest, in accountMembershipPointsIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -708,6 +674,30 @@ func toolAuthRefreshToken(_ context.Context, _ *mcp.CallToolRequest, in authRefr
 		"token_saved":         mcpASATokenSaved(s),
 		"refresh_token_saved": session.RefreshTokenString(s) != "",
 		"message":             "Unexpected token endpoint payload shape; session not updated.",
+	})
+}
+
+// sessionLoginIn is the input type for the session_login tool.
+type sessionLoginIn struct {
+	TimeoutSec *int `json:"timeout_sec,omitempty" jsonschema:"Login timeout in seconds; default 180"`
+}
+
+func toolSessionLogin(ctx context.Context, _ *mcp.CallToolRequest, in sessionLoginIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
+	timeout := 180
+	if in.TimeoutSec != nil && *in.TimeoutSec > 0 {
+		timeout = *in.TimeoutSec
+	}
+	result, err := login.Run(ctx, "", timeout)
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
+	}
+	return mcpCPWrapFriscoResult(map[string]any{
+		"saved":               result.Saved,
+		"base_url":            result.BaseURL,
+		"user_id":             result.UserID,
+		"token_saved":         result.TokenSaved,
+		"refresh_token_saved": result.RefreshTokenSaved,
+		"cookie_saved":        result.CookieSaved,
 	})
 }
 

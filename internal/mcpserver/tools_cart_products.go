@@ -61,11 +61,7 @@ type mcpCPCartShowIn struct {
 }
 
 func mcpCPCartShow(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartShowIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -88,11 +84,7 @@ func mcpCPCartAdd(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartAddIn) 
 	if strings.TrimSpace(in.ProductID) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("product_id is required")
 	}
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -126,11 +118,7 @@ func mcpCPCartRemove(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartRemo
 	if strings.TrimSpace(in.ProductID) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("product_id is required")
 	}
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -164,11 +152,7 @@ func mcpCPProductsSearch(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProd
 	if strings.TrimSpace(in.Search) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("search is required")
 	}
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -215,11 +199,7 @@ func mcpCPProductsByIDs(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProdu
 	if len(in.ProductIDs) == 0 {
 		return nil, mcpCPFriscoToolOut{}, errors.New("product_ids must contain at least one id")
 	}
-	s, err := session.Load()
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -249,6 +229,9 @@ func mcpCPProductsNutrition(_ context.Context, _ *mcp.CallToolRequest, in mcpCPP
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
+	if !session.IsAuthenticated(s) {
+		return nil, mcpCPFriscoToolOut{}, errNotAuthenticated
+	}
 	path := fmt.Sprintf("/app/content/api/v1/products/get/%s", in.ProductID)
 	result, err := httpclient.RequestJSON(s, "GET", path, httpclient.RequestOpts{})
 	if err != nil {
@@ -271,6 +254,29 @@ func mcpCPProductsNutrition(_ context.Context, _ *mcp.CallToolRequest, in mcpCPP
 		"sourcePath": "/app/content/api/v1/products/get/{id}",
 	}
 	return mcpCPWrapFriscoResult(out)
+}
+
+var errNotAuthenticated = errors.New(
+	"not authenticated — no session found; " +
+		"call session_login to open a browser and log in interactively, " +
+		"or use session_from_curl with a cURL copied from DevTools",
+)
+
+// loadSessionAuth loads the session and verifies it has authentication credentials.
+// Tools that don't require auth (e.g. products_search, session_from_curl) should use session.Load() directly.
+func loadSessionAuth(explicitUserID string) (*session.Session, string, error) {
+	s, err := session.Load()
+	if err != nil {
+		return nil, "", err
+	}
+	if !session.IsAuthenticated(s) {
+		return nil, "", errNotAuthenticated
+	}
+	uid, err := session.RequireUserID(s, explicitUserID)
+	if err != nil {
+		return nil, "", err
+	}
+	return s, uid, nil
 }
 
 // mcpCPWrapFriscoResult marshals v into a CallToolResult and the structured

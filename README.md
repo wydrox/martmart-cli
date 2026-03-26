@@ -99,7 +99,7 @@ frisco account orders list --all-pages --format json
 
 ### Claude Desktop
 
-Download the latest `.mcpb` bundle for your platform from [Releases](https://github.com/rrudol/frisco/releases) and double-click to install.
+Download the latest `.mcpb` bundle for your platform from [Releases](https://github.com/rrudol/frisco/releases), then in Claude Desktop go to **Extensions → Advanced Settings → Install Extensions** and select the downloaded file.
 
 <details>
 <summary>Manual setup</summary>

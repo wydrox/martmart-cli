@@ -4,19 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
-	"os/exec"
-	"runtime"
 	"sort"
-	"strings"
-	"sync"
-	"time"
 
-	"github.com/chromedp/cdproto/network"
-	"github.com/chromedp/chromedp"
 	"github.com/spf13/cobra"
 
 	"github.com/rrudol/frisco/internal/httpclient"
+	"github.com/rrudol/frisco/internal/login"
 	"github.com/rrudol/frisco/internal/session"
 )
 
@@ -204,173 +197,20 @@ func newSessionLoginCmd() *cobra.Command {
 		Use:   "login",
 		Short: "Interactive browser login and automatic session save.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			s, err := session.Load()
+			_, _ = fmt.Fprintln(cmd.OutOrStdout(),
+				"Browser opened. Log in manually and CLI will capture token and save session.")
+
+			result, err := login.Run(context.Background(), loginURL, timeoutSec)
 			if err != nil {
 				return err
 			}
-
-			baseURL := s.BaseURL
-			if baseURL == "" {
-				baseURL = session.DefaultBaseURL
-			}
-			if loginURL == "" {
-				loginURL = defaultLoginURL
-			}
-			if _, err := url.ParseRequestURI(loginURL); err != nil {
-				return fmt.Errorf("invalid --login-url: %w", err)
-			}
-			if timeoutSec <= 0 {
-				return errors.New("--timeout must be > 0")
-			}
-
-			type authCapture struct {
-				AccessToken  string
-				RefreshToken string
-				UserID       string
-				CookieHeader string
-			}
-			captured := authCapture{}
-			var mu sync.Mutex
-
-			if err := checkChromeInstalled(); err != nil {
-				return err
-			}
-
-			allocOpts := append(chromedp.DefaultExecAllocatorOptions[:],
-				chromedp.Flag("headless", false),
-				chromedp.Flag("disable-gpu", false),
-			)
-			allocCtx, cancelAlloc := chromedp.NewExecAllocator(context.Background(), allocOpts...)
-			defer cancelAlloc()
-			ctx, cancelCtx := chromedp.NewContext(allocCtx)
-			defer cancelCtx()
-
-			chromedp.ListenTarget(ctx, func(ev any) {
-				mu.Lock()
-				defer mu.Unlock()
-
-				switch e := ev.(type) {
-				case *network.EventRequestWillBeSent:
-					if captured.UserID == "" {
-						if uid := session.ExtractUserID(e.Request.URL); uid != "" {
-							captured.UserID = uid
-						}
-					}
-				case *network.EventRequestWillBeSentExtraInfo:
-					if captured.AccessToken == "" {
-						if token := bearerFromHeaders(e.Headers); token != "" {
-							captured.AccessToken = token
-						}
-					}
-					if cookie := headerStringValue(e.Headers, "Cookie"); cookie != "" {
-						if captured.CookieHeader == "" {
-							captured.CookieHeader = cookie
-						}
-						if captured.RefreshToken == "" {
-							if rt := session.ExtractRefreshTokenFromHeaderValue(cookie); rt != "" {
-								captured.RefreshToken = rt
-							}
-						}
-					}
-				case *network.EventResponseReceivedExtraInfo:
-					if captured.RefreshToken == "" {
-						if rt := refreshTokenFromHeaders(e.Headers); rt != "" {
-							captured.RefreshToken = rt
-						}
-					}
-				}
-			})
-
-			if err := chromedp.Run(ctx,
-				network.Enable(),
-				chromedp.Navigate(loginURL),
-			); err != nil {
-				return fmt.Errorf("could not start login browser: %w", err)
-			}
-			_, _ = fmt.Fprintln(
-				cmd.OutOrStdout(),
-				"Browser opened. Log in manually and CLI will capture token and save session.",
-			)
-
-			deadline := time.Now().Add(time.Duration(timeoutSec) * time.Second)
-			var accessDetectedAt time.Time
-			for time.Now().Before(deadline) {
-				time.Sleep(1 * time.Second)
-				mu.Lock()
-				gotToken := captured.AccessToken != ""
-				gotRefresh := captured.RefreshToken != ""
-				mu.Unlock()
-				if gotToken && accessDetectedAt.IsZero() {
-					accessDetectedAt = time.Now()
-				}
-				if gotToken && gotRefresh {
-					break
-				}
-				// Give refresh token a short extra window after access token appears.
-				if gotToken && !accessDetectedAt.IsZero() && time.Since(accessDetectedAt) > 8*time.Second {
-					break
-				}
-			}
-
-			allCookies, err := network.GetCookies().Do(ctx)
-			if err == nil && len(allCookies) > 0 {
-				pairs := make([]string, 0, len(allCookies))
-				for _, ck := range allCookies {
-					if ck == nil || ck.Name == "" {
-						continue
-					}
-					pairs = append(pairs, ck.Name+"="+ck.Value)
-				}
-				if len(pairs) > 0 {
-					mu.Lock()
-					captured.CookieHeader = strings.Join(pairs, "; ")
-					if captured.RefreshToken == "" {
-						if rt := session.ExtractRefreshTokenFromHeaderValue(captured.CookieHeader); rt != "" {
-							captured.RefreshToken = rt
-						}
-					}
-					mu.Unlock()
-				}
-			}
-
-			mu.Lock()
-			accessToken := captured.AccessToken
-			refreshToken := captured.RefreshToken
-			userID := captured.UserID
-			cookieHeader := captured.CookieHeader
-			mu.Unlock()
-
-			if accessToken == "" {
-				return errors.New("access token not detected, try again and after login open account/cart page to trigger API requests")
-			}
-
-			s.BaseURL = baseURL
-			s.Token = accessToken
-			if s.Headers == nil {
-				s.Headers = map[string]string{}
-			}
-			s.Headers["Authorization"] = "Bearer " + accessToken
-			if cookieHeader != "" {
-				s.Headers["Cookie"] = cookieHeader
-			}
-			if refreshToken != "" {
-				s.RefreshToken = refreshToken
-			}
-			if userID != "" {
-				s.UserID = userID
-			}
-
-			if err := session.Save(s); err != nil {
-				return err
-			}
-
 			return printJSON(map[string]any{
-				"saved":               true,
-				"base_url":            s.BaseURL,
-				"user_id":             s.UserID,
-				"token_saved":         session.TokenString(s) != "",
-				"refresh_token_saved": session.RefreshTokenString(s) != "",
-				"cookie_saved":        s.Headers["Cookie"] != "",
+				"saved":               result.Saved,
+				"base_url":            result.BaseURL,
+				"user_id":             result.UserID,
+				"token_saved":         result.TokenSaved,
+				"refresh_token_saved": result.RefreshTokenSaved,
+				"cookie_saved":        result.CookieSaved,
 			})
 		},
 	}
@@ -378,87 +218,4 @@ func newSessionLoginCmd() *cobra.Command {
 	c.Flags().StringVar(&loginURL, "login-url", defaultLoginURL, "Login start URL.")
 	c.Flags().IntVar(&timeoutSec, "timeout", 180, "Maximum wait time for token (seconds).")
 	return c
-}
-
-// bearerFromHeaders extracts the Bearer token value from a CDP network headers map.
-func bearerFromHeaders(headers network.Headers) string {
-	for k := range headers {
-		if !strings.EqualFold(k, "authorization") {
-			continue
-		}
-		value := strings.TrimSpace(fmt.Sprint(headers[k]))
-		parts := strings.SplitN(value, " ", 2)
-		if len(parts) == 2 && strings.EqualFold(parts[0], "bearer") {
-			return strings.TrimSpace(parts[1])
-		}
-	}
-	return ""
-}
-
-// headerStringValue returns the trimmed value for the named header (case-insensitive).
-func headerStringValue(headers network.Headers, name string) string {
-	for k := range headers {
-		if strings.EqualFold(k, name) {
-			return strings.TrimSpace(fmt.Sprint(headers[k]))
-		}
-	}
-	return ""
-}
-
-// refreshTokenFromHeaders scans CDP network headers for a Set-Cookie/Cookie value
-// containing a refresh token and returns it if found.
-func refreshTokenFromHeaders(headers network.Headers) string {
-	for k := range headers {
-		if strings.EqualFold(k, "set-cookie") || strings.EqualFold(k, "cookie") {
-			raw := strings.TrimSpace(fmt.Sprint(headers[k]))
-			if token := session.ExtractRefreshTokenFromHeaderValue(raw); token != "" {
-				return token
-			}
-		}
-	}
-	return ""
-}
-
-// checkChromeInstalled verifies that a Chrome/Chromium browser is available
-// before attempting to launch chromedp. Returns a user-friendly error if not found.
-func checkChromeInstalled() error {
-	paths := chromeCandidates()
-	for _, p := range paths {
-		if _, err := exec.LookPath(p); err == nil {
-			return nil
-		}
-	}
-	return fmt.Errorf(
-		"chrome or Chromium not found.\n\n"+
-			"The 'session login' command requires a Chrome/Chromium browser.\n"+
-			"Install it from: https://www.google.com/chrome/\n\n"+
-			"Checked paths: %s",
-		strings.Join(paths, ", "),
-	)
-}
-
-func chromeCandidates() []string {
-	switch runtime.GOOS {
-	case "darwin":
-		return []string{
-			"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-			"/Applications/Chromium.app/Contents/MacOS/Chromium",
-			"/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
-			"google-chrome",
-			"chromium",
-		}
-	case "windows":
-		return []string{
-			`C:\Program Files\Google\Chrome\Application\chrome.exe`,
-			`C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`,
-			"chrome",
-		}
-	default: // linux
-		return []string{
-			"google-chrome",
-			"google-chrome-stable",
-			"chromium",
-			"chromium-browser",
-		}
-	}
 }

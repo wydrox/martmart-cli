@@ -195,11 +195,7 @@ type orReservationPlanOut struct {
 // --- Handlers ---
 
 func orToolOrdersList(_ context.Context, _ *mcp.CallToolRequest, in orOrdersListIn) (*mcp.CallToolResult, orOrdersListOut, error) {
-	s, err := session.Load()
-	if err != nil {
-		return nil, orOrdersListOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, orOrdersListOut{}, err
 	}
@@ -303,11 +299,7 @@ func orToolOrdersDetails(_ context.Context, _ *mcp.CallToolRequest, in orOrdersD
 	if strings.TrimSpace(in.OrderID) == "" {
 		return nil, orOrdersDetailsOut{}, fmt.Errorf("order_id is required")
 	}
-	s, err := session.Load()
-	if err != nil {
-		return nil, orOrdersDetailsOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, orOrdersDetailsOut{}, err
 	}
@@ -323,11 +315,7 @@ func orToolOrdersDelivery(_ context.Context, _ *mcp.CallToolRequest, in orOrders
 	if strings.TrimSpace(in.OrderID) == "" {
 		return nil, orOrdersDeliveryOut{}, fmt.Errorf("order_id is required")
 	}
-	s, err := session.Load()
-	if err != nil {
-		return nil, orOrdersDeliveryOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, orOrdersDeliveryOut{}, err
 	}
@@ -343,11 +331,7 @@ func orToolOrdersPayments(_ context.Context, _ *mcp.CallToolRequest, in orOrders
 	if strings.TrimSpace(in.OrderID) == "" {
 		return nil, orOrdersPaymentsOut{}, fmt.Errorf("order_id is required")
 	}
-	s, err := session.Load()
-	if err != nil {
-		return nil, orOrdersPaymentsOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, orOrdersPaymentsOut{}, err
 	}
@@ -367,6 +351,9 @@ func orToolReservationDeliveryOptions(_ context.Context, _ *mcp.CallToolRequest,
 	if err != nil {
 		return nil, orReservationDeliveryOptionsOut{}, err
 	}
+	if !session.IsAuthenticated(s) {
+		return nil, orReservationDeliveryOptionsOut{}, errNotAuthenticated
+	}
 	result, err := httpclient.RequestJSON(s, "GET", "/app/commerce/api/v1/calendar/delivery-payment", httpclient.RequestOpts{
 		Query: []string{"postcode=" + url.QueryEscape(in.Postcode)},
 	})
@@ -380,11 +367,7 @@ func orToolReservationCalendar(_ context.Context, _ *mcp.CallToolRequest, in orR
 	if len(in.ShippingAddress) == 0 {
 		return nil, orReservationCalendarOut{}, fmt.Errorf("shipping_address is required")
 	}
-	s, err := session.Load()
-	if err != nil {
-		return nil, orReservationCalendarOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, orReservationCalendarOut{}, err
 	}
@@ -409,11 +392,7 @@ func orToolReservationCalendar(_ context.Context, _ *mcp.CallToolRequest, in orR
 }
 
 func orToolReservationSlots(_ context.Context, _ *mcp.CallToolRequest, in orReservationSlotsIn) (*mcp.CallToolResult, orReservationSlotsOut, error) {
-	s, err := session.Load()
-	if err != nil {
-		return nil, orReservationSlotsOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, orReservationSlotsOut{}, err
 	}
@@ -468,11 +447,7 @@ func orToolReservationSlots(_ context.Context, _ *mcp.CallToolRequest, in orRese
 }
 
 func orToolReservationReserve(_ context.Context, _ *mcp.CallToolRequest, in orReservationReserveIn) (*mcp.CallToolResult, orReservationReserveOut, error) {
-	s, err := session.Load()
-	if err != nil {
-		return nil, orReservationReserveOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, orReservationReserveOut{}, err
 	}
@@ -548,11 +523,7 @@ func orToolReservationReserve(_ context.Context, _ *mcp.CallToolRequest, in orRe
 }
 
 func orToolReservationCancel(_ context.Context, _ *mcp.CallToolRequest, in orReservationCancelIn) (*mcp.CallToolResult, orReservationCancelOut, error) {
-	s, err := session.Load()
-	if err != nil {
-		return nil, orReservationCancelOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, orReservationCancelOut{}, err
 	}
@@ -568,11 +539,7 @@ func orToolReservationPlan(_ context.Context, _ *mcp.CallToolRequest, in orReser
 	if len(in.Payload) == 0 {
 		return nil, orReservationPlanOut{}, fmt.Errorf("payload is required")
 	}
-	s, err := session.Load()
-	if err != nil {
-		return nil, orReservationPlanOut{}, err
-	}
-	uid, err := session.RequireUserID(s, in.UserID)
+	s, uid, err := loadSessionAuth(in.UserID)
 	if err != nil {
 		return nil, orReservationPlanOut{}, err
 	}

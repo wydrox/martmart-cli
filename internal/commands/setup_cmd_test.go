@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/spf13/cobra"
+
+	"github.com/rrudol/frisco/internal/login"
 )
 
 func TestWriteMCPConfig_NewFile(t *testing.T) {
@@ -72,9 +74,9 @@ func TestWriteMCPConfig_MergesExisting(t *testing.T) {
 }
 
 func TestChromeCandidates_ReturnsNonEmpty(t *testing.T) {
-	paths := chromeCandidates()
+	paths := login.ChromeCandidates()
 	if len(paths) == 0 {
-		t.Error("chromeCandidates returned empty list")
+		t.Error("ChromeCandidates returned empty list")
 	}
 }
 

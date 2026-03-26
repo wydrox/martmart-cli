@@ -89,6 +89,20 @@ func Save(s *Session) error {
 	return os.WriteFile(sessionFile, data, 0o600)
 }
 
+// IsAuthenticated reports whether the session has a token or Authorization header.
+func IsAuthenticated(s *Session) bool {
+	if s == nil {
+		return false
+	}
+	if TokenString(s) != "" {
+		return true
+	}
+	if auth, ok := s.Headers["Authorization"]; ok && auth != "" {
+		return true
+	}
+	return false
+}
+
 // UserIDString returns session user_id as string or empty.
 func UserIDString(s *Session) string {
 	if s == nil || s.UserID == nil {
