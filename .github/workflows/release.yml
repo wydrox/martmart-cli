@@ -42,11 +42,13 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          for pair in darwin-arm64 darwin-amd64; do
+          for pair in darwin-arm64 darwin-amd64 linux-arm64 linux-amd64 windows-amd64; do
             OS="${pair%-*}"
             ARCH="${pair#*-}"
             ARCHIVE=$(find dist -maxdepth 1 -type d -name "*${OS}*${ARCH}*" | head -1)
-            if [ -z "$ARCHIVE" ] || [ ! -f "$ARCHIVE/frisco" ]; then
+            BIN="frisco"
+            [ "$OS" = "windows" ] && BIN="frisco.exe"
+            if [ -z "$ARCHIVE" ] || [ ! -f "$ARCHIVE/$BIN" ]; then
               echo "Skipping ${pair}: binary not found"
               continue
             fi
@@ -54,7 +56,7 @@ jobs:
             BDIR=$(mktemp -d)
             jq --arg v "$TAG" '.version = $v' manifest.json > "$BDIR/manifest.json"
             mkdir -p "$BDIR/server"
-            cp "$ARCHIVE/frisco" "$BDIR/server/frisco"
+            cp "$ARCHIVE/$BIN" "$BDIR/server/$BIN"
             (cd "$BDIR" && zip -r "$OLDPWD/dist/$BUNDLE" manifest.json server/)
             rm -rf "$BDIR"
             echo "Built $BUNDLE"

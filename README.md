@@ -97,14 +97,12 @@ frisco account orders list --all-pages --format json
 
 `frisco mcp` starts an [MCP](https://modelcontextprotocol.io) server over stdio, exposing cart, products, orders, reservations, and session tools to any compatible AI client.
 
-### Claude Code
+### Claude Desktop
 
-```bash
-claude mcp add frisco -- frisco mcp
-```
+Download the latest `.mcpb` bundle for your platform from [Releases](https://github.com/rrudol/frisco/releases) and double-click to install.
 
 <details>
-<summary>Claude Desktop</summary>
+<summary>Manual setup</summary>
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
@@ -123,12 +121,14 @@ If `frisco` is not in your `PATH`, use the absolute path to the binary (e.g. `"/
 
 </details>
 
-<details>
-<summary>Cursor</summary>
+### Cursor
 
 [![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=frisco&config=eyJjb21tYW5kIjoiZnJpc2NvIiwiYXJncyI6WyJtY3AiXX0=)
 
-Or add manually to `.cursor/mcp.json`:
+<details>
+<summary>Manual setup</summary>
+
+Add to `.cursor/mcp.json`:
 
 ```json
 {
@@ -142,6 +142,12 @@ Or add manually to `.cursor/mcp.json`:
 ```
 
 </details>
+
+### Claude Code
+
+```bash
+claude mcp add frisco -- frisco mcp
+```
 
 <details>
 <summary>Other MCP clients</summary>
