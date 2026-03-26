@@ -18,8 +18,8 @@ import (
 
 // mcpCPFriscoToolOut is the structured tool result envelope for cart/product tools.
 type mcpCPFriscoToolOut struct {
-	OK   bool            `json:"ok" jsonschema:"true when the Frisco API call completed without a transport error"`
-	Data json.RawMessage `json:"data,omitempty" jsonschema:"JSON body returned by Frisco (object, array, or scalar)"`
+	OK   bool           `json:"ok" jsonschema:"true when the Frisco API call completed without a transport error"`
+	Data map[string]any `json:"data,omitempty" jsonschema:"Normalized payload envelope with api_response containing Frisco JSON"`
 }
 
 // registerCartAndProductsTools registers all cart and product MCP tools.
@@ -288,5 +288,10 @@ func mcpCPWrapFriscoResult(v any) (*mcp.CallToolResult, mcpCPFriscoToolOut, erro
 	res := &mcp.CallToolResult{
 		Content: []mcp.Content{&mcp.TextContent{Text: text}},
 	}
-	return res, mcpCPFriscoToolOut{OK: true, Data: raw}, nil
+	return res, mcpCPFriscoToolOut{
+		OK: true,
+		Data: map[string]any{
+			"api_response": v,
+		},
+	}, nil
 }

@@ -2,7 +2,6 @@ package mcpserver
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math"
 	"net/url"
@@ -81,7 +80,7 @@ type orOrdersListIn struct {
 
 // orOrdersListOut is the output type for the orders_list tool.
 type orOrdersListOut struct {
-	APIResponse json.RawMessage  `json:"api_response" jsonschema:"Raw or aggregated API JSON"`
+	APIResponse map[string]any   `json:"api_response" jsonschema:"Normalized Frisco API JSON payload"`
 	Summary     map[string]any   `json:"summary,omitempty"`
 	Orders      []map[string]any `json:"orders,omitempty"`
 }
@@ -94,7 +93,7 @@ type orOrdersDetailsIn struct {
 
 // orOrdersDetailsOut is the output type for the orders_details tool.
 type orOrdersDetailsOut struct {
-	APIResponse json.RawMessage `json:"api_response"`
+	APIResponse map[string]any `json:"api_response"`
 }
 
 // orOrdersDeliveryIn is the input type for the orders_delivery tool.
@@ -105,7 +104,7 @@ type orOrdersDeliveryIn struct {
 
 // orOrdersDeliveryOut is the output type for the orders_delivery tool.
 type orOrdersDeliveryOut struct {
-	APIResponse json.RawMessage `json:"api_response"`
+	APIResponse map[string]any `json:"api_response"`
 }
 
 // orOrdersPaymentsIn is the input type for the orders_payments tool.
@@ -116,7 +115,7 @@ type orOrdersPaymentsIn struct {
 
 // orOrdersPaymentsOut is the output type for the orders_payments tool.
 type orOrdersPaymentsOut struct {
-	APIResponse json.RawMessage `json:"api_response"`
+	APIResponse map[string]any `json:"api_response"`
 }
 
 // orReservationDeliveryOptionsIn is the input type for the reservation_delivery_options tool.
@@ -126,7 +125,7 @@ type orReservationDeliveryOptionsIn struct {
 
 // orReservationDeliveryOptionsOut is the output type for the reservation_delivery_options tool.
 type orReservationDeliveryOptionsOut struct {
-	APIResponse json.RawMessage `json:"api_response"`
+	APIResponse map[string]any `json:"api_response"`
 }
 
 // orReservationCalendarIn is the input type for the reservation_calendar tool.
@@ -138,7 +137,7 @@ type orReservationCalendarIn struct {
 
 // orReservationCalendarOut is the output type for the reservation_calendar tool.
 type orReservationCalendarOut struct {
-	APIResponse json.RawMessage `json:"api_response"`
+	APIResponse map[string]any `json:"api_response"`
 }
 
 // orReservationSlotsIn is the input type for the reservation_slots tool.
@@ -167,9 +166,9 @@ type orReservationReserveIn struct {
 
 // orReservationReserveOut is the output type for the reservation_reserve tool.
 type orReservationReserveOut struct {
-	Reserved    bool            `json:"reserved"`
-	Slot        map[string]any  `json:"slot,omitempty"`
-	APIResponse json.RawMessage `json:"api_response"`
+	Reserved    bool           `json:"reserved"`
+	Slot        map[string]any `json:"slot,omitempty"`
+	APIResponse map[string]any `json:"api_response"`
 }
 
 // orReservationCancelIn is the input type for the reservation_cancel tool.
@@ -179,7 +178,7 @@ type orReservationCancelIn struct {
 
 // orReservationCancelOut is the output type for the reservation_cancel tool.
 type orReservationCancelOut struct {
-	APIResponse json.RawMessage `json:"api_response"`
+	APIResponse map[string]any `json:"api_response"`
 }
 
 // orReservationPlanIn is the input type for the reservation_plan tool.
@@ -190,7 +189,7 @@ type orReservationPlanIn struct {
 
 // orReservationPlanOut is the output type for the reservation_plan tool.
 type orReservationPlanOut struct {
-	APIResponse json.RawMessage `json:"api_response"`
+	APIResponse map[string]any `json:"api_response"`
 }
 
 // --- Handlers ---
@@ -250,11 +249,7 @@ func orToolOrdersList(_ context.Context, _ *mcp.CallToolRequest, in orOrdersList
 			return nil, orOrdersListOut{}, err
 		}
 	}
-	apiResponse, err := orMarshalRawJSON(result)
-	if err != nil {
-		return nil, orOrdersListOut{}, err
-	}
-	out := orOrdersListOut{APIResponse: apiResponse}
+	out := orOrdersListOut{APIResponse: orNormalizeAPIResponse(result)}
 	if in.Raw {
 		return nil, out, nil
 	}
@@ -321,11 +316,7 @@ func orToolOrdersDetails(_ context.Context, _ *mcp.CallToolRequest, in orOrdersD
 	if err != nil {
 		return nil, orOrdersDetailsOut{}, err
 	}
-	apiResponse, err := orMarshalRawJSON(result)
-	if err != nil {
-		return nil, orOrdersDetailsOut{}, err
-	}
-	return nil, orOrdersDetailsOut{APIResponse: apiResponse}, nil
+	return nil, orOrdersDetailsOut{APIResponse: orNormalizeAPIResponse(result)}, nil
 }
 
 func orToolOrdersDelivery(_ context.Context, _ *mcp.CallToolRequest, in orOrdersDeliveryIn) (*mcp.CallToolResult, orOrdersDeliveryOut, error) {
@@ -345,11 +336,7 @@ func orToolOrdersDelivery(_ context.Context, _ *mcp.CallToolRequest, in orOrders
 	if err != nil {
 		return nil, orOrdersDeliveryOut{}, err
 	}
-	apiResponse, err := orMarshalRawJSON(result)
-	if err != nil {
-		return nil, orOrdersDeliveryOut{}, err
-	}
-	return nil, orOrdersDeliveryOut{APIResponse: apiResponse}, nil
+	return nil, orOrdersDeliveryOut{APIResponse: orNormalizeAPIResponse(result)}, nil
 }
 
 func orToolOrdersPayments(_ context.Context, _ *mcp.CallToolRequest, in orOrdersPaymentsIn) (*mcp.CallToolResult, orOrdersPaymentsOut, error) {
@@ -369,11 +356,7 @@ func orToolOrdersPayments(_ context.Context, _ *mcp.CallToolRequest, in orOrders
 	if err != nil {
 		return nil, orOrdersPaymentsOut{}, err
 	}
-	apiResponse, err := orMarshalRawJSON(result)
-	if err != nil {
-		return nil, orOrdersPaymentsOut{}, err
-	}
-	return nil, orOrdersPaymentsOut{APIResponse: apiResponse}, nil
+	return nil, orOrdersPaymentsOut{APIResponse: orNormalizeAPIResponse(result)}, nil
 }
 
 func orToolReservationDeliveryOptions(_ context.Context, _ *mcp.CallToolRequest, in orReservationDeliveryOptionsIn) (*mcp.CallToolResult, orReservationDeliveryOptionsOut, error) {
@@ -390,11 +373,7 @@ func orToolReservationDeliveryOptions(_ context.Context, _ *mcp.CallToolRequest,
 	if err != nil {
 		return nil, orReservationDeliveryOptionsOut{}, err
 	}
-	apiResponse, err := orMarshalRawJSON(result)
-	if err != nil {
-		return nil, orReservationDeliveryOptionsOut{}, err
-	}
-	return nil, orReservationDeliveryOptionsOut{APIResponse: apiResponse}, nil
+	return nil, orReservationDeliveryOptionsOut{APIResponse: orNormalizeAPIResponse(result)}, nil
 }
 
 func orToolReservationCalendar(_ context.Context, _ *mcp.CallToolRequest, in orReservationCalendarIn) (*mcp.CallToolResult, orReservationCalendarOut, error) {
@@ -426,11 +405,7 @@ func orToolReservationCalendar(_ context.Context, _ *mcp.CallToolRequest, in orR
 	if err != nil {
 		return nil, orReservationCalendarOut{}, err
 	}
-	apiResponse, err := orMarshalRawJSON(result)
-	if err != nil {
-		return nil, orReservationCalendarOut{}, err
-	}
-	return nil, orReservationCalendarOut{APIResponse: apiResponse}, nil
+	return nil, orReservationCalendarOut{APIResponse: orNormalizeAPIResponse(result)}, nil
 }
 
 func orToolReservationSlots(_ context.Context, _ *mcp.CallToolRequest, in orReservationSlotsIn) (*mcp.CallToolResult, orReservationSlotsOut, error) {
@@ -559,10 +534,6 @@ func orToolReservationReserve(_ context.Context, _ *mcp.CallToolRequest, in orRe
 	if err != nil {
 		return nil, orReservationReserveOut{}, err
 	}
-	apiResponse, err := orMarshalRawJSON(result)
-	if err != nil {
-		return nil, orReservationReserveOut{}, err
-	}
 	out := orReservationReserveOut{
 		Reserved: true,
 		Slot: map[string]any{
@@ -571,7 +542,7 @@ func orToolReservationReserve(_ context.Context, _ *mcp.CallToolRequest, in orRe
 			"deliveryMethod": selected["deliveryMethod"],
 			"warehouse":      selected["warehouse"],
 		},
-		APIResponse: apiResponse,
+		APIResponse: orNormalizeAPIResponse(result),
 	}
 	return nil, out, nil
 }
@@ -590,11 +561,7 @@ func orToolReservationCancel(_ context.Context, _ *mcp.CallToolRequest, in orRes
 	if err != nil {
 		return nil, orReservationCancelOut{}, err
 	}
-	apiResponse, err := orMarshalRawJSON(result)
-	if err != nil {
-		return nil, orReservationCancelOut{}, err
-	}
-	return nil, orReservationCancelOut{APIResponse: apiResponse}, nil
+	return nil, orReservationCancelOut{APIResponse: orNormalizeAPIResponse(result)}, nil
 }
 
 func orToolReservationPlan(_ context.Context, _ *mcp.CallToolRequest, in orReservationPlanIn) (*mcp.CallToolResult, orReservationPlanOut, error) {
@@ -617,11 +584,7 @@ func orToolReservationPlan(_ context.Context, _ *mcp.CallToolRequest, in orReser
 	if err != nil {
 		return nil, orReservationPlanOut{}, err
 	}
-	apiResponse, err := orMarshalRawJSON(result)
-	if err != nil {
-		return nil, orReservationPlanOut{}, err
-	}
-	return nil, orReservationPlanOut{APIResponse: apiResponse}, nil
+	return nil, orReservationPlanOut{APIResponse: orNormalizeAPIResponse(result)}, nil
 }
 
 // --- Helpers (logic aligned with internal/commands orders + reservation) ---
@@ -747,13 +710,12 @@ func orNonEmptyStr(v any) (string, bool) {
 	return s, s != ""
 }
 
-// orMarshalRawJSON marshals any JSON-like payload into RawMessage for schema-safe MCP output.
-func orMarshalRawJSON(v any) (json.RawMessage, error) {
-	raw, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
+// orNormalizeAPIResponse keeps output schema stable as an object while preserving payload.
+func orNormalizeAPIResponse(v any) map[string]any {
+	if m, ok := v.(map[string]any); ok {
+		return m
 	}
-	return raw, nil
+	return map[string]any{"value": v}
 }
 
 // orGetShippingAddressFromAccount fetches the user's saved shipping addresses and
