@@ -201,6 +201,8 @@ func canonicalHeaderKey(lowerKey, original string) string {
 		return "X-Api-Version"
 	case "x-requested-with":
 		return "X-Requested-With"
+	case "x-frisco-visitorid":
+		return "X-Frisco-VisitorId"
 	default:
 		return original
 	}

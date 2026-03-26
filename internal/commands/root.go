@@ -52,6 +52,7 @@ func NewRootCmd() *cobra.Command {
 		newReservationCmd(),
 		newAccountCmd(),
 		newMCPCmd(),
+		newSetupCmd(),
 	)
 	return root
 }

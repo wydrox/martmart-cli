@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os/exec"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -230,6 +232,10 @@ func newSessionLoginCmd() *cobra.Command {
 			captured := authCapture{}
 			var mu sync.Mutex
 
+			if err := checkChromeInstalled(); err != nil {
+				return err
+			}
+
 			allocOpts := append(chromedp.DefaultExecAllocatorOptions[:],
 				chromedp.Flag("headless", false),
 				chromedp.Flag("disable-gpu", false),
@@ -411,4 +417,48 @@ func refreshTokenFromHeaders(headers network.Headers) string {
 		}
 	}
 	return ""
+}
+
+// checkChromeInstalled verifies that a Chrome/Chromium browser is available
+// before attempting to launch chromedp. Returns a user-friendly error if not found.
+func checkChromeInstalled() error {
+	paths := chromeCandidates()
+	for _, p := range paths {
+		if _, err := exec.LookPath(p); err == nil {
+			return nil
+		}
+	}
+	return fmt.Errorf(
+		"chrome or Chromium not found.\n\n"+
+			"The 'session login' command requires a Chrome/Chromium browser.\n"+
+			"Install it from: https://www.google.com/chrome/\n\n"+
+			"Checked paths: %s",
+		strings.Join(paths, ", "),
+	)
+}
+
+func chromeCandidates() []string {
+	switch runtime.GOOS {
+	case "darwin":
+		return []string{
+			"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+			"/Applications/Chromium.app/Contents/MacOS/Chromium",
+			"/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
+			"google-chrome",
+			"chromium",
+		}
+	case "windows":
+		return []string{
+			`C:\Program Files\Google\Chrome\Application\chrome.exe`,
+			`C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`,
+			"chrome",
+		}
+	default: // linux
+		return []string{
+			"google-chrome",
+			"google-chrome-stable",
+			"chromium",
+			"chromium-browser",
+		}
+	}
 }

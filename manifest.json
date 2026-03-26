@@ -1,0 +1,8 @@
+{
+  "name": "frisco",
+  "version": "0.0.0",
+  "description": "Frisco.pl grocery delivery — product search, cart, orders, reservations.",
+  "transport": "stdio",
+  "command": "server/frisco",
+  "args": ["mcp"]
+}
