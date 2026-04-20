@@ -1,5 +1,11 @@
 # MartMart CLI
 
+[![CI](https://github.com/wydrox/martmart-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/wydrox/martmart-cli/actions/workflows/ci.yml)
+[![Release](https://github.com/wydrox/martmart-cli/actions/workflows/release.yml/badge.svg)](https://github.com/wydrox/martmart-cli/actions/workflows/release.yml)
+[![Go 1.26+](https://img.shields.io/badge/go-1.26%2B-00ADD8?logo=go&logoColor=white)](go.mod)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![MCP](https://img.shields.io/badge/MCP-compatible-7C3AED)](https://modelcontextprotocol.io)
+
 **One grocery CLI for Frisco.pl and Delio.**
 
 MartMart CLI gives you a single command-line interface for **session login**, **product search**, **cart operations**, **delivery slots**, and **MCP-based AI workflows** across supported grocery providers.
@@ -30,6 +36,29 @@ It is built for people who want to:
 - **MCP server** for Claude, Cursor, and other compatible clients
 - **Configurable HTTP rate limiting**
 - **Backward-compatible local session storage**
+
+## Built for AI assistants and MCP
+
+MartMart is not just a CLI. It can also run as a **Model Context Protocol (MCP)** server, making it useful for AI assistants that need structured access to grocery shopping workflows.
+
+This repo is a good fit if you are looking for:
+- a grocery shopping **MCP server**
+- a **Claude Code** tool for Frisco.pl and Delio
+- a **Cursor** or **Claude Desktop** integration for product search, cart operations, and delivery slot lookup
+- a provider-aware shopping automation CLI in Go
+
+MCP-oriented capabilities today:
+- session login / verify tools
+- product search and product details
+- cart inspection and cart mutations
+- delivery slot lookup
+- Frisco account and order tools where supported
+
+Start the MCP server:
+
+```bash
+martmart mcp
+```
 
 ## Provider support
 
@@ -201,9 +230,21 @@ martmart cart add-batch --file list.json
 Template:
 - [examples/cart-add-batch.example.json](examples/cart-add-batch.example.json)
 
-## MCP integration
+## AI assistant and MCP integration
 
-MartMart can run as an MCP server for AI clients:
+MartMart exposes a **stdio MCP server** for AI clients.
+That means the same project can be used both as a human CLI and as a tool backend for agents.
+
+Typical agent tasks:
+- verify a shopping session
+- search for products
+- inspect a product
+- show cart contents
+- add or remove cart items
+- inspect delivery slots
+- access Frisco account/order data where supported
+
+Start the MCP server directly:
 
 ```bash
 martmart mcp
@@ -239,6 +280,14 @@ claude mcp add martmart -- martmart mcp
     }
   }
 }
+```
+
+### Other MCP clients
+
+Any client that supports stdio-based **Model Context Protocol** servers should work with:
+
+```bash
+martmart mcp
 ```
 
 ## Local data layout
