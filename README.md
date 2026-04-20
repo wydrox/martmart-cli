@@ -114,17 +114,17 @@ make build
 ./bin/martmart --help
 ```
 
-### Dodanie do PATH (żeby `martmart` działało z każdego katalogu)
+### Add to PATH (so `martmart` works from any directory)
 
 ```bash
-# tymczasowo (na sesję terminala):
+# temporarily (for the current terminal session):
 export PATH="$PATH:$(pwd)/bin"
 
-# trwale (zwykle ~/.zshrc dla macOS z Zsh):
+# permanently (usually ~/.zshrc on macOS with Zsh):
 echo 'export PATH="$PATH:$(pwd)/bin"' >> ~/.zshrc
 source ~/.zshrc
 
-# alternatywnie: link w ~/.local/bin
+# alternative: symlink under ~/.local/bin
 mkdir -p ~/.local/bin
 ln -sf "$(pwd)/bin/martmart" ~/.local/bin/martmart
 export PATH="$PATH:~/.local/bin"
@@ -242,41 +242,41 @@ Requirements:
 - an authenticated MartMart session (`session login` / `session verify`)
 - Python 3.12+ and working local audio (microphone/speaker)
 
-### Konfiguracja klucza i ustawień (TUI)
+### Key and settings configuration (TUI)
 
-Najwygodniej otworzyć TUI:
+The easiest option is to open the TUI:
 
 ```bash
 martmart config
 ```
 
-albo skrótowo:
+or, equivalently:
 
 ```bash
 martmart config set
 ```
 
-W TUI możesz edytować:
-- domyślny provider,
-- limity requestów,
-- klucz OpenAI,
-- model/voice/language/transcription model,
-- prędkość głosu,
-- wejście/wyjście audio.
+The TUI lets you edit:
+- default provider,
+- request rate limits,
+- OpenAI API key,
+- model / voice / language / transcription model,
+- voice playback speed,
+- audio input/output devices.
 
-Jeśli chcesz ustawić tylko jeden parametr bez TUI:
+If you only want to set a single parameter without the TUI:
 
 ```bash
 martmart config set --openai-api-key sk-proj-...
 ```
 
-### Setup asystenta
+### Assistant setup
 
 ```bash
 martmart voice setup
 ```
 
-Lub manualnie:
+Or manually:
 
 ```bash
 git clone ...
@@ -286,13 +286,13 @@ source ~/.martmart-cli/voice/venv/bin/activate
 pip install -r ~/.martmart-cli/voice/requirements.txt
 ```
 
-### Uruchomienie
+### Run
 
 ```bash
 martmart voice run
 ```
 
-Jeśli `OPENAI_API_KEY` nie jest ustawiony w systemie, zostanie użyty klucz z `config`.
+If `OPENAI_API_KEY` is not set in your environment, the key from `config` is used.
 
 Optional flags:
 
@@ -300,21 +300,21 @@ Optional flags:
 martmart voice run --model gpt-realtime --voice alloy --language pl --input-device -1 --output-device -1
 ```
 
-Domyślne ustawienia modelu głosowego biorą się z `martmart config`:
+Default voice-model settings come from `martmart config`:
 
 ```bash
 martmart config show
 ```
 
-Asystent automatycznie pyta o marki, promocje, zamienniki i produkty komplementarne, a po zmianie koszyka podsumowuje kroki i rekomendacje.
+The assistant proactively asks about brands, promotions, substitutes, and complementary products, and summarizes steps and recommendations after each cart change.
 
-Możesz też wywołać:
+You can also invoke:
 
 ```bash
 martmart voice
 ```
 
-co odpala ten sam runtime, co `martmart voice run`.
+which launches the same runtime as `martmart voice run`.
 
 ## Batch shopping list input
 
