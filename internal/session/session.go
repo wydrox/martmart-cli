@@ -369,10 +369,32 @@ func canonicalHeaderKey(lowerKey, original string) string {
 		return "Content-Type"
 	case "accept":
 		return "Accept"
+	case "accept-language":
+		return "Accept-Language"
 	case "origin":
 		return "Origin"
 	case "referer":
 		return "Referer"
+	case "user-agent":
+		return "User-Agent"
+	case "sec-ch-ua":
+		return "Sec-CH-UA"
+	case "sec-ch-ua-mobile":
+		return "Sec-CH-UA-Mobile"
+	case "sec-ch-ua-platform":
+		return "Sec-CH-UA-Platform"
+	case "sec-fetch-dest":
+		return "Sec-Fetch-Dest"
+	case "sec-fetch-mode":
+		return "Sec-Fetch-Mode"
+	case "sec-fetch-site":
+		return "Sec-Fetch-Site"
+	case "baggage":
+		return "Baggage"
+	case "sentry-trace":
+		return "Sentry-Trace"
+	case "priority":
+		return "Priority"
 	case "x-api-version":
 		return "X-Api-Version"
 	case "x-requested-with":

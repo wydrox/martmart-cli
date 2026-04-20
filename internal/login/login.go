@@ -6,6 +6,7 @@ package login
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -76,6 +77,11 @@ func Run(ctx context.Context, opts Options) (*Result, error) {
 		provider = session.ProviderFrisco
 	}
 	if err := session.ValidateProvider(provider); err != nil {
+		return nil, err
+	}
+	if result, err := runWithRemoteDebugBrowser(ctx, opts); err == nil {
+		return result, nil
+	} else if !errors.Is(err, errNoRemoteDebugEndpoint) {
 		return nil, err
 	}
 	if provider == session.ProviderDelio {

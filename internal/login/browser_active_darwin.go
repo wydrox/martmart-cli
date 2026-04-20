@@ -124,7 +124,13 @@ func detectActiveBrowserProfile(userDataDir, profileDir string) (*activeBrowserP
 		if err := ensureProfileExists(resolved, prof); err != nil {
 			return nil, err
 		}
-		return &activeBrowserProfile{AppName: "Browser", UserDataDir: resolved, ProfileDirectory: prof}, nil
+		ap := inferProfileMetadataFromUserDataDir(resolved)
+		ap.UserDataDir = resolved
+		ap.ProfileDirectory = prof
+		if ap.AppName == "" {
+			ap.AppName = "Browser"
+		}
+		return &ap, nil
 	}
 
 	appName, err := frontmostMacBrowserName()
@@ -187,6 +193,32 @@ var knownDarwinBrowsers = map[string]activeBrowserProfile{
 		KeychainService: "Microsoft Edge Safe Storage",
 		KeychainAccount: "Microsoft Edge",
 	},
+	"Helium": {
+		AppName:         "Helium",
+		UserDataDir:     filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "net.imput.helium"),
+		KeychainService: "Chromium Safe Storage",
+		KeychainAccount: "Chromium",
+	},
+}
+
+func inferProfileMetadataFromUserDataDir(userDataDir string) activeBrowserProfile {
+	resolved := strings.TrimSpace(userDataDir)
+	for _, profile := range knownDarwinBrowsers {
+		if resolved == profile.UserDataDir {
+			return profile
+		}
+	}
+	base := filepath.Base(resolved)
+	if strings.EqualFold(base, "net.imput.helium") {
+		return knownDarwinBrowsers["Helium"]
+	}
+	if strings.EqualFold(base, "Chromium") {
+		return knownDarwinBrowsers["Chromium"]
+	}
+	if strings.EqualFold(base, "Chrome") {
+		return knownDarwinBrowsers["Google Chrome"]
+	}
+	return activeBrowserProfile{}
 }
 
 func frontmostMacBrowserName() (string, error) {

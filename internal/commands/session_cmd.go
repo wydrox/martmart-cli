@@ -212,8 +212,13 @@ func newSessionLoginCmd() *cobra.Command {
 		Use:   "login",
 		Short: "Open the provider website in your browser and save the detected session.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, _ = fmt.Fprintln(cmd.OutOrStdout(),
-				"Opening the provider URL in your browser and waiting for session capture. If needed, sign in and open a logged-in page for that provider.")
+			if providerIs(session.ProviderDelio) {
+				_, _ = fmt.Fprintln(cmd.OutOrStdout(),
+					"Waiting for session capture from your current browser. For Delio, keep a logged-in Delio tab open.")
+			} else {
+				_, _ = fmt.Fprintln(cmd.OutOrStdout(),
+					"Waiting for session capture from your current browser. For Frisco, keep a logged-in Frisco tab open. If no remote-debug browser is available, martmart may open a browser window.")
+			}
 
 			result, err := login.Run(context.Background(), login.Options{
 				Provider:         session.CurrentProvider(),

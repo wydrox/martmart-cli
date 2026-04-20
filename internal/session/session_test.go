@@ -556,7 +556,7 @@ func TestApplyFromCurl_RefreshTokenFromBody(t *testing.T) {
 }
 
 func TestApplyFromCurl_NonAllowedHeadersFiltered(t *testing.T) {
-	// User-Agent and X-Custom should not appear in session headers.
+	// X-Custom should be filtered, but common browser headers may be preserved.
 	cmd := `curl 'https://www.frisco.pl/api/v1/products' -H 'User-Agent: Mozilla/5.0' -H 'X-Custom: should-be-dropped' -H 'Accept: application/json'`
 	c, err := ParseCurl(cmd)
 	if err != nil {
@@ -564,8 +564,8 @@ func TestApplyFromCurl_NonAllowedHeadersFiltered(t *testing.T) {
 	}
 	s := defaultSession()
 	ApplyFromCurl(s, c)
-	if _, ok := s.Headers["User-Agent"]; ok {
-		t.Error("User-Agent should have been filtered out")
+	if s.Headers["User-Agent"] != "Mozilla/5.0" {
+		t.Errorf("User-Agent: got %q, want Mozilla/5.0", s.Headers["User-Agent"])
 	}
 	if _, ok := s.Headers["X-Custom"]; ok {
 		t.Error("X-Custom should have been filtered out")
