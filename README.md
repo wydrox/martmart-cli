@@ -114,6 +114,22 @@ make build
 ./bin/martmart --help
 ```
 
+### Dodanie do PATH (żeby `martmart` działało z każdego katalogu)
+
+```bash
+# tymczasowo (na sesję terminala):
+export PATH="$PATH:$(pwd)/bin"
+
+# trwale (zwykle ~/.zshrc dla macOS z Zsh):
+echo 'export PATH="$PATH:$(pwd)/bin"' >> ~/.zshrc
+source ~/.zshrc
+
+# alternatywnie: link w ~/.local/bin
+mkdir -p ~/.local/bin
+ln -sf "$(pwd)/bin/martmart" ~/.local/bin/martmart
+export PATH="$PATH:~/.local/bin"
+```
+
 ## Quick start
 
 ### 1) Log in with your browser profile
@@ -216,6 +232,89 @@ martmart session login
 martmart session verify
 martmart mcp
 ```
+
+## Voice shopping assistant (Pipecat + OpenAI Realtime)
+
+`martmart voice` starts a local voice assistant powered by one OpenAI model for speech-to-speech and connected to local MCP with `martmart mcp`.
+
+Requirements:
+- OpenAI key configured in CLI config (`martmart config set ...`).
+- an authenticated MartMart session (`session login` / `session verify`)
+- Python 3.12+ and working local audio (microphone/speaker)
+
+### Konfiguracja klucza i ustawień (TUI)
+
+Najwygodniej otworzyć TUI:
+
+```bash
+martmart config
+```
+
+albo skrótowo:
+
+```bash
+martmart config set
+```
+
+W TUI możesz edytować:
+- domyślny provider,
+- limity requestów,
+- klucz OpenAI,
+- model/voice/language/transcription model,
+- prędkość głosu,
+- wejście/wyjście audio.
+
+Jeśli chcesz ustawić tylko jeden parametr bez TUI:
+
+```bash
+martmart config set --openai-api-key sk-proj-...
+```
+
+### Setup asystenta
+
+```bash
+martmart voice setup
+```
+
+Lub manualnie:
+
+```bash
+git clone ...
+cd martmart-cli
+python3 -m venv ~/.martmart-cli/voice/venv
+source ~/.martmart-cli/voice/venv/bin/activate
+pip install -r ~/.martmart-cli/voice/requirements.txt
+```
+
+### Uruchomienie
+
+```bash
+martmart voice run
+```
+
+Jeśli `OPENAI_API_KEY` nie jest ustawiony w systemie, zostanie użyty klucz z `config`.
+
+Optional flags:
+
+```bash
+martmart voice run --model gpt-realtime --voice alloy --language pl --input-device -1 --output-device -1
+```
+
+Domyślne ustawienia modelu głosowego biorą się z `martmart config`:
+
+```bash
+martmart config show
+```
+
+Asystent automatycznie pyta o marki, promocje, zamienniki i produkty komplementarne, a po zmianie koszyka podsumowuje kroki i rekomendacje.
+
+Możesz też wywołać:
+
+```bash
+martmart voice
+```
+
+co odpala ten sam runtime, co `martmart voice run`.
 
 ## Batch shopping list input
 
