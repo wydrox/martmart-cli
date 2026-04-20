@@ -15,8 +15,10 @@ func New() *mcp.Server {
 	}, nil)
 
 	registerCartAndProductsTools(server)
-	registerOrdersAndReservationTools(server)
-	registerAccountSessionAuthTools(server)
+	registerOrdersTools(server)
+	registerReservationTools(server)
+	registerAccountTools(server)
+	registerSessionAuthTools(server)
 
 	return server
 }
