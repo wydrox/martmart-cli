@@ -852,21 +852,31 @@ func TestRequireUserID_ErrorWhenMissing(t *testing.T) {
 // Load / Save / EnsureDir
 // ============================================================================
 
-// setTempSession overrides the package-level sessionDir and sessionFile to
-// point at a temporary directory for the duration of the test, then restores
-// the original values via t.Cleanup.
+// setTempSession overrides the package-level sessionDir to point at a
+// temporary directory for the duration of the test, then restores the
+// original values via t.Cleanup.
 func setTempSession(t *testing.T, dir string) {
 	t.Helper()
 	origDir := sessionDir
 	origLegacyDir := legacySessionDir
-	origFile := sessionFile
 	sessionDir = dir
 	legacySessionDir = ""
-	sessionFile = filepath.Join(dir, "frisco-session.json")
 	t.Cleanup(func() {
 		sessionDir = origDir
 		legacySessionDir = origLegacyDir
-		sessionFile = origFile
+	})
+}
+
+// setTempProvider overrides the package-level currentProvider for the
+// duration of the test, then restores the original value via t.Cleanup.
+func setTempProvider(t *testing.T, provider string) {
+	t.Helper()
+	orig := currentProvider
+	if err := SetCurrentProvider(provider); err != nil {
+		t.Fatalf("SetCurrentProvider(%q): %v", provider, err)
+	}
+	t.Cleanup(func() {
+		currentProvider = orig
 	})
 }
 
@@ -932,7 +942,7 @@ func TestLoad_InvalidJSON(t *testing.T) {
 	dir := t.TempDir()
 	setTempSession(t, dir)
 
-	if err := os.WriteFile(sessionFile, []byte("{not valid json"), 0o600); err != nil {
+	if err := os.WriteFile(SessionFilePath(ProviderFrisco), []byte("{not valid json"), 0o600); err != nil {
 		t.Fatalf("writing bad JSON: %v", err)
 	}
 
@@ -959,8 +969,9 @@ func TestSave_CreatesDir(t *testing.T) {
 	if _, err := os.Stat(newDir); os.IsNotExist(err) {
 		t.Errorf("Save should have created directory %q", newDir)
 	}
-	if _, err := os.Stat(sessionFile); os.IsNotExist(err) {
-		t.Errorf("Save should have written session file %q", sessionFile)
+	friscoFile := SessionFilePath(ProviderFrisco)
+	if _, err := os.Stat(friscoFile); os.IsNotExist(err) {
+		t.Errorf("Save should have written session file %q", friscoFile)
 	}
 }
 
@@ -1015,14 +1026,11 @@ func TestLoadProvider_FallsBackToLegacyDir(t *testing.T) {
 
 	origDir := sessionDir
 	origLegacyDir := legacySessionDir
-	origFile := sessionFile
 	sessionDir = newDir
 	legacySessionDir = legacyDir
-	sessionFile = filepath.Join(newDir, "frisco-session.json")
 	t.Cleanup(func() {
 		sessionDir = origDir
 		legacySessionDir = origLegacyDir
-		sessionFile = origFile
 	})
 
 	if err := os.MkdirAll(legacyDir, 0o700); err != nil {
@@ -1042,5 +1050,106 @@ func TestLoadProvider_FallsBackToLegacyDir(t *testing.T) {
 	}
 	if UserIDString(s) != "42" {
 		t.Fatalf("UserIDString: got %q, want 42", UserIDString(s))
+	}
+}
+
+func TestSaveProvider_WritesToProviderSpecificFile(t *testing.T) {
+	dir := t.TempDir()
+	setTempSession(t, dir)
+	setTempProvider(t, ProviderDelio)
+
+	s := &Session{
+		BaseURL: DefaultDelioBaseURL,
+		Token:   "tok_delio",
+		UserID:  "99",
+		Headers: map[string]string{"Cookie": "d=e"},
+	}
+	if err := Save(s); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	delioFile := filepath.Join(dir, "delio-session.json")
+	if _, err := os.Stat(delioFile); os.IsNotExist(err) {
+		t.Errorf("Save should have written Delio session file %q", delioFile)
+	}
+
+	friscoFile := filepath.Join(dir, "frisco-session.json")
+	if _, err := os.Stat(friscoFile); err == nil {
+		t.Errorf("Save must not write Frisco session file when provider is Delio: %q exists", friscoFile)
+	}
+}
+
+func TestLoadProvider_ReadsFromProviderSpecificFile(t *testing.T) {
+	dir := t.TempDir()
+	setTempSession(t, dir)
+
+	friscoFile := filepath.Join(dir, "frisco-session.json")
+	if err := os.WriteFile(friscoFile, []byte(`{"base_url":"https://www.frisco.pl","token":"tok_frisco","user_id":"1","headers":{"Cookie":"f=1"}}`), 0o600); err != nil {
+		t.Fatalf("WriteFile frisco: %v", err)
+	}
+	delioFile := filepath.Join(dir, "delio-session.json")
+	if err := os.WriteFile(delioFile, []byte(`{"base_url":"https://delio.com.pl","token":"tok_delio","user_id":"2","headers":{"Cookie":"d=2"}}`), 0o600); err != nil {
+		t.Fatalf("WriteFile delio: %v", err)
+	}
+
+	setTempProvider(t, ProviderFrisco)
+	got, err := Load()
+	if err != nil {
+		t.Fatalf("Load (frisco): %v", err)
+	}
+	if TokenString(got) != "tok_frisco" {
+		t.Errorf("Frisco Load token: got %q, want tok_frisco", TokenString(got))
+	}
+	if UserIDString(got) != "1" {
+		t.Errorf("Frisco Load user_id: got %q, want 1", UserIDString(got))
+	}
+
+	// Now re-point currentProvider to Delio and ensure Load reads delio data.
+	if err := SetCurrentProvider(ProviderDelio); err != nil {
+		t.Fatalf("SetCurrentProvider(Delio): %v", err)
+	}
+	got, err = Load()
+	if err != nil {
+		t.Fatalf("Load (delio): %v", err)
+	}
+	if TokenString(got) != "tok_delio" {
+		t.Errorf("Delio Load token: got %q, want tok_delio", TokenString(got))
+	}
+	if UserIDString(got) != "2" {
+		t.Errorf("Delio Load user_id: got %q, want 2", UserIDString(got))
+	}
+}
+
+func TestLoadProvider_LegacyFallbackForDelio(t *testing.T) {
+	base := t.TempDir()
+	newDir := filepath.Join(base, "martmart-cli")
+	legacyDir := filepath.Join(base, "frisco-cli")
+
+	origDir := sessionDir
+	origLegacyDir := legacySessionDir
+	sessionDir = newDir
+	legacySessionDir = legacyDir
+	t.Cleanup(func() {
+		sessionDir = origDir
+		legacySessionDir = origLegacyDir
+	})
+
+	if err := os.MkdirAll(legacyDir, 0o700); err != nil {
+		t.Fatalf("MkdirAll legacy dir: %v", err)
+	}
+	legacyFile := filepath.Join(legacyDir, "delio-session.json")
+	if err := os.WriteFile(legacyFile, []byte(`{"base_url":"https://delio.com.pl","token":"tok_delio_legacy","user_id":"7","headers":{"Cookie":"a=b"}}`), 0o600); err != nil {
+		t.Fatalf("WriteFile legacy delio session: %v", err)
+	}
+
+	s, err := LoadProvider(ProviderDelio)
+	if err != nil {
+		t.Fatalf("LoadProvider: %v", err)
+	}
+	if TokenString(s) != "tok_delio_legacy" {
+		t.Fatalf("TokenString: got %q, want tok_delio_legacy", TokenString(s))
+	}
+	if UserIDString(s) != "7" {
+		t.Fatalf("UserIDString: got %q, want 7", UserIDString(s))
 	}
 }

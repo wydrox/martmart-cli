@@ -28,7 +28,6 @@ const (
 var (
 	sessionDir       string
 	legacySessionDir string
-	sessionFile      string
 	currentProvider  = ProviderFrisco
 )
 
@@ -36,7 +35,6 @@ func init() {
 	home, _ := os.UserHomeDir()
 	sessionDir = filepath.Join(home, ".martmart-cli")
 	legacySessionDir = filepath.Join(home, ".frisco-cli")
-	sessionFile = filepath.Join(sessionDir, "frisco-session.json")
 }
 
 // Session is persisted per provider in ~/.martmart-cli/.
@@ -122,9 +120,6 @@ func SessionFilePath(provider string) string {
 	case ProviderDelio:
 		return filepath.Join(sessionDir, "delio-session.json")
 	default:
-		if strings.TrimSpace(sessionFile) != "" {
-			return sessionFile
-		}
 		return filepath.Join(sessionDir, "frisco-session.json")
 	}
 }
