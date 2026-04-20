@@ -862,7 +862,7 @@ func setTempSession(t *testing.T, dir string) {
 	origFile := sessionFile
 	sessionDir = dir
 	legacySessionDir = ""
-	sessionFile = filepath.Join(dir, "session.json")
+	sessionFile = filepath.Join(dir, "frisco-session.json")
 	t.Cleanup(func() {
 		sessionDir = origDir
 		legacySessionDir = origLegacyDir
@@ -945,7 +945,7 @@ func TestLoad_InvalidJSON(t *testing.T) {
 func TestSave_CreatesDir(t *testing.T) {
 	base := t.TempDir()
 	// Use a subdirectory that does not yet exist.
-	newDir := filepath.Join(base, "nested", "frisco-cli")
+	newDir := filepath.Join(base, "nested", "martmart-cli")
 	setTempSession(t, newDir)
 
 	s := &Session{
@@ -987,6 +987,27 @@ func TestEnsureDir(t *testing.T) {
 	}
 }
 
+func TestLoadProvider_FallsBackToCurrentLegacyFilename(t *testing.T) {
+	dir := t.TempDir()
+	setTempSession(t, dir)
+
+	legacyCurrentFile := filepath.Join(dir, "session.json")
+	if err := os.WriteFile(legacyCurrentFile, []byte(`{"base_url":"https://www.frisco.pl","token":"tok_current_legacy","user_id":"7","headers":{"Cookie":"a=b"}}`), 0o600); err != nil {
+		t.Fatalf("WriteFile legacy current session: %v", err)
+	}
+
+	s, err := LoadProvider(ProviderFrisco)
+	if err != nil {
+		t.Fatalf("LoadProvider: %v", err)
+	}
+	if TokenString(s) != "tok_current_legacy" {
+		t.Fatalf("TokenString: got %q, want tok_current_legacy", TokenString(s))
+	}
+	if UserIDString(s) != "7" {
+		t.Fatalf("UserIDString: got %q, want 7", UserIDString(s))
+	}
+}
+
 func TestLoadProvider_FallsBackToLegacyDir(t *testing.T) {
 	base := t.TempDir()
 	newDir := filepath.Join(base, "martmart-cli")
@@ -997,7 +1018,7 @@ func TestLoadProvider_FallsBackToLegacyDir(t *testing.T) {
 	origFile := sessionFile
 	sessionDir = newDir
 	legacySessionDir = legacyDir
-	sessionFile = filepath.Join(newDir, "session.json")
+	sessionFile = filepath.Join(newDir, "frisco-session.json")
 	t.Cleanup(func() {
 		sessionDir = origDir
 		legacySessionDir = origLegacyDir

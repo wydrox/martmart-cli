@@ -326,12 +326,12 @@ These flows are intentionally designed around **non-finalizing** actions.
 
 Session/config files are stored under `~/.martmart-cli/`.
 
-- Frisco session: `~/.martmart-cli/session.json`
+- Frisco session: `~/.martmart-cli/frisco-session.json`
 - Delio session: `~/.martmart-cli/delio-session.json`
 - Shared config: `~/.martmart-cli/config.json`
 
 Legacy compatibility:
-- if a file is missing in `~/.martmart-cli/`, MartMart will also try the old `~/.frisco-cli/` location
+- if a file is missing in `~/.martmart-cli/`, MartMart will also try older Frisco session locations such as `~/.martmart-cli/session.json` and `~/.frisco-cli/session.json`
 - new saves go to `~/.martmart-cli/`
 
 ## Security notes

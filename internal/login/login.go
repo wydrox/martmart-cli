@@ -64,9 +64,9 @@ type chromeLocalState struct {
 	} `json:"profile"`
 }
 
-// Run opens a Chrome/Chromium window using a snapshot of the current browser
-// profile, captures auth data from cookies/network traffic, and saves the
-// provider-specific session.
+// Run captures a provider session using the best available browser flow.
+// On macOS Delio prefers the active browser profile instead of launching a
+// separate Chrome snapshot. Other providers keep the existing snapshot-based flow.
 func Run(ctx context.Context, opts Options) (*Result, error) {
 	provider := session.NormalizeProvider(opts.Provider)
 	if provider == "" {
@@ -78,7 +78,13 @@ func Run(ctx context.Context, opts Options) (*Result, error) {
 	if err := session.ValidateProvider(provider); err != nil {
 		return nil, err
 	}
+	if provider == session.ProviderDelio {
+		return runWithExistingBrowser(ctx, opts)
+	}
+	return runWithSnapshotBrowser(ctx, opts, provider)
+}
 
+func runWithSnapshotBrowser(ctx context.Context, opts Options, provider string) (*Result, error) {
 	s, err := session.LoadProvider(provider)
 	if err != nil {
 		return nil, err

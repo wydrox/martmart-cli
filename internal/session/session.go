@@ -36,7 +36,7 @@ func init() {
 	home, _ := os.UserHomeDir()
 	sessionDir = filepath.Join(home, ".martmart-cli")
 	legacySessionDir = filepath.Join(home, ".frisco-cli")
-	sessionFile = filepath.Join(sessionDir, "session.json")
+	sessionFile = filepath.Join(sessionDir, "frisco-session.json")
 }
 
 // Session is persisted per provider in ~/.martmart-cli/.
@@ -125,28 +125,35 @@ func SessionFilePath(provider string) string {
 		if strings.TrimSpace(sessionFile) != "" {
 			return sessionFile
 		}
-		return filepath.Join(sessionDir, "session.json")
+		return filepath.Join(sessionDir, "frisco-session.json")
 	}
 }
 
-func legacySessionFilePath(provider string) string {
-	if strings.TrimSpace(legacySessionDir) == "" {
-		return ""
+func appendUniquePath(paths []string, path string) []string {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return paths
 	}
-	switch NormalizeProvider(provider) {
-	case ProviderDelio:
-		return filepath.Join(legacySessionDir, "delio-session.json")
-	default:
-		return filepath.Join(legacySessionDir, "session.json")
+	for _, existing := range paths {
+		if existing == path {
+			return paths
+		}
 	}
+	return append(paths, path)
 }
 
 func sessionLoadPaths(provider string) []string {
-	current := SessionFilePath(provider)
-	legacy := legacySessionFilePath(provider)
-	paths := []string{current}
-	if legacy != "" && legacy != current {
-		paths = append(paths, legacy)
+	provider = NormalizeProvider(provider)
+	paths := []string{}
+	paths = appendUniquePath(paths, SessionFilePath(provider))
+
+	switch provider {
+	case ProviderDelio:
+		paths = appendUniquePath(paths, filepath.Join(legacySessionDir, "delio-session.json"))
+	default:
+		paths = appendUniquePath(paths, filepath.Join(sessionDir, "session.json"))
+		paths = appendUniquePath(paths, filepath.Join(legacySessionDir, "frisco-session.json"))
+		paths = appendUniquePath(paths, filepath.Join(legacySessionDir, "session.json"))
 	}
 	return paths
 }

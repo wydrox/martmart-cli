@@ -210,10 +210,10 @@ func newSessionLoginCmd() *cobra.Command {
 
 	c := &cobra.Command{
 		Use:   "login",
-		Short: "Open the provider website in a Chrome/Chromium profile snapshot and save the detected session.",
+		Short: "Open the provider website in your browser and save the detected session.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			_, _ = fmt.Fprintln(cmd.OutOrStdout(),
-				"Browser opened using a snapshot of your current Chrome/Chromium profile. If you're already logged in, the session should be captured automatically; otherwise sign in in the opened window.")
+				"Opening the provider URL in your browser and waiting for session capture. If needed, sign in and open a logged-in page for that provider.")
 
 			result, err := login.Run(context.Background(), login.Options{
 				Provider:         session.CurrentProvider(),

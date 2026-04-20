@@ -26,7 +26,7 @@ type mcpCPFriscoToolOut struct {
 func registerCartAndProductsTools(server *mcp.Server) {
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "cart_show",
-		Description: "Fetch the current shopping cart for a Frisco user (GET /app/commerce/api/v1/users/{id}/cart). Uses ~/.martmart-cli/session.json unless user_id is set.",
+		Description: "Fetch the current shopping cart for a Frisco user (GET /app/commerce/api/v1/users/{id}/cart). Uses ~/.martmart-cli/frisco-session.json unless user_id is set.",
 	}, mcpCPCartShow)
 
 	mcp.AddTool(server, &mcp.Tool{
