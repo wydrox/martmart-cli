@@ -108,6 +108,7 @@ func NewRootCmd() *cobra.Command {
 		newMCPCmd(),
 		newSetupCmd(),
 		newConfigCmd(),
+		newVoiceCmd(),
 	)
 	return root
 }

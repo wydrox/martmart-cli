@@ -11,9 +11,17 @@ import (
 
 // Config stores shared CLI settings that apply across providers.
 type Config struct {
-	DefaultProvider string  `json:"default_provider"`
-	RateLimitRPS    float64 `json:"rate_limit_rps"`
-	RateLimitBurst  int     `json:"rate_limit_burst"`
+	DefaultProvider          string  `json:"default_provider"`
+	RateLimitRPS             float64 `json:"rate_limit_rps"`
+	RateLimitBurst           int     `json:"rate_limit_burst"`
+	OpenAIAPIKey             string  `json:"openai_api_key"`
+	OpenAIModel              string  `json:"openai_model"`
+	OpenAIVoice              string  `json:"openai_voice"`
+	OpenAILanguage           string  `json:"openai_language"`
+	OpenAITranscriptionModel string  `json:"openai_transcription_model"`
+	OpenAIVoiceSpeed         float64 `json:"openai_voice_speed"`
+	OpenAIInputDevice        int     `json:"openai_input_device"`
+	OpenAIOutputDevice       int     `json:"openai_output_device"`
 }
 
 var (
@@ -29,9 +37,16 @@ func init() {
 
 func defaultConfig() *Config {
 	return &Config{
-		DefaultProvider: session.ProviderFrisco,
-		RateLimitRPS:    0,
-		RateLimitBurst:  1,
+		DefaultProvider:          session.ProviderFrisco,
+		RateLimitRPS:             0,
+		RateLimitBurst:           1,
+		OpenAIModel:              "gpt-realtime",
+		OpenAIVoice:              "alloy",
+		OpenAILanguage:           "pl",
+		OpenAITranscriptionModel: "gpt-4o-transcribe",
+		OpenAIVoiceSpeed:         1.0,
+		OpenAIInputDevice:        -1,
+		OpenAIOutputDevice:       -1,
 	}
 }
 
@@ -80,6 +95,28 @@ func Normalize(cfg *Config) (*Config, error) {
 	}
 	if out.RateLimitRPS < 0 {
 		out.RateLimitRPS = 0
+	}
+
+	if strings.TrimSpace(out.OpenAIModel) == "" {
+		out.OpenAIModel = "gpt-realtime"
+	}
+	if strings.TrimSpace(out.OpenAIVoice) == "" {
+		out.OpenAIVoice = "alloy"
+	}
+	if strings.TrimSpace(out.OpenAILanguage) == "" {
+		out.OpenAILanguage = "pl"
+	}
+	if strings.TrimSpace(out.OpenAITranscriptionModel) == "" {
+		out.OpenAITranscriptionModel = "gpt-4o-transcribe"
+	}
+	if out.OpenAIVoiceSpeed <= 0 {
+		out.OpenAIVoiceSpeed = 1.0
+	}
+	if out.OpenAIInputDevice < -1 {
+		out.OpenAIInputDevice = -1
+	}
+	if out.OpenAIOutputDevice < -1 {
+		out.OpenAIOutputDevice = -1
 	}
 	return &out, nil
 }

@@ -1,0 +1,2 @@
+pipecat-ai[openai,local]>=1.0.0
+mcp[cli]>=1.9.0
