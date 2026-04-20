@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for contributing to `frisco`.
+Thanks for contributing to `martmart`.
 
 ## Local setup
 
@@ -12,7 +12,7 @@ Requirements:
 ```bash
 make setup   # configure pre-commit hook (once)
 make build
-./bin/frisco --help
+./bin/martmart --help
 ```
 
 ## Quality checks
@@ -33,7 +33,7 @@ govulncheck ./...
 
 make test    # go test ./... (CI uses go test -race)
 go vet ./...
-go build ./cmd/frisco
+go build ./cmd/martmart
 ```
 
 If the `gofmt` step fails, run `go fmt ./...` and commit again.

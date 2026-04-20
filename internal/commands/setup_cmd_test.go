@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/rrudol/frisco/internal/login"
+	"github.com/wydrox/martmart-cli/internal/login"
 )
 
 func TestWriteMCPConfig_NewFile(t *testing.T) {
@@ -17,7 +17,7 @@ func TestWriteMCPConfig_NewFile(t *testing.T) {
 	cmd := &cobra.Command{}
 	cmd.SetOut(&discardWriter{})
 
-	if err := writeMCPConfig(cmd, "Test", path, "/usr/bin/frisco"); err != nil {
+	if err := writeMCPConfig(cmd, "Test", path, "/usr/bin/martmart"); err != nil {
 		t.Fatalf("writeMCPConfig: %v", err)
 	}
 
@@ -33,12 +33,12 @@ func TestWriteMCPConfig_NewFile(t *testing.T) {
 	if !ok {
 		t.Fatal("mcpServers not found")
 	}
-	frisco, ok := servers["frisco"].(map[string]any)
+	martmart, ok := servers["martmart"].(map[string]any)
 	if !ok {
-		t.Fatal("frisco entry not found")
+		t.Fatal("martmart entry not found")
 	}
-	if frisco["command"] != "/usr/bin/frisco" {
-		t.Errorf("command = %v, want /usr/bin/frisco", frisco["command"])
+	if martmart["command"] != "/usr/bin/martmart" {
+		t.Errorf("command = %v, want /usr/bin/martmart", martmart["command"])
 	}
 }
 
@@ -52,7 +52,7 @@ func TestWriteMCPConfig_MergesExisting(t *testing.T) {
 	cmd := &cobra.Command{}
 	cmd.SetOut(&discardWriter{})
 
-	if err := writeMCPConfig(cmd, "Test", path, "/usr/bin/frisco"); err != nil {
+	if err := writeMCPConfig(cmd, "Test", path, "/usr/bin/martmart"); err != nil {
 		t.Fatalf("writeMCPConfig: %v", err)
 	}
 
@@ -68,8 +68,8 @@ func TestWriteMCPConfig_MergesExisting(t *testing.T) {
 	if _, ok := servers["other"]; !ok {
 		t.Error("existing 'other' entry was lost")
 	}
-	if _, ok := servers["frisco"]; !ok {
-		t.Error("frisco entry not added")
+	if _, ok := servers["martmart"]; !ok {
+		t.Error("martmart entry not added")
 	}
 }
 

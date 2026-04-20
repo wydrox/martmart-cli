@@ -1,4 +1,4 @@
-// Package commands implements the frisco CLI command tree.
+// Package commands implements the MartMart CLI command tree.
 package commands
 
 import (
@@ -6,6 +6,10 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
+	"github.com/wydrox/martmart-cli/internal/config"
+	"github.com/wydrox/martmart-cli/internal/httpclient"
+	"github.com/wydrox/martmart-cli/internal/session"
 )
 
 // Execute runs the root command (for main).
@@ -16,11 +20,14 @@ func Execute() error {
 // NewRootCmd builds the full CLI command tree.
 func NewRootCmd() *cobra.Command {
 	format := outputFormat
+	provider := ""
+	rateLimitRPS := 0.0
+	rateLimitBurst := 1
 	root := &cobra.Command{
-		Use:   "frisco",
-		Short: "CLI for Frisco.pl grocery delivery API.",
-		Long:  "Session management, product search, cart, orders, reservations and account operations.",
-		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
+		Use:   "martmart",
+		Short: "MartMart CLI — shared grocery CLI for Frisco.pl and Delio.",
+		Long:  "Session management, product search, cart, reservations and account operations across multiple grocery providers.",
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			format = strings.ToLower(strings.TrimSpace(format))
 			if format == "" {
 				format = "table"
@@ -32,6 +39,35 @@ func NewRootCmd() *cobra.Command {
 				)
 			}
 			outputFormat = format
+
+			cfg, err := config.Load()
+			if err != nil {
+				return err
+			}
+			effectiveProvider := strings.TrimSpace(provider)
+			if effectiveProvider == "" {
+				effectiveProvider = cfg.DefaultProvider
+			}
+			effectiveProvider = session.NormalizeProvider(effectiveProvider)
+			if effectiveProvider == "" {
+				effectiveProvider = session.ProviderFrisco
+			}
+			if err := session.SetCurrentProvider(effectiveProvider); err != nil {
+				return err
+			}
+
+			effectiveRPS := cfg.RateLimitRPS
+			if cmd.Flags().Changed("rate-limit-rps") {
+				effectiveRPS = rateLimitRPS
+			}
+			effectiveBurst := cfg.RateLimitBurst
+			if cmd.Flags().Changed("rate-limit-burst") {
+				effectiveBurst = rateLimitBurst
+			}
+			if effectiveBurst < 1 {
+				effectiveBurst = 1
+			}
+			httpclient.SetRateLimit(effectiveRPS, effectiveBurst)
 			return nil
 		},
 	}
@@ -44,6 +80,24 @@ func NewRootCmd() *cobra.Command {
 		"table",
 		"Output format: table or json.",
 	)
+	root.PersistentFlags().StringVar(
+		&provider,
+		"provider",
+		"",
+		"Backend provider: frisco or delio (default comes from config).",
+	)
+	root.PersistentFlags().Float64Var(
+		&rateLimitRPS,
+		"rate-limit-rps",
+		0,
+		"Request rate limit in requests/second (0 = disabled, default comes from config).",
+	)
+	root.PersistentFlags().IntVar(
+		&rateLimitBurst,
+		"rate-limit-burst",
+		1,
+		"Request burst size (default comes from config).",
+	)
 
 	root.AddCommand(
 		newSessionCmd(),
@@ -53,6 +107,7 @@ func NewRootCmd() *cobra.Command {
 		newAccountCmd(),
 		newMCPCmd(),
 		newSetupCmd(),
+		newConfigCmd(),
 	)
 	return root
 }

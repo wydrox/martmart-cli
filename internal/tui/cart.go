@@ -13,9 +13,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/rrudol/frisco/internal/httpclient"
-	"github.com/rrudol/frisco/internal/session"
-	"github.com/rrudol/frisco/internal/shared"
+	"github.com/wydrox/martmart-cli/internal/httpclient"
+	"github.com/wydrox/martmart-cli/internal/session"
+	"github.com/wydrox/martmart-cli/internal/shared"
 )
 
 // cartLine is one row from GET /cart (parsed defensively for varying API shapes).

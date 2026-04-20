@@ -8,13 +8,13 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/rrudol/frisco/internal/httpclient"
-	"github.com/rrudol/frisco/internal/login"
-	"github.com/rrudol/frisco/internal/session"
+	"github.com/wydrox/martmart-cli/internal/delio"
+	"github.com/wydrox/martmart-cli/internal/httpclient"
+	"github.com/wydrox/martmart-cli/internal/login"
+	"github.com/wydrox/martmart-cli/internal/session"
 )
 
-// defaultLoginURL is the Frisco login page opened by the interactive browser login command.
-const defaultLoginURL = "https://www.frisco.pl/login"
+// session login defaults to a provider-specific start URL when --login-url is not set.
 
 func newSessionCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -81,6 +81,16 @@ func newSessionVerifyCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if providerIs(session.ProviderDelio) {
+				if session.HeaderValue(s, "Cookie") == "" {
+					return errors.New("no Cookie header in Delio session. Use 'session from-curl' with a copied Delio API request")
+				}
+				if _, err := delio.CurrentCart(s); err != nil {
+					return err
+				}
+				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Session OK: Delio currentCart responded successfully.")
+				return nil
+			}
 			if session.TokenString(s) == "" {
 				return errors.New(
 					"no token in session. Use 'session from-curl' or 'session login'",
@@ -136,6 +146,9 @@ func newSessionRefreshTokenCmd() *cobra.Command {
 		Use:   "refresh-token",
 		Short: "Refresh access token via refresh token.",
 		RunE: func(_ *cobra.Command, _ []string) error {
+			if providerIs(session.ProviderDelio) {
+				return errors.New("session refresh-token is not implemented for Delio; import fresh cookies with 'session from-curl'")
+			}
 			s, err := session.Load()
 			if err != nil {
 				return err
@@ -192,20 +205,30 @@ func newSessionRefreshTokenCmd() *cobra.Command {
 func newSessionLoginCmd() *cobra.Command {
 	var loginURL string
 	var timeoutSec int
+	var userDataDir string
+	var profileDirectory string
 
 	c := &cobra.Command{
 		Use:   "login",
-		Short: "Interactive browser login and automatic session save.",
+		Short: "Open the provider website in a Chrome/Chromium profile snapshot and save the detected session.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			_, _ = fmt.Fprintln(cmd.OutOrStdout(),
-				"Browser opened. Log in manually and CLI will capture token and save session.")
+				"Browser opened using a snapshot of your current Chrome/Chromium profile. If you're already logged in, the session should be captured automatically; otherwise sign in in the opened window.")
 
-			result, err := login.Run(context.Background(), loginURL, timeoutSec)
+			result, err := login.Run(context.Background(), login.Options{
+				Provider:         session.CurrentProvider(),
+				LoginURL:         loginURL,
+				TimeoutSec:       timeoutSec,
+				UserDataDir:      userDataDir,
+				ProfileDirectory: profileDirectory,
+			})
 			if err != nil {
 				return err
 			}
 			return printJSON(map[string]any{
 				"saved":               result.Saved,
+				"provider":            result.Provider,
+				"profile_directory":   result.ProfileDirectory,
 				"base_url":            result.BaseURL,
 				"user_id":             result.UserID,
 				"token_saved":         result.TokenSaved,
@@ -215,7 +238,9 @@ func newSessionLoginCmd() *cobra.Command {
 		},
 	}
 
-	c.Flags().StringVar(&loginURL, "login-url", defaultLoginURL, "Login start URL.")
-	c.Flags().IntVar(&timeoutSec, "timeout", 180, "Maximum wait time for token (seconds).")
+	c.Flags().StringVar(&loginURL, "login-url", "", "Optional start URL (default depends on provider).")
+	c.Flags().IntVar(&timeoutSec, "timeout", 180, "Maximum wait time for session detection (seconds).")
+	c.Flags().StringVar(&userDataDir, "user-data-dir", "", "Optional Chrome/Chromium user data dir to reuse.")
+	c.Flags().StringVar(&profileDirectory, "profile-directory", "", "Optional Chrome profile directory name, e.g. Default or Profile 1.")
 	return c
 }

@@ -46,13 +46,13 @@ jobs:
             OS="${pair%-*}"
             ARCH="${pair#*-}"
             ARCHIVE=$(find dist -maxdepth 1 -type d -name "*${OS}*${ARCH}*" | head -1)
-            BIN="frisco"
-            [ "$OS" = "windows" ] && BIN="frisco.exe"
+            BIN="martmart"
+            [ "$OS" = "windows" ] && BIN="martmart.exe"
             if [ -z "$ARCHIVE" ] || [ ! -f "$ARCHIVE/$BIN" ]; then
               echo "Skipping ${pair}: binary not found"
               continue
             fi
-            BUNDLE="frisco-${pair}.mcpb"
+            BUNDLE="martmart-${pair}.mcpb"
             BDIR=$(mktemp -d)
             jq --arg v "$TAG" '.version = $v' manifest.json > "$BDIR/manifest.json"
             mkdir -p "$BDIR/server"

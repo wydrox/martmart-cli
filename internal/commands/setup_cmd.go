@@ -25,13 +25,12 @@ func newSetupAutoCmd() *cobra.Command {
 		Use:   "auto",
 		Short: "Auto-detect and configure all supported MCP clients.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			bin, err := friscoBinaryPath()
+			bin, err := martmartBinaryPath()
 			if err != nil {
 				return err
 			}
 			configured := 0
 
-			// Claude Code
 			if _, err := exec.LookPath("claude"); err == nil {
 				if err := runClaudeCodeSetup(cmd, bin); err != nil {
 					_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Claude Code: %v\n", err)
@@ -40,7 +39,6 @@ func newSetupAutoCmd() *cobra.Command {
 				}
 			}
 
-			// Claude Desktop (only if config dir already exists, meaning app is installed)
 			if p := claudeDesktopConfigPath(); p != "" && dirExists(filepath.Dir(p)) {
 				if err := writeMCPConfig(cmd, "Claude Desktop", p, bin); err != nil {
 					_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Claude Desktop: %v\n", err)
@@ -49,7 +47,6 @@ func newSetupAutoCmd() *cobra.Command {
 				}
 			}
 
-			// Cursor (global, only if ~/.cursor/ exists)
 			if p := cursorConfigPath(); p != "" && dirExists(filepath.Dir(p)) {
 				if err := writeMCPConfig(cmd, "Cursor", p, bin); err != nil {
 					_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Cursor: %v\n", err)
@@ -69,9 +66,9 @@ func newSetupAutoCmd() *cobra.Command {
 func newSetupClaudeCodeCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "claude-code",
-		Short: "Configure frisco MCP server for Claude Code.",
+		Short: "Configure MartMart MCP server for Claude Code.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			bin, err := friscoBinaryPath()
+			bin, err := martmartBinaryPath()
 			if err != nil {
 				return err
 			}
@@ -83,9 +80,9 @@ func newSetupClaudeCodeCmd() *cobra.Command {
 func newSetupClaudeDesktopCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "claude-desktop",
-		Short: "Configure frisco MCP server for Claude Desktop.",
+		Short: "Configure MartMart MCP server for Claude Desktop.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			bin, err := friscoBinaryPath()
+			bin, err := martmartBinaryPath()
 			if err != nil {
 				return err
 			}
@@ -102,9 +99,9 @@ func newSetupCursorCmd() *cobra.Command {
 	var global bool
 	c := &cobra.Command{
 		Use:   "cursor",
-		Short: "Configure frisco MCP server for Cursor.",
+		Short: "Configure MartMart MCP server for Cursor.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			bin, err := friscoBinaryPath()
+			bin, err := martmartBinaryPath()
 			if err != nil {
 				return err
 			}
@@ -128,12 +125,12 @@ func newSetupCursorCmd() *cobra.Command {
 	return c
 }
 
-func friscoBinaryPath() (string, error) {
-	p, err := exec.LookPath("frisco")
+func martmartBinaryPath() (string, error) {
+	p, err := exec.LookPath("martmart")
 	if err != nil {
 		p, err = os.Executable()
 		if err != nil {
-			return "", fmt.Errorf("cannot determine frisco binary path: %w", err)
+			return "", fmt.Errorf("cannot determine martmart binary path: %w", err)
 		}
 	}
 	if resolved, err := filepath.EvalSymlinks(p); err == nil {
@@ -177,7 +174,7 @@ func cursorConfigPath() string {
 }
 
 func runClaudeCodeSetup(cmd *cobra.Command, bin string) error {
-	c := exec.Command("claude", "mcp", "add", "frisco", "--", bin, "mcp")
+	c := exec.Command("claude", "mcp", "add", "martmart", "--", bin, "mcp")
 	c.Stdout = cmd.OutOrStdout()
 	c.Stderr = cmd.ErrOrStderr()
 	if err := c.Run(); err != nil {
@@ -188,7 +185,7 @@ func runClaudeCodeSetup(cmd *cobra.Command, bin string) error {
 }
 
 // writeMCPConfig reads an existing JSON config (or creates a new one), adds/updates
-// the frisco MCP server entry, and writes it back.
+// the MartMart MCP server entry, and writes it back.
 func writeMCPConfig(cmd *cobra.Command, label, path, bin string) error {
 	config := map[string]any{}
 	data, err := os.ReadFile(path)
@@ -204,7 +201,7 @@ func writeMCPConfig(cmd *cobra.Command, label, path, bin string) error {
 	if servers == nil {
 		servers = map[string]any{}
 	}
-	servers["frisco"] = map[string]any{
+	servers["martmart"] = map[string]any{
 		"command": bin,
 		"args":    []string{"mcp"},
 	}

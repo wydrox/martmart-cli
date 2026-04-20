@@ -1,11 +1,11 @@
-// Package main is the entry point for the frisco CLI.
+// Package main is the entry point for the MartMart CLI.
 package main
 
 import (
 	"fmt"
 	"os"
 
-	"github.com/rrudol/frisco/internal/commands"
+	"github.com/wydrox/martmart-cli/internal/commands"
 )
 
 func main() {

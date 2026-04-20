@@ -12,8 +12,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/rrudol/frisco/internal/httpclient"
-	"github.com/rrudol/frisco/internal/session"
+	"github.com/wydrox/martmart-cli/internal/delio"
+	"github.com/wydrox/martmart-cli/internal/httpclient"
+	"github.com/wydrox/martmart-cli/internal/session"
 )
 
 func newReservationCmd() *cobra.Command {
@@ -273,15 +274,31 @@ func newReservationSlotsCmd() *cobra.Command {
 		startDate    string
 		shippingFile string
 		userID       string
+		lat          float64
+		long         float64
 		rawOut       bool
 	)
 	c := &cobra.Command{
 		Use:   "slots",
 		Short: "Get available delivery slots for upcoming days (including today).",
-		RunE: func(_ *cobra.Command, _ []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			s, err := session.Load()
 			if err != nil {
 				return err
+			}
+			if providerIs(session.ProviderDelio) {
+				coords, err := delioCoordsFromFlags(cmd, lat, long)
+				if err != nil {
+					return err
+				}
+				result, err := delio.DeliveryScheduleSlots(s, coords)
+				if err != nil {
+					return err
+				}
+				if rawOut || strings.EqualFold(outputFormat, "json") {
+					return printJSON(result)
+				}
+				return printDelioSlotsTable(result, startDate, days)
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {
@@ -346,6 +363,8 @@ func newReservationSlotsCmd() *cobra.Command {
 	c.Flags().StringVar(&startDate, "start-date", "", "Start date YYYY-MM-DD (default: today).")
 	c.Flags().StringVar(&shippingFile, "shipping-address-file", "", "Optional address JSON.")
 	c.Flags().StringVar(&userID, "user-id", "", "")
+	c.Flags().Float64Var(&lat, "lat", 0, "Delio latitude override.")
+	c.Flags().Float64Var(&long, "long", 0, "Delio longitude override.")
 	c.Flags().BoolVar(&rawOut, "raw", false, "Return raw API response.")
 	return c
 }

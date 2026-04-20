@@ -42,7 +42,7 @@ jobs:
       - name: Vet
         run: go vet ./...
       - name: Build
-        run: go build ./cmd/frisco
+        run: go build ./cmd/martmart
 
   vuln:
     runs-on: ubuntu-latest

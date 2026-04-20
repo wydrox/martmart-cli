@@ -11,59 +11,59 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/rrudol/frisco/internal/httpclient"
-	"github.com/rrudol/frisco/internal/session"
+	"github.com/wydrox/martmart-cli/internal/httpclient"
+	"github.com/wydrox/martmart-cli/internal/session"
 )
 
 func registerOrdersAndReservationTools(server *mcp.Server) {
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "orders_list",
-		Description: "List user orders (GET /app/commerce/api/v1/users/{user}/orders). Mirrors frisco orders list CLI.",
+		Description: "List user orders (GET /app/commerce/api/v1/users/{user}/orders). Mirrors martmart orders list CLI.",
 	}, orToolOrdersList)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "orders_details",
-		Description: "Order details (GET .../users/{user}/orders/{orderId}). Mirrors frisco orders get.",
+		Description: "Order details (GET .../users/{user}/orders/{orderId}). Mirrors martmart orders get.",
 	}, orToolOrdersDetails)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "orders_delivery",
-		Description: "Order delivery details (GET .../users/{user}/orders/{orderId}/delivery). Mirrors frisco orders delivery.",
+		Description: "Order delivery details (GET .../users/{user}/orders/{orderId}/delivery). Mirrors martmart orders delivery.",
 	}, orToolOrdersDelivery)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "orders_payments",
-		Description: "Order payments details (GET .../users/{user}/orders/{orderId}/payments). Mirrors frisco orders payments.",
+		Description: "Order payments details (GET .../users/{user}/orders/{orderId}/payments). Mirrors martmart orders payments.",
 	}, orToolOrdersPayments)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "reservation_delivery_options",
-		Description: "Delivery and payment options by postcode. Mirrors frisco reservation delivery-options.",
+		Description: "Delivery and payment options by postcode. Mirrors martmart reservation delivery-options.",
 	}, orToolReservationDeliveryOptions)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "reservation_calendar",
-		Description: "Calendar data for shipping address; optional date. Mirrors frisco reservation calendar.",
+		Description: "Calendar data for shipping address; optional date. Mirrors martmart reservation calendar.",
 	}, orToolReservationCalendar)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "reservation_slots",
-		Description: "Available delivery slots for consecutive days. Mirrors frisco reservation slots.",
+		Description: "Available delivery slots for consecutive days. Mirrors martmart reservation slots.",
 	}, orToolReservationSlots)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "reservation_reserve",
-		Description: "Reserve a cart delivery window by date and HH:MM range. Mirrors frisco reservation reserve.",
+		Description: "Reserve a cart delivery window by date and HH:MM range. Mirrors martmart reservation reserve.",
 	}, orToolReservationReserve)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "reservation_plan",
-		Description: "Plan cart reservation from payload JSON object. Mirrors frisco reservation plan.",
+		Description: "Plan cart reservation from payload JSON object. Mirrors martmart reservation plan.",
 	}, orToolReservationPlan)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "reservation_cancel",
-		Description: "Cancel active cart reservation (DELETE .../cart/reservation). Mirrors frisco reservation cancel.",
+		Description: "Cancel active cart reservation (DELETE .../cart/reservation). Mirrors martmart reservation cancel.",
 	}, orToolReservationCancel)
 }
 

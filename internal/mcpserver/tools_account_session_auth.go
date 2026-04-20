@@ -10,9 +10,9 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/rrudol/frisco/internal/httpclient"
-	"github.com/rrudol/frisco/internal/login"
-	"github.com/rrudol/frisco/internal/session"
+	"github.com/wydrox/martmart-cli/internal/httpclient"
+	"github.com/wydrox/martmart-cli/internal/login"
+	"github.com/wydrox/martmart-cli/internal/session"
 )
 
 // registerAccountSessionAuthTools registers all account, session, and auth MCP tools.
@@ -69,7 +69,7 @@ func registerAccountSessionAuthTools(server *mcp.Server) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "session_login",
-		Description: "Opens a Chrome browser window for interactive Frisco.pl login. Captures auth credentials automatically and saves the session. Requires Chrome/Chromium installed. Use this when the user is not authenticated.",
+		Description: "Opens a Chrome/Chromium window using a snapshot of the current browser profile, captures auth cookies/session data automatically, and saves the session. Best when the user is already logged in in their normal browser profile.",
 	}, toolSessionLogin)
 
 	mcp.AddTool(server, &mcp.Tool{
@@ -687,7 +687,7 @@ func toolSessionLogin(ctx context.Context, _ *mcp.CallToolRequest, in sessionLog
 	if in.TimeoutSec != nil && *in.TimeoutSec > 0 {
 		timeout = *in.TimeoutSec
 	}
-	result, err := login.Run(ctx, "", timeout)
+	result, err := login.Run(ctx, login.Options{Provider: session.CurrentProvider(), TimeoutSec: timeout})
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}

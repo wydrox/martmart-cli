@@ -1,5 +1,5 @@
-// Package session manages the persistent Frisco CLI session stored at
-// ~/.frisco-cli/session.json (base URL, auth token, refresh token, user ID, headers).
+// Package session manages provider-specific persistent CLI sessions stored under
+// ~/.frisco-cli/ (Frisco keeps the legacy session.json path; Delio uses delio-session.json).
 package session
 
 import (
@@ -8,25 +8,38 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 )
 
-// DefaultBaseURL is the base URL for the Frisco API.
-const DefaultBaseURL = "https://www.frisco.pl"
+const (
+	// ProviderFrisco identifies the Frisco backend.
+	ProviderFrisco = "frisco"
+	// ProviderDelio identifies the Delio backend.
+	ProviderDelio = "delio"
+
+	// DefaultBaseURL is the base URL for the Frisco API.
+	DefaultBaseURL = "https://www.frisco.pl"
+	// DefaultDelioBaseURL is the base URL for the Delio API.
+	DefaultDelioBaseURL = "https://delio.com.pl"
+)
 
 var (
-	sessionDir  string
-	sessionFile string
+	sessionDir      string
+	legacySession   string
+	sessionFile     string
+	currentProvider = ProviderFrisco
 )
 
 func init() {
 	home, _ := os.UserHomeDir()
 	sessionDir = filepath.Join(home, ".frisco-cli")
-	sessionFile = filepath.Join(sessionDir, "session.json")
+	legacySession = filepath.Join(sessionDir, "session.json")
+	sessionFile = legacySession
 }
 
-// Session is persisted as ~/.frisco-cli/session.json.
+// Session is persisted per provider in ~/.frisco-cli/.
 type Session struct {
 	BaseURL      string            `json:"base_url"`
 	Headers      map[string]string `json:"headers"`
@@ -36,11 +49,83 @@ type Session struct {
 }
 
 func defaultSession() *Session {
+	return defaultSessionForProvider(currentProvider)
+}
+
+func defaultSessionForProvider(provider string) *Session {
 	return &Session{
-		BaseURL: DefaultBaseURL,
+		BaseURL: DefaultBaseURLForProvider(provider),
 		Headers: map[string]string{},
 		Token:   nil,
 		UserID:  nil,
+	}
+}
+
+// StorageDir returns the session/config root directory.
+func StorageDir() string {
+	return sessionDir
+}
+
+// SupportedProviders returns the sorted list of supported backend providers.
+func SupportedProviders() []string {
+	providers := []string{ProviderFrisco, ProviderDelio}
+	sort.Strings(providers)
+	return providers
+}
+
+// NormalizeProvider lowercases and trims provider names.
+func NormalizeProvider(provider string) string {
+	return strings.ToLower(strings.TrimSpace(provider))
+}
+
+// ValidateProvider validates a provider identifier.
+func ValidateProvider(provider string) error {
+	switch NormalizeProvider(provider) {
+	case ProviderFrisco, ProviderDelio:
+		return nil
+	default:
+		return fmt.Errorf("unsupported provider %q (use one of: %s)", provider, strings.Join(SupportedProviders(), ", "))
+	}
+}
+
+// CurrentProvider returns the process-wide active provider.
+func CurrentProvider() string {
+	return currentProvider
+}
+
+// SetCurrentProvider switches the process-wide active provider.
+func SetCurrentProvider(provider string) error {
+	provider = NormalizeProvider(provider)
+	if provider == "" {
+		provider = ProviderFrisco
+	}
+	if err := ValidateProvider(provider); err != nil {
+		return err
+	}
+	currentProvider = provider
+	return nil
+}
+
+// DefaultBaseURLForProvider returns the default base URL for the given provider.
+func DefaultBaseURLForProvider(provider string) string {
+	switch NormalizeProvider(provider) {
+	case ProviderDelio:
+		return DefaultDelioBaseURL
+	default:
+		return DefaultBaseURL
+	}
+}
+
+// SessionFilePath returns the provider-specific session file path.
+func SessionFilePath(provider string) string {
+	switch NormalizeProvider(provider) {
+	case ProviderDelio:
+		return filepath.Join(sessionDir, "delio-session.json")
+	default:
+		if strings.TrimSpace(sessionFile) != "" {
+			return sessionFile
+		}
+		return legacySession
 	}
 }
 
@@ -49,13 +134,19 @@ func EnsureDir() error {
 	return os.MkdirAll(sessionDir, 0o700)
 }
 
-// Load reads the session file and returns a Session. Returns a default session
-// when the file does not yet exist.
-func Load() (*Session, error) {
-	data, err := os.ReadFile(sessionFile)
+// LoadProvider reads the provider session file and returns a Session.
+func LoadProvider(provider string) (*Session, error) {
+	provider = NormalizeProvider(provider)
+	if provider == "" {
+		provider = ProviderFrisco
+	}
+	if err := ValidateProvider(provider); err != nil {
+		return nil, err
+	}
+	data, err := os.ReadFile(SessionFilePath(provider))
 	if err != nil {
 		if os.IsNotExist(err) {
-			return defaultSession(), nil
+			return defaultSessionForProvider(provider), nil
 		}
 		return nil, err
 	}
@@ -64,7 +155,7 @@ func Load() (*Session, error) {
 		return nil, err
 	}
 	if s.BaseURL == "" {
-		s.BaseURL = DefaultBaseURL
+		s.BaseURL = DefaultBaseURLForProvider(provider)
 	}
 	if s.Headers == nil {
 		s.Headers = map[string]string{}
@@ -73,8 +164,20 @@ func Load() (*Session, error) {
 	return &s, nil
 }
 
-// Save persists s to the session file with 0600 permissions.
-func Save(s *Session) error {
+// Load reads the active provider's session file.
+func Load() (*Session, error) {
+	return LoadProvider(currentProvider)
+}
+
+// SaveProvider persists s to the provider session file with 0600 permissions.
+func SaveProvider(provider string, s *Session) error {
+	provider = NormalizeProvider(provider)
+	if provider == "" {
+		provider = ProviderFrisco
+	}
+	if err := ValidateProvider(provider); err != nil {
+		return err
+	}
 	if err := EnsureDir(); err != nil {
 		return err
 	}
@@ -82,14 +185,23 @@ func Save(s *Session) error {
 		s.Headers = map[string]string{}
 	}
 	s.Headers = NormalizeHeaders(s.Headers)
+	if s.BaseURL == "" {
+		s.BaseURL = DefaultBaseURLForProvider(provider)
+	}
 	data, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(sessionFile, data, 0o600)
+	return os.WriteFile(SessionFilePath(provider), data, 0o600)
 }
 
-// IsAuthenticated reports whether the session has a token or Authorization header.
+// Save persists s to the active provider's session file with 0600 permissions.
+func Save(s *Session) error {
+	return SaveProvider(currentProvider, s)
+}
+
+// IsAuthenticated reports whether the session has a token, Authorization header,
+// or Cookie header (used by Delio).
 func IsAuthenticated(s *Session) bool {
 	if s == nil {
 		return false
@@ -97,10 +209,26 @@ func IsAuthenticated(s *Session) bool {
 	if TokenString(s) != "" {
 		return true
 	}
-	if auth, ok := s.Headers["Authorization"]; ok && auth != "" {
+	if HeaderValue(s, "Authorization") != "" {
+		return true
+	}
+	if HeaderValue(s, "Cookie") != "" {
 		return true
 	}
 	return false
+}
+
+// HeaderValue returns the first header value matching key case-insensitively.
+func HeaderValue(s *Session, key string) string {
+	if s == nil || len(s.Headers) == 0 {
+		return ""
+	}
+	for k, v := range s.Headers {
+		if strings.EqualFold(k, key) {
+			return v
+		}
+	}
+	return ""
 }
 
 // UserIDString returns session user_id as string or empty.
@@ -217,6 +345,12 @@ func canonicalHeaderKey(lowerKey, original string) string {
 		return "X-Requested-With"
 	case "x-frisco-visitorid":
 		return "X-Frisco-VisitorId"
+	case "x-platform":
+		return "X-Platform"
+	case "x-app-version":
+		return "X-App-Version"
+	case "x-csrf-protected":
+		return "X-Csrf-Protected"
 	default:
 		return original
 	}

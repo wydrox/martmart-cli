@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rrudol/frisco/internal/session"
+	"github.com/wydrox/martmart-cli/internal/session"
 )
 
 // DataFormat specifies how the request body should be encoded.
@@ -92,7 +92,7 @@ func requestJSONWithAutoRefresh(
 	}
 	baseURL := s.BaseURL
 	if baseURL == "" {
-		baseURL = session.DefaultBaseURL
+		baseURL = session.DefaultBaseURLForProvider(session.CurrentProvider())
 	}
 	fullURL, err := makeURL(baseURL, pathOrURL)
 	if err != nil {
@@ -181,6 +181,10 @@ func requestJSONWithAutoRefresh(
 	}
 	for k, v := range headers {
 		req.Header.Set(k, v)
+	}
+
+	if err := waitRateLimit(req.Context()); err != nil {
+		return nil, fmt.Errorf("rate limit wait failed: %w", err)
 	}
 
 	resp, err := opts.Client.Do(req)

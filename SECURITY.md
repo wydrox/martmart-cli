@@ -25,4 +25,4 @@ I will acknowledge the report as soon as possible and aim to provide an initial 
 
 - Credentials/tokens are stored locally in `~/.frisco-cli/session.json`.
 - Access to that file effectively grants API access in the user context.
-- `frisco mcp` uses the same local session; run it only in trusted local environments.
+- `martmart mcp` uses the same local session; run it only in trusted local environments.

@@ -9,11 +9,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/rrudol/frisco/internal/httpclient"
-	"github.com/rrudol/frisco/internal/picker"
-	"github.com/rrudol/frisco/internal/session"
-	"github.com/rrudol/frisco/internal/shared"
-	"github.com/rrudol/frisco/internal/tui"
+	"github.com/wydrox/martmart-cli/internal/delio"
+	"github.com/wydrox/martmart-cli/internal/httpclient"
+	"github.com/wydrox/martmart-cli/internal/picker"
+	"github.com/wydrox/martmart-cli/internal/session"
+	"github.com/wydrox/martmart-cli/internal/shared"
+	"github.com/wydrox/martmart-cli/internal/tui"
 )
 
 func newCartCmd() *cobra.Command {
@@ -22,6 +23,9 @@ func newCartCmd() *cobra.Command {
 		Use:   "cart",
 		Short: "Cart operations.",
 		RunE: func(_ *cobra.Command, _ []string) error {
+			if providerIs(session.ProviderDelio) {
+				return fmt.Errorf("interactive cart TUI is available only for Frisco; use 'cart show', 'cart add', or 'cart remove'")
+			}
 			s, err := session.Load()
 			if err != nil {
 				return err
@@ -49,6 +53,16 @@ func newCartShowCmd() *cobra.Command {
 			s, err := session.Load()
 			if err != nil {
 				return err
+			}
+			if providerIs(session.ProviderDelio) {
+				result, err := delio.CurrentCart(s)
+				if err != nil {
+					return err
+				}
+				if strings.EqualFold(outputFormat, "json") {
+					return printJSON(result)
+				}
+				return printDelioCartSummary(result)
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {
@@ -335,10 +349,11 @@ func fallbackDash(s string) string {
 func newCartAddCmd() *cobra.Command {
 	var userID, productID, searchPhrase, categoryID string
 	var quantity int
+	var lat, long float64
 	c := &cobra.Command{
 		Use:   "add",
 		Short: "Add/set product quantity in cart.",
-		RunE: func(_ *cobra.Command, _ []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			// Validate mutual exclusivity: exactly one of --product-id / --search required.
 			hasProductID := strings.TrimSpace(productID) != ""
 			hasSearch := strings.TrimSpace(searchPhrase) != ""
@@ -352,6 +367,34 @@ func newCartAddCmd() *cobra.Command {
 			s, err := session.Load()
 			if err != nil {
 				return err
+			}
+			if providerIs(session.ProviderDelio) {
+				coords, err := delioCoordsFromFlags(cmd, lat, long)
+				if err != nil {
+					return err
+				}
+				if hasSearch {
+					sku, err := resolveDelioProductBySearch(s, searchPhrase, coords)
+					if err != nil {
+						return err
+					}
+					productID = sku
+				}
+				current, err := delio.CurrentCart(s)
+				if err != nil {
+					return err
+				}
+				cart, err := delio.ExtractCurrentCart(current)
+				if err != nil {
+					return err
+				}
+				result, err := delio.UpdateCurrentCart(s, asString(cart["id"]), []map[string]any{{
+					"AddLineItem": map[string]any{"quantity": quantity, "sku": productID},
+				}})
+				if err != nil {
+					return err
+				}
+				return printJSON(result)
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {
@@ -388,6 +431,8 @@ func newCartAddCmd() *cobra.Command {
 	c.Flags().StringVar(&categoryID, "category-id", "", "Category ID to narrow search results (only used with --search).")
 	c.Flags().IntVar(&quantity, "quantity", 1, "Quantity to set in cart.")
 	c.Flags().StringVar(&userID, "user-id", "", "")
+	c.Flags().Float64Var(&lat, "lat", 0, "Delio latitude override.")
+	c.Flags().Float64Var(&long, "long", 0, "Delio longitude override.")
 	return c
 }
 
@@ -485,6 +530,27 @@ func newCartRemoveCmd() *cobra.Command {
 			s, err := session.Load()
 			if err != nil {
 				return err
+			}
+			if providerIs(session.ProviderDelio) {
+				current, err := delio.CurrentCart(s)
+				if err != nil {
+					return err
+				}
+				cart, err := delio.ExtractCurrentCart(current)
+				if err != nil {
+					return err
+				}
+				qty := delioCartItemQuantity(cart, productID)
+				if qty <= 0 {
+					return fmt.Errorf("Delio cart does not contain SKU %s", productID)
+				}
+				result, err := delio.UpdateCurrentCart(s, asString(cart["id"]), []map[string]any{{
+					"AddLineItem": map[string]any{"quantity": -qty, "sku": productID},
+				}})
+				if err != nil {
+					return err
+				}
+				return printJSON(result)
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {

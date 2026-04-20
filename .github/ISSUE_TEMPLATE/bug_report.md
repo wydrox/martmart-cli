@@ -27,7 +27,7 @@ assignees: ''
 ## Environment
 
 - OS / version:
-- `frisco` version or commit (if built from source):
+- `martmart` version or commit (if built from source):
 - Go version (if relevant):
 
 ## Logs / output (optional)

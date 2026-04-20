@@ -3,7 +3,7 @@ package tui
 import (
 	"testing"
 
-	"github.com/rrudol/frisco/internal/shared"
+	"github.com/wydrox/martmart-cli/internal/shared"
 )
 
 func TestLineFromMap_UsesNestedProductFallback(t *testing.T) {

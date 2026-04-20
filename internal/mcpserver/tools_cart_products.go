@@ -11,9 +11,9 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/rrudol/frisco/internal/httpclient"
-	"github.com/rrudol/frisco/internal/session"
-	"github.com/rrudol/frisco/internal/shared"
+	"github.com/wydrox/martmart-cli/internal/httpclient"
+	"github.com/wydrox/martmart-cli/internal/session"
+	"github.com/wydrox/martmart-cli/internal/shared"
 )
 
 // mcpCPFriscoToolOut is the structured tool result envelope for cart/product tools.
@@ -31,22 +31,22 @@ func registerCartAndProductsTools(server *mcp.Server) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "cart_add",
-		Description: "Add or set product quantity in the cart (PUT cart with products[]. Same as frisco cart add.",
+		Description: "Add or set product quantity in the cart (PUT cart with products[]. Same as martmart cart add.",
 	}, mcpCPCartAdd)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "cart_remove",
-		Description: "Remove a product from the cart by setting quantity to 0 (PUT cart). Same as frisco cart remove.",
+		Description: "Remove a product from the cart by setting quantity to 0 (PUT cart). Same as martmart cart remove.",
 	}, mcpCPCartRemove)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "products_search",
-		Description: "Search the product catalog (GET .../offer/products/query). Optional category_id narrows by Frisco categoryId (same as frisco products search --category-id). Mirrors frisco products search.",
+		Description: "Search the product catalog (GET .../offer/products/query). Optional category_id narrows by Frisco categoryId (same as frisco products search --category-id). Mirrors martmart products search.",
 	}, mcpCPProductsSearch)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "products_by_ids",
-		Description: "Fetch products by repeated productIds query params. Mirrors frisco products by-ids.",
+		Description: "Fetch products by repeated productIds query params. Mirrors martmart products by-ids.",
 	}, mcpCPProductsByIDs)
 
 	mcp.AddTool(server, &mcp.Tool{

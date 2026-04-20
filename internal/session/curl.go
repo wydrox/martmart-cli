@@ -125,6 +125,9 @@ var fromCurlHeaderAllow = map[string]struct{}{
 	"cookie":           {},
 	"x-api-version":    {},
 	"x-requested-with": {},
+	"x-platform":       {},
+	"x-app-version":    {},
+	"x-csrf-protected": {},
 	"accept":           {},
 	"origin":           {},
 	"referer":          {},
@@ -159,24 +162,33 @@ func ApplyFromCurl(s *Session, c *CurlData) {
 		s.UserID = uid
 	}
 	if u, err := url.Parse(c.URL); err == nil && u.Scheme != "" && u.Host != "" {
-		if isTrustedFriscoHost(u.Hostname()) {
+		if isTrustedHostForProvider(CurrentProvider(), u.Hostname()) {
 			s.BaseURL = u.Scheme + "://" + u.Host
 		}
 	}
 }
 
-// isTrustedFriscoHost reports whether host is the Frisco apex domain or a subdomain of it
-// (e.g. www.frisco.pl, staging.frisco.pl). Used to avoid redirecting API calls to an
-// attacker-controlled host from pasted curl commands.
-func isTrustedFriscoHost(host string) bool {
+func isTrustedHostForProvider(provider, host string) bool {
 	if host == "" {
 		return false
 	}
 	h := strings.ToLower(host)
-	if h == "frisco.pl" {
-		return true
+	switch NormalizeProvider(provider) {
+	case ProviderDelio:
+		if h == "delio.com.pl" {
+			return true
+		}
+		return strings.HasSuffix(h, ".delio.com.pl")
+	default:
+		if h == "frisco.pl" {
+			return true
+		}
+		return strings.HasSuffix(h, ".frisco.pl")
 	}
-	return strings.HasSuffix(h, ".frisco.pl")
+}
+
+func isTrustedFriscoHost(host string) bool {
+	return isTrustedHostForProvider(ProviderFrisco, host)
 }
 
 // ExtractRefreshTokenFromCurlBody parses application/x-www-form-urlencoded body.

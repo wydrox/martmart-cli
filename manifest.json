@@ -1,26 +1,26 @@
 {
   "manifest_version": "0.3",
-  "name": "frisco",
-  "display_name": "Frisco.pl",
+  "name": "martmart",
+  "display_name": "MartMart CLI",
   "version": "0.0.0",
-  "description": "Frisco.pl grocery delivery — product search, cart, orders, reservations.",
+  "description": "MartMart CLI — shared grocery delivery CLI for Frisco.pl and Delio.",
   "author": {
     "name": "Rafał Rudol"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rrudol/frisco.git"
+    "url": "https://github.com/wydrox/martmart-cli.git"
   },
   "license": "MIT",
   "server": {
     "type": "binary",
-    "entry_point": "server/frisco",
+    "entry_point": "server/martmart",
     "mcp_config": {
-      "command": "${__dirname}/server/frisco",
+      "command": "${__dirname}/server/martmart",
       "args": ["mcp"],
       "platform_overrides": {
         "win32": {
-          "command": "${__dirname}/server/frisco.exe",
+          "command": "${__dirname}/server/martmart.exe",
           "args": ["mcp"]
         }
       }

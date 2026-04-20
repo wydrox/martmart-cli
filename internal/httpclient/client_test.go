@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rrudol/frisco/internal/session"
+	"github.com/wydrox/martmart-cli/internal/session"
 )
 
 func TestMakeURL(t *testing.T) {

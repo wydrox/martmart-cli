@@ -10,10 +10,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/rrudol/frisco/internal/httpclient"
-	"github.com/rrudol/frisco/internal/picker"
-	"github.com/rrudol/frisco/internal/session"
-	"github.com/rrudol/frisco/internal/shared"
+	"github.com/wydrox/martmart-cli/internal/delio"
+	"github.com/wydrox/martmart-cli/internal/httpclient"
+	"github.com/wydrox/martmart-cli/internal/picker"
+	"github.com/wydrox/martmart-cli/internal/session"
+	"github.com/wydrox/martmart-cli/internal/shared"
 )
 
 func newProductsCmd() *cobra.Command {
@@ -21,7 +22,7 @@ func newProductsCmd() *cobra.Command {
 		Use:   "products",
 		Short: "Product operations.",
 	}
-	cmd.AddCommand(newProductsSearchCmd(), newProductsByIDsCmd(), newProductsNutritionCmd(), newProductsPickCmd())
+	cmd.AddCommand(newProductsSearchCmd(), newProductsGetCmd(), newProductsByIDsCmd(), newProductsNutritionCmd(), newProductsPickCmd())
 	return cmd
 }
 
@@ -29,15 +30,33 @@ func newProductsSearchCmd() *cobra.Command {
 	var (
 		search, deliveryMethod, userID, categoryID string
 		pageIndex, pageSize                        int
+		lat, long                                  float64
 		rawOutput                                  bool
 	)
 	c := &cobra.Command{
 		Use:   "search",
 		Short: "Search products.",
-		RunE: func(_ *cobra.Command, _ []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			s, err := session.Load()
 			if err != nil {
 				return err
+			}
+			if providerIs(session.ProviderDelio) {
+				coords, err := delioCoordsFromFlags(cmd, lat, long)
+				if err != nil {
+					return err
+				}
+				if pageIndex < 1 {
+					pageIndex = 1
+				}
+				result, err := delio.SearchProducts(s, search, pageSize, (pageIndex-1)*pageSize, coords)
+				if err != nil {
+					return err
+				}
+				if rawOutput || strings.EqualFold(outputFormat, "json") {
+					return printJSON(result)
+				}
+				return printDelioProductSearchTable(result)
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {
@@ -74,6 +93,8 @@ func newProductsSearchCmd() *cobra.Command {
 	c.Flags().IntVar(&pageSize, "page-size", productSearchPageSize, "")
 	c.Flags().StringVar(&deliveryMethod, "delivery-method", "Van", "")
 	c.Flags().StringVar(&userID, "user-id", "", "")
+	c.Flags().Float64Var(&lat, "lat", 0, "Delio latitude override.")
+	c.Flags().Float64Var(&long, "long", 0, "Delio longitude override.")
 	_ = c.MarkFlagRequired("search")
 	return c
 }
@@ -85,6 +106,9 @@ func newProductsByIDsCmd() *cobra.Command {
 		Use:   "by-ids",
 		Short: "Fetch products by productIds.",
 		RunE: func(_ *cobra.Command, _ []string) error {
+			if providerIs(session.ProviderDelio) {
+				return fmt.Errorf("products by-ids is not implemented for Delio; use 'products get --product-id <sku>' or --slug")
+			}
 			s, err := session.Load()
 			if err != nil {
 				return err
@@ -118,6 +142,9 @@ func newProductsNutritionCmd() *cobra.Command {
 		Use:   "nutrition",
 		Short: "Fetch product nutrition values (if available).",
 		RunE: func(_ *cobra.Command, _ []string) error {
+			if providerIs(session.ProviderDelio) {
+				return fmt.Errorf("products nutrition is not implemented for Delio yet; use 'products get --product-id <sku> --format json'")
+			}
 			s, err := session.Load()
 			if err != nil {
 				return err
@@ -317,6 +344,9 @@ func newProductsPickCmd() *cobra.Command {
 		Use:   "pick",
 		Short: "Search for a product and return the best match based on name, price/kg and pack size.",
 		RunE: func(_ *cobra.Command, _ []string) error {
+			if providerIs(session.ProviderDelio) {
+				return fmt.Errorf("products pick is not implemented for Delio yet; use 'products search' or 'products get'")
+			}
 			s, err := session.Load()
 			if err != nil {
 				return err

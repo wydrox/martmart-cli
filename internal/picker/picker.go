@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rrudol/frisco/internal/shared"
+	"github.com/wydrox/martmart-cli/internal/shared"
 )
 
 // Product is a normalised view of a single product entry from the search API.
