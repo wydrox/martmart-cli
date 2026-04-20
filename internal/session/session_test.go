@@ -1008,6 +1008,50 @@ func TestLoadProvider_FallsBackToCurrentLegacyFilename(t *testing.T) {
 	}
 }
 
+func TestSaveProvider_EnforcesFileMode0600(t *testing.T) {
+	for _, provider := range []string{ProviderFrisco, ProviderDelio} {
+		t.Run(provider, func(t *testing.T) {
+			dir := t.TempDir()
+			setTempSession(t, dir)
+
+			s := &Session{
+				BaseURL: DefaultBaseURLForProvider(provider),
+				Token:   "tok_" + provider,
+				Headers: map[string]string{},
+			}
+
+			// Fresh write creates the file with 0600.
+			if err := SaveProvider(provider, s); err != nil {
+				t.Fatalf("SaveProvider (fresh): %v", err)
+			}
+			path := SessionFilePath(provider)
+			fi, err := os.Stat(path)
+			if err != nil {
+				t.Fatalf("stat after fresh SaveProvider: %v", err)
+			}
+			if got := fi.Mode().Perm(); got != 0o600 {
+				t.Errorf("fresh file mode: got %o, want 600", got)
+			}
+
+			// Pre-existing file with wider permissions must be narrowed to 0600.
+			if err := os.Chmod(path, 0o644); err != nil {
+				t.Fatalf("Chmod 0644: %v", err)
+			}
+			s.Token = "tok_" + provider + "_v2"
+			if err := SaveProvider(provider, s); err != nil {
+				t.Fatalf("SaveProvider (overwrite): %v", err)
+			}
+			fi, err = os.Stat(path)
+			if err != nil {
+				t.Fatalf("stat after overwrite SaveProvider: %v", err)
+			}
+			if got := fi.Mode().Perm(); got != 0o600 {
+				t.Errorf("overwrite file mode: got %o, want 600", got)
+			}
+		})
+	}
+}
+
 func TestLoadProvider_FallsBackToLegacyDir(t *testing.T) {
 	base := t.TempDir()
 	newDir := filepath.Join(base, "martmart-cli")
