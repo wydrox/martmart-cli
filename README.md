@@ -35,7 +35,7 @@ It is built for people who want to:
 - **Frisco account and order commands**
 - **MCP server** for Claude, Cursor, and other compatible clients
 - **Configurable HTTP rate limiting**
-- **Backward-compatible local session storage**
+- **Dedicated MartMart storage** in `~/.martmart-cli` with legacy read fallback from `~/.frisco-cli`
 
 ## Built for AI assistants and MCP
 
@@ -125,9 +125,9 @@ martmart session login
 martmart --provider delio session login
 ```
 
-MartMart opens Chrome/Chromium using a **temporary snapshot of your existing browser profile**.
-If you are already logged in in your normal browser, the session is often captured automatically.
-If not, log in in the opened window and wait for the CLI to save the session.
+For **Delio on macOS**, MartMart opens the URL in your current Chromium-based browser and reads the needed cookies from that browser profile.
+For other flows, MartMart may still fall back to the older snapshot-based Chrome/Chromium login.
+If you are not logged in yet, sign in in the opened browser tab/window and wait for the CLI to save the session.
 
 Useful flags:
 
@@ -290,13 +290,49 @@ Any client that supports stdio-based **Model Context Protocol** servers should w
 martmart mcp
 ```
 
+## Example agent prompts and MCP workflows
+
+Example prompts you can give an MCP-capable assistant:
+
+- "Log me in to Frisco and verify the session."
+- "Use Delio, search for oat milk, and show the top 5 results as JSON."
+- "Show my Frisco cart and summarize total quantity by item."
+- "Add 1 carton of milk to my Delio cart and then show the updated cart."
+- "Check delivery slots for the next 2 days on Frisco."
+- "Search Frisco for spaghetti, parmesan, and pancetta, then propose a carbonara shopping list."
+
+Example safe MCP workflows:
+
+1. **Session bootstrap**
+   - run `session login`
+   - run `session verify`
+   - confirm the active provider
+2. **Product discovery**
+   - search products
+   - inspect a specific product
+   - compare multiple candidate items
+3. **Cart update loop**
+   - show current cart
+   - add/remove items
+   - show the resulting cart again
+4. **Delivery planning**
+   - fetch available slots
+   - compare providers if needed
+   - keep checkout/finalization out of scope
+
+These flows are intentionally designed around **non-finalizing** actions.
+
 ## Local data layout
 
-For backward compatibility, session/config files are still stored under `~/.frisco-cli/`.
+Session/config files are stored under `~/.martmart-cli/`.
 
-- Frisco session: `~/.frisco-cli/session.json`
-- Delio session: `~/.frisco-cli/delio-session.json`
-- Shared config: `~/.frisco-cli/config.json`
+- Frisco session: `~/.martmart-cli/session.json`
+- Delio session: `~/.martmart-cli/delio-session.json`
+- Shared config: `~/.martmart-cli/config.json`
+
+Legacy compatibility:
+- if a file is missing in `~/.martmart-cli/`, MartMart will also try the old `~/.frisco-cli/` location
+- new saves go to `~/.martmart-cli/`
 
 ## Security notes
 

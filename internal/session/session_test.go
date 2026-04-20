@@ -858,11 +858,14 @@ func TestRequireUserID_ErrorWhenMissing(t *testing.T) {
 func setTempSession(t *testing.T, dir string) {
 	t.Helper()
 	origDir := sessionDir
+	origLegacyDir := legacySessionDir
 	origFile := sessionFile
 	sessionDir = dir
+	legacySessionDir = ""
 	sessionFile = filepath.Join(dir, "session.json")
 	t.Cleanup(func() {
 		sessionDir = origDir
+		legacySessionDir = origLegacyDir
 		sessionFile = origFile
 	})
 }
@@ -981,5 +984,42 @@ func TestEnsureDir(t *testing.T) {
 	// Calling EnsureDir again on an existing directory must be idempotent.
 	if err := EnsureDir(); err != nil {
 		t.Errorf("second EnsureDir call returned error: %v", err)
+	}
+}
+
+func TestLoadProvider_FallsBackToLegacyDir(t *testing.T) {
+	base := t.TempDir()
+	newDir := filepath.Join(base, "martmart-cli")
+	legacyDir := filepath.Join(base, "frisco-cli")
+
+	origDir := sessionDir
+	origLegacyDir := legacySessionDir
+	origFile := sessionFile
+	sessionDir = newDir
+	legacySessionDir = legacyDir
+	sessionFile = filepath.Join(newDir, "session.json")
+	t.Cleanup(func() {
+		sessionDir = origDir
+		legacySessionDir = origLegacyDir
+		sessionFile = origFile
+	})
+
+	if err := os.MkdirAll(legacyDir, 0o700); err != nil {
+		t.Fatalf("MkdirAll legacy dir: %v", err)
+	}
+	legacyFile := filepath.Join(legacyDir, "session.json")
+	if err := os.WriteFile(legacyFile, []byte(`{"base_url":"https://www.frisco.pl","token":"tok_legacy","user_id":"42","headers":{"Cookie":"a=b"}}`), 0o600); err != nil {
+		t.Fatalf("WriteFile legacy session: %v", err)
+	}
+
+	s, err := LoadProvider(ProviderFrisco)
+	if err != nil {
+		t.Fatalf("LoadProvider: %v", err)
+	}
+	if TokenString(s) != "tok_legacy" {
+		t.Fatalf("TokenString: got %q, want tok_legacy", TokenString(s))
+	}
+	if UserIDString(s) != "42" {
+		t.Fatalf("UserIDString: got %q, want 42", UserIDString(s))
 	}
 }

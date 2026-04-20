@@ -16,11 +16,15 @@ type Config struct {
 	RateLimitBurst  int     `json:"rate_limit_burst"`
 }
 
-var configFile string
+var (
+	configFile       string
+	legacyConfigFile string
+)
 
 func init() {
 	home, _ := os.UserHomeDir()
-	configFile = filepath.Join(home, ".frisco-cli", "config.json")
+	configFile = filepath.Join(home, ".martmart-cli", "config.json")
+	legacyConfigFile = filepath.Join(home, ".frisco-cli", "config.json")
 }
 
 func defaultConfig() *Config {
@@ -38,18 +42,24 @@ func Path() string {
 
 // Load reads config.json or returns defaults when the file does not exist.
 func Load() (*Config, error) {
-	data, err := os.ReadFile(configFile)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return defaultConfig(), nil
+	for _, path := range []string{configFile, legacyConfigFile} {
+		if strings.TrimSpace(path) == "" {
+			continue
 		}
-		return nil, err
+		data, err := os.ReadFile(path)
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return nil, err
+		}
+		var cfg Config
+		if err := json.Unmarshal(data, &cfg); err != nil {
+			return nil, err
+		}
+		return Normalize(&cfg)
 	}
-	var cfg Config
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		return nil, err
-	}
-	return Normalize(&cfg)
+	return defaultConfig(), nil
 }
 
 // Normalize applies defaults and validates persisted values.

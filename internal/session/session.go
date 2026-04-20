@@ -1,5 +1,5 @@
 // Package session manages provider-specific persistent CLI sessions stored under
-// ~/.frisco-cli/ (Frisco keeps the legacy session.json path; Delio uses delio-session.json).
+// ~/.martmart-cli/ with legacy read fallback from ~/.frisco-cli/.
 package session
 
 import (
@@ -26,20 +26,20 @@ const (
 )
 
 var (
-	sessionDir      string
-	legacySession   string
-	sessionFile     string
-	currentProvider = ProviderFrisco
+	sessionDir       string
+	legacySessionDir string
+	sessionFile      string
+	currentProvider  = ProviderFrisco
 )
 
 func init() {
 	home, _ := os.UserHomeDir()
-	sessionDir = filepath.Join(home, ".frisco-cli")
-	legacySession = filepath.Join(sessionDir, "session.json")
-	sessionFile = legacySession
+	sessionDir = filepath.Join(home, ".martmart-cli")
+	legacySessionDir = filepath.Join(home, ".frisco-cli")
+	sessionFile = filepath.Join(sessionDir, "session.json")
 }
 
-// Session is persisted per provider in ~/.frisco-cli/.
+// Session is persisted per provider in ~/.martmart-cli/.
 type Session struct {
 	BaseURL      string            `json:"base_url"`
 	Headers      map[string]string `json:"headers"`
@@ -125,11 +125,33 @@ func SessionFilePath(provider string) string {
 		if strings.TrimSpace(sessionFile) != "" {
 			return sessionFile
 		}
-		return legacySession
+		return filepath.Join(sessionDir, "session.json")
 	}
 }
 
-// EnsureDir creates ~/.frisco-cli with 0700 permissions if it does not exist.
+func legacySessionFilePath(provider string) string {
+	if strings.TrimSpace(legacySessionDir) == "" {
+		return ""
+	}
+	switch NormalizeProvider(provider) {
+	case ProviderDelio:
+		return filepath.Join(legacySessionDir, "delio-session.json")
+	default:
+		return filepath.Join(legacySessionDir, "session.json")
+	}
+}
+
+func sessionLoadPaths(provider string) []string {
+	current := SessionFilePath(provider)
+	legacy := legacySessionFilePath(provider)
+	paths := []string{current}
+	if legacy != "" && legacy != current {
+		paths = append(paths, legacy)
+	}
+	return paths
+}
+
+// EnsureDir creates ~/.martmart-cli with 0700 permissions if it does not exist.
 func EnsureDir() error {
 	return os.MkdirAll(sessionDir, 0o700)
 }
@@ -143,25 +165,30 @@ func LoadProvider(provider string) (*Session, error) {
 	if err := ValidateProvider(provider); err != nil {
 		return nil, err
 	}
-	data, err := os.ReadFile(SessionFilePath(provider))
-	if err != nil {
-		if os.IsNotExist(err) {
-			return defaultSessionForProvider(provider), nil
+
+	for _, path := range sessionLoadPaths(provider) {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return nil, err
 		}
-		return nil, err
+		var s Session
+		if err := json.Unmarshal(data, &s); err != nil {
+			return nil, err
+		}
+		if s.BaseURL == "" {
+			s.BaseURL = DefaultBaseURLForProvider(provider)
+		}
+		if s.Headers == nil {
+			s.Headers = map[string]string{}
+		}
+		s.Headers = NormalizeHeaders(s.Headers)
+		return &s, nil
 	}
-	var s Session
-	if err := json.Unmarshal(data, &s); err != nil {
-		return nil, err
-	}
-	if s.BaseURL == "" {
-		s.BaseURL = DefaultBaseURLForProvider(provider)
-	}
-	if s.Headers == nil {
-		s.Headers = map[string]string{}
-	}
-	s.Headers = NormalizeHeaders(s.Headers)
-	return &s, nil
+
+	return defaultSessionForProvider(provider), nil
 }
 
 // Load reads the active provider's session file.
