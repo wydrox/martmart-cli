@@ -122,6 +122,10 @@ func Normalize(cfg *Config) (*Config, error) {
 }
 
 // Save persists the config file with 0600 permissions.
+//
+// os.WriteFile only applies the mode when creating a new file, so we also
+// call os.Chmod afterwards to narrow permissions on pre-existing files that
+// may have been written with wider modes by older versions.
 func Save(cfg *Config) error {
 	norm, err := Normalize(cfg)
 	if err != nil {
@@ -134,5 +138,8 @@ func Save(cfg *Config) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(configFile, data, 0o600)
+	if err := os.WriteFile(configFile, data, 0o600); err != nil {
+		return err
+	}
+	return os.Chmod(configFile, 0o600)
 }

@@ -204,6 +204,10 @@ func Load() (*Session, error) {
 }
 
 // SaveProvider persists s to the provider session file with 0600 permissions.
+//
+// os.WriteFile only applies the mode when creating a new file, so we also
+// call os.Chmod afterwards to narrow permissions on pre-existing files that
+// may have been written with wider modes by older versions.
 func SaveProvider(provider string, s *Session) error {
 	provider = NormalizeProvider(provider)
 	if provider == "" {
@@ -226,7 +230,11 @@ func SaveProvider(provider string, s *Session) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(SessionFilePath(provider), data, 0o600)
+	path := SessionFilePath(provider)
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		return err
+	}
+	return os.Chmod(path, 0o600)
 }
 
 // Save persists s to the active provider's session file with 0600 permissions.

@@ -62,3 +62,37 @@ func TestSave_WritesCurrentConfigPath(t *testing.T) {
 		t.Fatalf("legacy config should not be written, stat err=%v", err)
 	}
 }
+
+func TestSave_EnforcesFileMode0600(t *testing.T) {
+	base := t.TempDir()
+	current := filepath.Join(base, "martmart-cli", "config.json")
+	legacy := filepath.Join(base, "frisco-cli", "config.json")
+	setTempConfigPaths(t, current, legacy)
+
+	// Fresh write creates the file with 0600.
+	if err := Save(&Config{DefaultProvider: "frisco", RateLimitRPS: 1, RateLimitBurst: 1}); err != nil {
+		t.Fatalf("Save (fresh): %v", err)
+	}
+	fi, err := os.Stat(current)
+	if err != nil {
+		t.Fatalf("stat after fresh Save: %v", err)
+	}
+	if got := fi.Mode().Perm(); got != 0o600 {
+		t.Errorf("fresh file mode: got %o, want 600", got)
+	}
+
+	// Pre-existing file with wider permissions must be narrowed back to 0600.
+	if err := os.Chmod(current, 0o644); err != nil {
+		t.Fatalf("Chmod 0644: %v", err)
+	}
+	if err := Save(&Config{DefaultProvider: "frisco", RateLimitRPS: 2, RateLimitBurst: 2}); err != nil {
+		t.Fatalf("Save (overwrite): %v", err)
+	}
+	fi, err = os.Stat(current)
+	if err != nil {
+		t.Fatalf("stat after overwrite Save: %v", err)
+	}
+	if got := fi.Mode().Perm(); got != 0o600 {
+		t.Errorf("overwrite file mode: got %o, want 600", got)
+	}
+}
