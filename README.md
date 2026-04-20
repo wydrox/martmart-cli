@@ -1,56 +1,84 @@
 # MartMart CLI
 
-MartMart CLI is a unified command-line client for grocery shopping flows across **Frisco.pl** and **Delio**.
+**One grocery CLI for Frisco.pl and Delio.**
 
-It gives you one interface for session handling, product discovery, cart operations, delivery slots, and MCP-based AI integration.
+MartMart CLI gives you a single command-line interface for **session login**, **product search**, **cart operations**, **delivery slots**, and **MCP-based AI workflows** across supported grocery providers.
 
-> Disclaimer: this is an independent community project. It is not affiliated with Frisco or Delio. Use at your own risk and only with your own account/session.
+> **Status:** usable today for Frisco, MVP support for Delio.
+>
+> **Disclaimer:** independent community project, not affiliated with Frisco or Delio. Use only with **your own account/session** and at your own risk.
 
-## What MartMart CLI does
+## Why MartMart CLI
 
-- one CLI for multiple grocery providers
-- unified browser-profile login flow for Frisco and Delio
-- product search and product lookup
-- cart inspection and cart mutations
-- delivery slot lookup
-- Frisco account and order operations
-- MCP server for AI clients
-- configurable request rate limiting
+MartMart started as a Frisco-focused CLI and evolved into a shared, provider-aware tool for grocery shopping workflows.
+
+It is built for people who want to:
+- automate shopping flows from the terminal
+- reuse an existing browser session instead of copying headers manually every time
+- inspect carts, products, and delivery options programmatically
+- connect shopping workflows to AI clients through MCP
+- keep one consistent CLI even when providers differ underneath
+
+## Highlights
+
+- **One CLI, multiple providers** via `--provider frisco|delio`
+- **Unified browser-profile login** for Frisco and Delio
+- **Product search and lookup**
+- **Cart read/write operations**
+- **Delivery slot lookup**
+- **Frisco account and order commands**
+- **MCP server** for Claude, Cursor, and other compatible clients
+- **Configurable HTTP rate limiting**
+- **Backward-compatible local session storage**
 
 ## Provider support
 
-### Frisco
+| Capability | Frisco | Delio |
+|---|---:|---:|
+| Browser-profile login | ✅ | ✅ |
+| Session verify | ✅ | ✅ |
+| cURL session import | ✅ | ✅ |
+| Refresh token flow | ✅ | ❌ |
+| Product search | ✅ | ✅ |
+| Product details | ✅ | ✅ |
+| Nutrition info | ✅ | ❌ |
+| Cart show | ✅ | ✅ |
+| Cart add/remove | ✅ | ✅ |
+| Batch cart input | ✅ | ❌ |
+| Interactive cart TUI | ✅ | ❌ |
+| Delivery slots | ✅ | ✅ |
+| Reservation reserve/cancel | ✅ | ❌ |
+| Account / orders | ✅ | MVP / partial |
+| MCP support | ✅ | partial, shared CLI path |
+| Checkout / payment finalization | ❌ | ❌ |
 
-Implemented:
-- session login / verify / from-curl / refresh-token
-- products search / get / nutrition / pick
-- cart show / add / remove / add-batch / remove-batch / TUI
-- reservation slots / reserve / cancel / planning flows
-- account and orders commands
-- MCP support
+## Safety and scope
 
-### Delio
+MartMart is intentionally focused on **non-finalizing** shopping workflows.
 
-Implemented MVP:
-- session login / verify / from-curl
-- products search / get
-- cart show / add / remove
-- delivery slot lookup
+Implemented scope today:
+- log in
+- inspect products
+- manage cart contents
+- inspect delivery slots
+- inspect account/order data where supported
 
-Not implemented yet:
-- checkout / payment finalization
-- full account/order coverage
-- refresh-token flow
+Not implemented:
+- final checkout
+- payment confirmation
+- placing final orders
+
+That keeps the tool useful while reducing the risk of accidental purchases.
 
 ## Installation
 
-### Go install
+### Install with Go
 
 ```bash
 go install github.com/wydrox/martmart-cli/cmd/martmart@latest
 ```
 
-### Local build
+### Build locally
 
 ```bash
 make build
@@ -59,20 +87,20 @@ make build
 
 ## Quick start
 
-### 1. Log in with your browser profile
+### 1) Log in with your browser profile
 
-Recommended flow for both providers:
+Recommended for both providers:
 
 ```bash
 martmart session login
 martmart --provider delio session login
 ```
 
-This opens Chrome/Chromium using a **temporary snapshot of your existing browser profile**.
-If you are already logged in in your normal browser, MartMart will usually capture the session automatically.
+MartMart opens Chrome/Chromium using a **temporary snapshot of your existing browser profile**.
+If you are already logged in in your normal browser, the session is often captured automatically.
 If not, log in in the opened window and wait for the CLI to save the session.
 
-Optional flags:
+Useful flags:
 
 ```bash
 martmart session login --profile-directory Default
@@ -80,14 +108,14 @@ martmart session login --user-data-dir "/path/to/browser/user-data"
 martmart session login --timeout 240
 ```
 
-### 2. Verify the session
+### 2) Verify the session
 
 ```bash
 martmart session verify
 martmart --provider delio session verify
 ```
 
-### 3. Start using the CLI
+### 3) Start using it
 
 #### Frisco examples
 
@@ -109,56 +137,44 @@ martmart --provider delio cart add --product-id A0000860 --quantity 1
 martmart --provider delio reservation slots
 ```
 
-## Using a specific provider
+## Common workflows
 
-By default the provider comes from saved config. You can override it per command:
+### Switch provider per command
 
 ```bash
 martmart --provider frisco cart show
 martmart --provider delio cart show
 ```
 
-Supported values:
-- `frisco`
-- `delio`
-
-## Config
-
-Show current config:
+### Save default provider and rate limit
 
 ```bash
 martmart config show
-```
-
-Save default provider and rate limits:
-
-```bash
 martmart config set --default-provider delio --rate-limit-rps 2 --rate-limit-burst 2
 ```
 
-Global flags:
-- `--provider`
-- `--format table|json`
-- `--rate-limit-rps`
-- `--rate-limit-burst`
+### Use JSON output for scripting
 
-## Session import from cURL
+```bash
+martmart cart show --format json
+martmart products search --search mleko --format json
+```
 
-If needed, you can still import a session from a copied browser request.
+### Import session from cURL when needed
 
-### Frisco example
+Frisco example:
 
 ```bash
 martmart session from-curl --curl "curl 'https://www.frisco.pl/app/commerce/api/v1/users/123/cart' -H 'authorization: Bearer ...' -H 'cookie: ...'"
 ```
 
-### Delio example
+Delio example:
 
 ```bash
 martmart --provider delio session from-curl --curl "curl 'https://delio.com.pl/api/proxy/delio' -H 'cookie: ...' -H 'x-platform: web' -H 'x-api-version: 4.0' -H 'x-app-version: 7.32.6' -H 'content-type: application/json' --data-raw '{...}'"
 ```
 
-## Common commands
+## Core commands
 
 ```bash
 martmart cart show
@@ -172,15 +188,11 @@ martmart session verify
 martmart mcp
 ```
 
-## Batch cart input
+## Batch shopping list input
 
-MartMart supports batch additions from JSON shopping lists.
+Frisco supports batch additions from JSON shopping lists.
 
-Example flow:
-1. verify session
-2. search product IDs
-3. prepare JSON file
-4. run:
+Example:
 
 ```bash
 martmart cart add-batch --file list.json
@@ -188,16 +200,6 @@ martmart cart add-batch --file list.json
 
 Template:
 - [examples/cart-add-batch.example.json](examples/cart-add-batch.example.json)
-
-## Output modes
-
-Default output is human-readable.
-Use JSON for scripting:
-
-```bash
-martmart cart show --format json
-martmart products search --search mleko --format json
-```
 
 ## MCP integration
 
@@ -228,8 +230,6 @@ claude mcp add martmart -- martmart mcp
 
 ### Cursor
 
-Project-level `.cursor/mcp.json`:
-
 ```json
 {
   "mcpServers": {
@@ -241,22 +241,30 @@ Project-level `.cursor/mcp.json`:
 }
 ```
 
-## Session storage
+## Local data layout
 
-Session data is currently stored under `~/.frisco-cli/` for backward compatibility.
+For backward compatibility, session/config files are still stored under `~/.frisco-cli/`.
 
-Files:
-- Frisco: `~/.frisco-cli/session.json`
-- Delio: `~/.frisco-cli/delio-session.json`
+- Frisco session: `~/.frisco-cli/session.json`
+- Delio session: `~/.frisco-cli/delio-session.json`
 - Shared config: `~/.frisco-cli/config.json`
 
 ## Security notes
 
-- session files may contain tokens and cookies
+- session files may contain cookies, tokens, and reusable auth headers
 - anyone with access to those files may act in your account context
-- do not share session files
+- never share session files publicly
 - do not run `martmart mcp` in untrusted environments
-- use only your own browser session and account
+- use only your own browser session and your own account
+
+## Roadmap
+
+Near-term improvements:
+- stronger MCP/provider parity beyond the Frisco-first surface
+- better provider-aware account/order coverage
+- improved browser/profile discovery for login
+- safer checkout research without finalizing purchases
+- better docs and examples for automation flows
 
 ## Development
 
