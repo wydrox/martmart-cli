@@ -525,28 +525,6 @@ func newReservationPlanCmd() *cobra.Command {
 	return c
 }
 
-// printSlotsTable renders a slice of day/slots maps as a per-day tabwriter table.
-func printSlotsTable(days []map[string]any) error {
-	for _, day := range days {
-		date := cellValue(day["date"])
-		fmt.Println(date)
-		slots, _ := day["slots"].([]map[string]any)
-		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-		_, _ = fmt.Fprintln(w, "from\tto\tmethod\twarehouse")
-		for _, slot := range slots {
-			_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\n",
-				hhmm(slot["startsAt"]),
-				hhmm(slot["endsAt"]),
-				cellValue(slot["deliveryMethod"]),
-				cellValue(slot["warehouse"]),
-			)
-		}
-		_ = w.Flush()
-		fmt.Println()
-	}
-	return nil
-}
-
 func newReservationCancelCmd() *cobra.Command {
 	var userID string
 	c := &cobra.Command{
