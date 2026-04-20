@@ -1,36 +1,56 @@
 # MartMart CLI
 
-Unofficial shared CLI for the [Frisco.pl](https://www.frisco.pl) and [Delio](https://delio.com.pl) grocery delivery APIs.
+MartMart CLI is a unified command-line client for grocery shopping flows across **Frisco.pl** and **Delio**.
 
-> **Disclaimer**: This is an independent, community project — not affiliated with Frisco. Use at your own risk.
+It gives you one interface for session handling, product discovery, cart operations, delivery slots, and MCP-based AI integration.
 
-## Features
+> Disclaimer: this is an independent community project. It is not affiliated with Frisco or Delio. Use at your own risk and only with your own account/session.
 
-- Shared provider-aware CLI (`--provider frisco|delio`)
-- Interactive cart TUI (Bubble Tea) for Frisco
-- Product search with category filtering and nutrition info
-- Delio MVP: session verify, product search/get, cart show/add/remove, delivery slots
-- Delivery slot reservation
-- Order history
-- Batch cart additions from JSON shopping lists
-- MCP server for AI assistant integration
-- Session management (cURL import, browser-profile session capture for Frisco and Delio)
-- Configurable request rate limiter
+## What MartMart CLI does
 
+- one CLI for multiple grocery providers
+- unified browser-profile login flow for Frisco and Delio
+- product search and product lookup
+- cart inspection and cart mutations
+- delivery slot lookup
+- Frisco account and order operations
+- MCP server for AI clients
+- configurable request rate limiting
 
-## Requirements
+## Provider support
 
-- Go `1.26+` (per `go.mod`)
-- For `martmart session login`: a locally installed browser supported by `chromedp` (e.g. Chrome/Chromium)
-- `session login` works best when you are already logged in in your normal Chrome/Chromium profile
+### Frisco
+
+Implemented:
+- session login / verify / from-curl / refresh-token
+- products search / get / nutrition / pick
+- cart show / add / remove / add-batch / remove-batch / TUI
+- reservation slots / reserve / cancel / planning flows
+- account and orders commands
+- MCP support
+
+### Delio
+
+Implemented MVP:
+- session login / verify / from-curl
+- products search / get
+- cart show / add / remove
+- delivery slot lookup
+
+Not implemented yet:
+- checkout / payment finalization
+- full account/order coverage
+- refresh-token flow
 
 ## Installation
+
+### Go install
 
 ```bash
 go install github.com/wydrox/martmart-cli/cmd/martmart@latest
 ```
 
-Local build:
+### Local build
 
 ```bash
 make build
@@ -39,133 +59,153 @@ make build
 
 ## Quick start
 
-1. Import a session from your browser profile (recommended):
+### 1. Log in with your browser profile
+
+Recommended flow for both providers:
 
 ```bash
 martmart session login
 martmart --provider delio session login
 ```
 
-This opens Chrome/Chromium using a temporary snapshot of your current browser profile. If you are already logged in in your normal browser, the CLI should capture the session automatically. Otherwise, sign in in the opened window and wait for the session to be saved.
+This opens Chrome/Chromium using a **temporary snapshot of your existing browser profile**.
+If you are already logged in in your normal browser, MartMart will usually capture the session automatically.
+If not, log in in the opened window and wait for the CLI to save the session.
 
-2. Or save session from a cURL command:
+Optional flags:
+
+```bash
+martmart session login --profile-directory Default
+martmart session login --user-data-dir "/path/to/browser/user-data"
+martmart session login --timeout 240
+```
+
+### 2. Verify the session
+
+```bash
+martmart session verify
+martmart --provider delio session verify
+```
+
+### 3. Start using the CLI
+
+#### Frisco examples
+
+```bash
+martmart products search --search banana
+martmart cart show
+martmart cart add --search "mleko" --quantity 1
+martmart reservation slots --days 2
+martmart account orders list --all-pages
+```
+
+#### Delio examples
+
+```bash
+martmart --provider delio products search --search mleko
+martmart --provider delio products get --product-id A0000860
+martmart --provider delio cart show
+martmart --provider delio cart add --product-id A0000860 --quantity 1
+martmart --provider delio reservation slots
+```
+
+## Using a specific provider
+
+By default the provider comes from saved config. You can override it per command:
+
+```bash
+martmart --provider frisco cart show
+martmart --provider delio cart show
+```
+
+Supported values:
+- `frisco`
+- `delio`
+
+## Config
+
+Show current config:
+
+```bash
+martmart config show
+```
+
+Save default provider and rate limits:
+
+```bash
+martmart config set --default-provider delio --rate-limit-rps 2 --rate-limit-burst 2
+```
+
+Global flags:
+- `--provider`
+- `--format table|json`
+- `--rate-limit-rps`
+- `--rate-limit-burst`
+
+## Session import from cURL
+
+If needed, you can still import a session from a copied browser request.
+
+### Frisco example
 
 ```bash
 martmart session from-curl --curl "curl 'https://www.frisco.pl/app/commerce/api/v1/users/123/cart' -H 'authorization: Bearer ...' -H 'cookie: ...'"
 ```
 
-3. Verify your session works:
-
-```bash
-martmart session verify
-```
-
-4. Optional: switch provider per command or save a default:
+### Delio example
 
 ```bash
 martmart --provider delio session from-curl --curl "curl 'https://delio.com.pl/api/proxy/delio' -H 'cookie: ...' -H 'x-platform: web' -H 'x-api-version: 4.0' -H 'x-app-version: 7.32.6' -H 'content-type: application/json' --data-raw '{...}'"
-martmart config set --default-provider delio --rate-limit-rps 2 --rate-limit-burst 2
 ```
 
-## Commands
+## Common commands
 
 ```bash
-martmart cart                    # Interactive TUI (Frisco only)
 martmart cart show
 martmart cart add --product-id <id> --quantity 1
-martmart cart add-batch --file list.json        # --dry-run for parse-only
-martmart products search --search banana
-martmart products search --search apple --category-id 18707
-martmart products get --product-id 4094
-martmart products nutrition --product-id 4094
+martmart cart remove --product-id <id>
+martmart products search --search <phrase>
+martmart products get --product-id <id>
 martmart reservation slots --days 2
-martmart reservation reserve --date 2026-03-25 --from-time 06:00 --to-time 07:00
-martmart reservation cancel
-martmart account show
-martmart account orders list --all-pages
-martmart session login               # Browser-profile session capture (Frisco)
-martmart --provider delio session login
-martmart session refresh-token       # Refresh access token (Frisco)
-martmart config show
-martmart config set --default-provider delio --rate-limit-rps 2 --rate-limit-burst 2
-martmart --provider delio products search --search mleko
-martmart --provider delio products get --product-id A0000860
-martmart --provider delio cart show
-martmart --provider delio reservation slots
-martmart mcp                         # Start MCP server
+martmart session login
+martmart session verify
+martmart mcp
 ```
 
-### Batch cart from a shopping list
+## Batch cart input
 
-1. `martmart session verify` — make sure your session is valid.
-2. Search for products: `martmart products search --search "phrase"` — optionally add `--category-id` to narrow results. Use `--format json` and pipe to `jq` to extract product IDs.
-3. Build a JSON file: an array of `{ "product_id": "…", "quantity": n }` objects or `{"items":[…]}`. Template: [examples/cart-add-batch.example.json](examples/cart-add-batch.example.json).
-4. `martmart cart add-batch --file list.json` — displays a cart summary after adding. Use `--dry-run` to validate the file without calling the API.
+MartMart supports batch additions from JSON shopping lists.
 
-## Category IDs
-
-Using `--category-id` with `products search` / `products pick` narrows results and dramatically improves relevance. Full category tree: [categories.md](categories.md).
-
-## Output format
-
-By default the CLI outputs human-readable tables. Use `--format json` for machine-readable output:
+Example flow:
+1. verify session
+2. search product IDs
+3. prepare JSON file
+4. run:
 
 ```bash
-martmart account orders list --all-pages
-martmart account orders list --all-pages --format json
+martmart cart add-batch --file list.json
 ```
 
-## MCP server — AI assistant integration
+Template:
+- [examples/cart-add-batch.example.json](examples/cart-add-batch.example.json)
 
-`martmart mcp` starts an [MCP](https://modelcontextprotocol.io) server over stdio, exposing cart, products, orders, reservations, and session tools to any compatible AI client.
+## Output modes
 
-### Claude Desktop
+Default output is human-readable.
+Use JSON for scripting:
 
-Download the latest `.mcpb` bundle for your platform from [Releases](https://github.com/wydrox/martmart-cli/releases), then in Claude Desktop go to **Extensions → Advanced Settings → Install Extensions** and select the downloaded file.
-
-**Login:** Ask Claude to log you in to Frisco (e.g. "zaloguj mnie do Frisco"). A Chrome window will open — log in on frisco.pl and navigate to your cart or account page. The session is captured automatically and saved for future use. Requires Chrome/Chromium.
-
-<details>
-<summary>Manual setup</summary>
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
-
-```json
-{
-  "mcpServers": {
-    "martmart": {
-      "command": "martmart",
-      "args": ["mcp"]
-    }
-  }
-}
+```bash
+martmart cart show --format json
+martmart products search --search mleko --format json
 ```
 
-If `martmart` is not in your `PATH`, use the absolute path to the binary (e.g. `"/Users/you/go/bin/martmart"`).
+## MCP integration
 
-</details>
+MartMart can run as an MCP server for AI clients:
 
-### Cursor
-
-[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=martmart&config=eyJjb21tYW5kIjoibWFydG1hcnQiLCJhcmdzIjpbIm1jcCJdfQ==)
-
-<details>
-<summary>Manual setup</summary>
-
-Add to `.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "martmart": {
-      "command": "martmart",
-      "args": ["mcp"]
-    }
-  }
-}
+```bash
+martmart mcp
 ```
-
-</details>
 
 ### Claude Code
 
@@ -173,42 +213,66 @@ Add to `.cursor/mcp.json`:
 claude mcp add martmart -- martmart mcp
 ```
 
-<details>
-<summary>Other MCP clients</summary>
+### Claude Desktop
 
-Any client supporting stdio transport works:
-
-```bash
-martmart mcp
+```json
+{
+  "mcpServers": {
+    "martmart": {
+      "command": "martmart",
+      "args": ["mcp"]
+    }
+  }
+}
 ```
 
-The server exposes tools for: product search, cart management, order history, delivery reservation, account info, and session management.
+### Cursor
 
-</details>
+Project-level `.cursor/mcp.json`:
 
-## Session data
+```json
+{
+  "mcpServers": {
+    "martmart": {
+      "command": "martmart",
+      "args": ["mcp"]
+    }
+  }
+}
+```
 
-Session is stored locally under `~/.frisco-cli/`.
+## Session storage
 
-- Frisco keeps the legacy path: `~/.frisco-cli/session.json`
-- Delio uses: `~/.frisco-cli/delio-session.json`
-- Shared config is stored in: `~/.frisco-cli/config.json`
+Session data is currently stored under `~/.frisco-cli/` for backward compatibility.
 
-`session login` launches Chrome/Chromium against a temporary snapshot of your existing browser profile, so the CLI can reuse your logged-in browser session without modifying your main profile.
+Files:
+- Frisco: `~/.frisco-cli/session.json`
+- Delio: `~/.frisco-cli/delio-session.json`
+- Shared config: `~/.frisco-cli/config.json`
 
-Security notes:
+## Security notes
 
-- The file may contain tokens and session headers (`Authorization`, `Cookie`).
-- Access to this file grants API access in your account's context.
-- Do not run `martmart mcp` in untrusted or shared environments.
+- session files may contain tokens and cookies
+- anyone with access to those files may act in your account context
+- do not share session files
+- do not run `martmart mcp` in untrusted environments
+- use only your own browser session and account
 
-If an access token expires, the CLI will automatically attempt to refresh it. If refresh fails, re-import your session with `martmart session from-curl` or `martmart session login`.
+## Development
 
-## Example payloads
+```bash
+make setup
+make build
+make test
+```
 
-- [examples/shipping-address.example.json](examples/shipping-address.example.json)
-- [examples/reservation-payload.example.json](examples/reservation-payload.example.json)
-- [examples/cart-add-batch.example.json](examples/cart-add-batch.example.json)
+Direct commands:
+
+```bash
+go test ./...
+go vet ./...
+go build ./cmd/martmart
+```
 
 ## License
 

@@ -3,7 +3,7 @@
   "name": "martmart",
   "display_name": "MartMart CLI",
   "version": "0.0.0",
-  "description": "MartMart CLI — shared grocery delivery CLI for Frisco.pl and Delio.",
+  "description": "Unified grocery CLI for Frisco.pl and Delio with browser-session login, cart automation, delivery slots, and MCP support.",
   "author": {
     "name": "Rafał Rudol"
   },
