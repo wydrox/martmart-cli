@@ -216,7 +216,7 @@ func remoteDebugGetJSON(rawURL string, dest any) error {
 	client := &http.Client{Timeout: 2 * time.Second}
 	resp, err := client.Get(rawURL)
 	if err != nil {
-		return err
+		return fmt.Errorf("GET %s: %w", rawURL, err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {

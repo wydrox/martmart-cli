@@ -496,13 +496,13 @@ func ensureProfileExists(userDataDir, profileDirectory string) error {
 
 func copyBrowserProfileSnapshot(srcUserData, dstUserData, profileDirectory string) error {
 	if err := os.MkdirAll(dstUserData, 0o700); err != nil {
-		return err
+		return fmt.Errorf("create snapshot user data dir: %w", err)
 	}
 	localStateSrc := filepath.Join(srcUserData, "Local State")
 	localStateDst := filepath.Join(dstUserData, "Local State")
 	if _, err := os.Stat(localStateSrc); err == nil {
 		if err := copyFile(localStateSrc, localStateDst); err != nil {
-			return err
+			return fmt.Errorf("copy browser Local State: %w", err)
 		}
 	}
 	srcProfile := filepath.Join(srcUserData, profileDirectory)
@@ -557,23 +557,23 @@ func copyDirFiltered(src, dst string, skip func(rel string, d fs.DirEntry) bool)
 func copyFile(src, dst string) error {
 	in, err := os.Open(src)
 	if err != nil {
-		return err
+		return fmt.Errorf("open source file %s: %w", src, err)
 	}
 	defer func() { _ = in.Close() }()
 	info, err := in.Stat()
 	if err != nil {
-		return err
+		return fmt.Errorf("stat source file %s: %w", src, err)
 	}
 	if err := os.MkdirAll(filepath.Dir(dst), 0o700); err != nil {
-		return err
+		return fmt.Errorf("create destination dir for %s: %w", dst, err)
 	}
 	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, info.Mode())
 	if err != nil {
-		return err
+		return fmt.Errorf("create destination file %s: %w", dst, err)
 	}
 	defer func() { _ = out.Close() }()
 	if _, err := io.Copy(out, in); err != nil {
-		return err
+		return fmt.Errorf("copy file contents to %s: %w", dst, err)
 	}
 	return out.Chmod(info.Mode())
 }
