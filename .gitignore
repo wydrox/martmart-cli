@@ -2,6 +2,8 @@
 bin/
 .bin/
 /frisco
+/martmart
+/martmart.exe
 
 # Go
 .gopath/
