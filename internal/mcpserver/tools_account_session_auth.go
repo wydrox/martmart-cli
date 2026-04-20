@@ -69,7 +69,7 @@ func registerAccountSessionAuthTools(server *mcp.Server) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "session_login",
-		Description: "Opens a Chrome/Chromium window using a snapshot of the current browser profile, captures auth cookies/session data automatically, and saves the session. Best when the user is already logged in in their normal browser profile.",
+		Description: "Opens the provider page in the user's default Chromium-based browser app with temporary remote debugging, captures auth session data automatically, and saves the session.",
 	}, toolSessionLogin)
 
 	mcp.AddTool(server, &mcp.Tool{
@@ -683,7 +683,7 @@ type sessionLoginIn struct {
 }
 
 func toolSessionLogin(ctx context.Context, _ *mcp.CallToolRequest, in sessionLoginIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	timeout := 180
+	timeout := 10
 	if in.TimeoutSec != nil && *in.TimeoutSec > 0 {
 		timeout = *in.TimeoutSec
 	}

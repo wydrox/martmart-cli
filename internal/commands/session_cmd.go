@@ -214,10 +214,10 @@ func newSessionLoginCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if providerIs(session.ProviderDelio) {
 				_, _ = fmt.Fprintln(cmd.OutOrStdout(),
-					"Waiting for session capture from your current browser. For Delio, keep a logged-in Delio tab open.")
+					"Opening Delio in your default browser app with temporary remote debugging and importing the detected session.")
 			} else {
 				_, _ = fmt.Fprintln(cmd.OutOrStdout(),
-					"Waiting for session capture from your current browser. For Frisco, keep a logged-in Frisco tab open. If no remote-debug browser is available, martmart may open a browser window.")
+					"Opening Frisco in your default browser app with temporary remote debugging and importing the detected session.")
 			}
 
 			result, err := login.Run(context.Background(), login.Options{
@@ -244,7 +244,7 @@ func newSessionLoginCmd() *cobra.Command {
 	}
 
 	c.Flags().StringVar(&loginURL, "login-url", "", "Optional start URL (default depends on provider).")
-	c.Flags().IntVar(&timeoutSec, "timeout", 180, "Maximum wait time for session detection (seconds).")
+	c.Flags().IntVar(&timeoutSec, "timeout", 10, "Maximum wait time for session detection (seconds).")
 	c.Flags().StringVar(&userDataDir, "user-data-dir", "", "Optional Chrome/Chromium user data dir to reuse.")
 	c.Flags().StringVar(&profileDirectory, "profile-directory", "", "Optional Chrome profile directory name, e.g. Default or Profile 1.")
 	return c

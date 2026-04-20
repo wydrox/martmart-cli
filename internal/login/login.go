@@ -6,7 +6,6 @@ package login
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -65,9 +64,10 @@ type chromeLocalState struct {
 	} `json:"profile"`
 }
 
-// Run captures a provider session using the best available browser flow.
-// On macOS Delio prefers the active browser profile instead of launching a
-// separate Chrome snapshot. Other providers keep the existing snapshot-based flow.
+// Run captures a provider session.
+// On macOS this uses the default browser app via a temporary Chromium remote-
+// debugging session against a copied profile snapshot, without reading cookies
+// directly from the browser database.
 func Run(ctx context.Context, opts Options) (*Result, error) {
 	provider := session.NormalizeProvider(opts.Provider)
 	if provider == "" {
@@ -79,14 +79,11 @@ func Run(ctx context.Context, opts Options) (*Result, error) {
 	if err := session.ValidateProvider(provider); err != nil {
 		return nil, err
 	}
-	if result, err := runWithRemoteDebugBrowser(ctx, opts); err == nil {
-		return result, nil
-	} else if !errors.Is(err, errNoRemoteDebugEndpoint) {
-		return nil, err
-	}
-	if provider == session.ProviderDelio {
+
+	if runtime.GOOS == "darwin" {
 		return runWithExistingBrowser(ctx, opts)
 	}
+
 	return runWithSnapshotBrowser(ctx, opts, provider)
 }
 

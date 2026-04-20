@@ -142,6 +142,23 @@ func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, erro
 	return nil, lastErr
 }
 
+func openLoginPageOnRemoteDebugBrowser(ctx context.Context, browserWSURL, loginURL string) error {
+	allocCtx, cancelAlloc := chromedp.NewRemoteAllocator(ctx, browserWSURL)
+	defer cancelAlloc()
+
+	taskCtx, cancelTask := chromedp.NewContext(allocCtx)
+	defer cancelTask()
+
+	targetID, err := target.CreateTarget(loginURL).WithNewWindow(true).Do(taskCtx)
+	if err != nil {
+		return fmt.Errorf("could not open login page in remote-debug browser: %w", err)
+	}
+	if err := target.ActivateTarget(targetID).Do(taskCtx); err != nil {
+		return fmt.Errorf("could not activate login page target: %w", err)
+	}
+	return nil
+}
+
 func providerDisplayName(provider string) string {
 	switch session.NormalizeProvider(provider) {
 	case session.ProviderDelio:
