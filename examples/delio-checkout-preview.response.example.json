@@ -1,0 +1,26 @@
+{
+  "_note": "Redacted / provisional Delio checkout preview response example. This fixture documents an observed/expected contract shape only; MartMart does not yet expose Delio checkout commands.",
+  "data": {
+    "checkoutPreview": {
+      "cartId": "cart_delio_123",
+      "currency": "PLN",
+      "totals": {
+        "subtotal": 142.11,
+        "deliveryFee": 12.99,
+        "discountTotal": 8.5,
+        "grandTotal": 146.6
+      },
+      "delivery": {
+        "startsAt": "2026-04-22T18:00:00+02:00",
+        "endsAt": "2026-04-22T20:00:00+02:00",
+        "method": "courier"
+      },
+      "payment": {
+        "provider": "adyen",
+        "method": "scheme",
+        "status": "ready"
+      },
+      "issues": []
+    }
+  }
+}

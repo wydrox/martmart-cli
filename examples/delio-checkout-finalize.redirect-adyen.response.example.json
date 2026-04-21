@@ -1,0 +1,22 @@
+{
+  "_note": "Redacted / provisional Delio finalize response when Adyen requires additional shopper action. This fixture is for documentation and future mapping work only; it is not current MartMart CLI output.",
+  "data": {
+    "placeOrder": {
+      "orderId": null,
+      "status": "requires_action",
+      "payment": {
+        "provider": "adyen",
+        "status": "pending",
+        "requiresAction": true
+      },
+      "action": {
+        "type": "redirect",
+        "paymentMethodType": "scheme",
+        "method": "GET",
+        "url": "https://checkoutshopper-live.adyen.com/checkoutshopper/threeDS/redirect.shtml?redirectData=REPLACE_ME"
+      },
+      "paymentData": "Ab02b4c0!BQABAgCUiQAA...REPLACE_ME",
+      "resultCode": "RedirectShopper"
+    }
+  }
+}

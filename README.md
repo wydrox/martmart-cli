@@ -79,7 +79,7 @@ martmart mcp
 | Reservation reserve/cancel | ✅ | ❌ |
 | Account / orders | ✅ | MVP / partial |
 | MCP support | ✅ | partial, shared CLI path |
-| Checkout / payment finalization | ⚠️ experimental: Frisco-only preview + guarded finalize (`--confirm`) | ❌ |
+| Checkout / payment finalization | ⚠️ experimental: preview + guarded finalize (`--confirm`) | ❌ CLI support today; provisional checkout fixtures only |
 
 ## Safety and scope
 
@@ -95,9 +95,11 @@ Implemented scope today:
 - run **guarded** Frisco finalization only with explicit `checkout finalize --confirm`
 
 Still not implemented / not supported:
-- Delio checkout finalization
+- Delio checkout commands / finalization in the CLI
 - automatic background finalization from MCP or agent loops
 - redirect / 3DS completion inside the CLI after the external handoff step
+
+Delio checkout is still **not wired into the CLI**. The repo may still contain redacted Delio checkout fixtures under `examples/` so the expected preview/finalize/redirect contract is documented for future implementation work, including Adyen-style action payloads.
 
 That keeps the tool useful while still requiring an explicit opt-in before any final order submission.
 
@@ -342,9 +344,9 @@ martmart --provider frisco cart add-batch --file list.json
 Template:
 - [examples/cart-add-batch.example.json](examples/cart-add-batch.example.json)
 
-## Frisco checkout flow (experimental, guarded)
+## Checkout flow fixtures and current CLI support
 
-MartMart now includes an **experimental Frisco-only checkout flow** with preview and explicit guarded finalization.
+MartMart currently exposes an **experimental Frisco-only checkout flow** with preview and explicit guarded finalization.
 
 Target flow:
 
@@ -357,13 +359,14 @@ Target flow:
 
 Current limitations:
 
-- **Frisco only** for checkout; Delio remains out of scope
+- only **Frisco** has user-facing `checkout` commands today
 - finalization must never happen implicitly from MCP or agent loops
 - the finalize command requires explicit `--confirm`
 - redirect / 3DS is currently **handoff-only**: the CLI detects it, returns structured action data, and lets the user finish externally
+- Delio checkout fixtures are documentation only for now; they are not executable CLI flows yet
 - the exact live finalization contract still benefits from confirmation from real request/response captures
 
-Example payloads/responses captured as repo fixtures:
+Frisco repo fixtures:
 
 - [examples/checkout-preview.request.example.json](examples/checkout-preview.request.example.json)
 - [examples/checkout-preview.response.example.json](examples/checkout-preview.response.example.json)
@@ -371,7 +374,15 @@ Example payloads/responses captured as repo fixtures:
 - [examples/checkout-finalize.response.example.json](examples/checkout-finalize.response.example.json)
 - [examples/checkout-finalize.redirect-3ds.response.example.json](examples/checkout-finalize.redirect-3ds.response.example.json)
 
+Delio contract-reference fixtures:
+
+- [examples/delio-checkout-preview.response.example.json](examples/delio-checkout-preview.response.example.json)
+- [examples/delio-checkout-finalize.response.example.json](examples/delio-checkout-finalize.response.example.json)
+- [examples/delio-checkout-finalize.redirect-adyen.response.example.json](examples/delio-checkout-finalize.redirect-adyen.response.example.json)
+
 These examples are **redacted / provisional**. They are meant to document the expected contract shape and failure modes for implementation work, not to claim that the final browser-confirmed endpoint is already fully verified.
+
+For Frisco, MartMart already returns a structured action handoff when finalize hits a redirect / 3DS stop. For Delio, the fixture set includes an **Adyen-style action payload example** so future implementation can map the same kind of external handoff safely without implying that the CLI path is already live.
 
 ### Remaining evidence to harden live checkout finalization
 
@@ -494,6 +505,7 @@ Example safe MCP workflows:
    - run `checkout preview`
    - inspect totals, warnings, payment state, and whether redirect / 3DS might be required
    - call `checkout finalize --confirm` only with explicit user approval
+   - if finalize returns a structured redirect / 3DS action, hand that URL/payload back to the user for external completion instead of trying to finish it inside the CLI
 
 These flows are intentionally designed around **non-finalizing by default** behavior.
 

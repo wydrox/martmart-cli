@@ -128,6 +128,13 @@ func listField(m map[string]any, key string) []any {
 	return out
 }
 
+func valueField(m map[string]any, key string) any {
+	if m == nil {
+		return nil
+	}
+	return m[key]
+}
+
 // CurrentCart fetches the current Delio cart for the active session.
 func CurrentCart(s *session.Session) (any, error) {
 	return graphqlRequest(s, "/api/proxy/delio", map[string]any{
@@ -336,4 +343,171 @@ func ExtractDeliveryScheduleSlots(payload any) ([]any, error) {
 		return nil, errors.New("missing deliveryScheduleSlots in Delio response")
 	}
 	return slots, nil
+}
+
+// PaymentSettings fetches Delio checkout payment settings.
+func PaymentSettings(s *session.Session) (any, error) {
+	return graphqlRequest(s, "/api/proxy/delio", map[string]any{
+		"operationName": "PaymentSettings",
+		"variables":     map[string]any{},
+		"query":         paymentSettingsQuery,
+	})
+}
+
+// ExtractPaymentSettings returns data.paymentSettings.
+func ExtractPaymentSettings(payload any) (map[string]any, error) {
+	data, err := unwrapGraphQL(payload)
+	if err != nil {
+		return nil, err
+	}
+	settings := mapField(data, "paymentSettings")
+	if settings == nil {
+		return nil, errors.New("missing paymentSettings in Delio response")
+	}
+	return settings, nil
+}
+
+// ExtractAdyenClientKey returns paymentSettings.adyenClientKey.
+func ExtractAdyenClientKey(payload any) (string, error) {
+	settings, err := ExtractPaymentSettings(payload)
+	if err != nil {
+		return "", err
+	}
+	key := asString(settings["adyenClientKey"])
+	if key == "" {
+		return "", errors.New("missing paymentSettings.adyenClientKey in Delio response")
+	}
+	return key, nil
+}
+
+// CreatePayment creates a Delio payment for the given cart.
+func CreatePayment(s *session.Session, cartID string) (any, error) {
+	if strings.TrimSpace(cartID) == "" {
+		return nil, errors.New("missing cartId")
+	}
+	return graphqlRequest(s, "/api/proxy/delio", map[string]any{
+		"operationName": "CreatePayment",
+		"variables": map[string]any{
+			"cartId": strings.TrimSpace(cartID),
+		},
+		"query": createPaymentMutation,
+	})
+}
+
+// ExtractPaymentID returns the payment ID created by CreatePayment.
+func ExtractPaymentID(payload any) (string, error) {
+	data, err := unwrapGraphQL(payload)
+	if err != nil {
+		return "", err
+	}
+	if paymentID := asString(valueField(data, "paymentId")); paymentID != "" {
+		return paymentID, nil
+	}
+	created := mapField(data, "createPayment")
+	if created != nil {
+		if paymentID := asString(valueField(created, "paymentId")); paymentID != "" {
+			return paymentID, nil
+		}
+	}
+	return "", errors.New("missing paymentId in Delio response")
+}
+
+// PaymentMethods fetches payment methods/config for the given cart/payment pair.
+func PaymentMethods(s *session.Session, cartID, paymentID string) (any, error) {
+	if strings.TrimSpace(cartID) == "" {
+		return nil, errors.New("missing cartId")
+	}
+	if strings.TrimSpace(paymentID) == "" {
+		return nil, errors.New("missing paymentId")
+	}
+	return graphqlRequest(s, "/api/proxy/delio", map[string]any{
+		"operationName": "PaymentMethods",
+		"variables": map[string]any{
+			"cartId":    strings.TrimSpace(cartID),
+			"paymentId": strings.TrimSpace(paymentID),
+		},
+		"query": paymentMethodsQuery,
+	})
+}
+
+// ExtractPaymentMethods returns data.getPaymentMethods.
+func ExtractPaymentMethods(payload any) (map[string]any, error) {
+	data, err := unwrapGraphQL(payload)
+	if err != nil {
+		return nil, err
+	}
+	methods := mapField(data, "getPaymentMethods")
+	if methods == nil {
+		return nil, errors.New("missing getPaymentMethods in Delio response")
+	}
+	return methods, nil
+}
+
+// ExtractAdyenResponse returns getPaymentMethods.adyenResponse.
+func ExtractAdyenResponse(payload any) (string, error) {
+	methods, err := ExtractPaymentMethods(payload)
+	if err != nil {
+		return "", err
+	}
+	response := asString(methods["adyenResponse"])
+	if response == "" {
+		return "", errors.New("missing getPaymentMethods.adyenResponse in Delio response")
+	}
+	return response, nil
+}
+
+// BuildSetDeliveryScheduleSlotAction builds an UpdateCurrentCart action for checkout slot selection.
+func BuildSetDeliveryScheduleSlotAction(dateFrom, dateTo string) map[string]any {
+	return map[string]any{
+		"SetDeliveryScheduleSlot": map[string]any{
+			"dateFrom": strings.TrimSpace(dateFrom),
+			"dateTo":   strings.TrimSpace(dateTo),
+		},
+	}
+}
+
+// BuildMakePaymentConfig returns the captured checkout paymentConfig payload.
+func BuildMakePaymentConfig() map[string]any {
+	return map[string]any{"paymentChannel": "Web"}
+}
+
+// BuildAdyenPaymentMethod returns the captured checkout paymentMethod payload.
+func BuildAdyenPaymentMethod(adyenPayload string) map[string]any {
+	return map[string]any{"adyenPayload": strings.TrimSpace(adyenPayload)}
+}
+
+// MakePayment submits the checkout payment using the captured Delio contract.
+func MakePayment(s *session.Session, cartID, paymentID, adyenPayload string) (any, error) {
+	if strings.TrimSpace(cartID) == "" {
+		return nil, errors.New("missing cartId")
+	}
+	if strings.TrimSpace(paymentID) == "" {
+		return nil, errors.New("missing paymentId")
+	}
+	if strings.TrimSpace(adyenPayload) == "" {
+		return nil, errors.New("missing adyenPayload")
+	}
+	return graphqlRequest(s, "/api/proxy/delio", map[string]any{
+		"operationName": "MakePayment",
+		"variables": map[string]any{
+			"cartId":        strings.TrimSpace(cartID),
+			"paymentId":     strings.TrimSpace(paymentID),
+			"paymentConfig": BuildMakePaymentConfig(),
+			"paymentMethod": BuildAdyenPaymentMethod(adyenPayload),
+		},
+		"query": makePaymentMutation,
+	})
+}
+
+// ExtractMakePaymentResult returns data.makePayment.
+func ExtractMakePaymentResult(payload any) (map[string]any, error) {
+	data, err := unwrapGraphQL(payload)
+	if err != nil {
+		return nil, err
+	}
+	result := mapField(data, "makePayment")
+	if result == nil {
+		return nil, errors.New("missing makePayment in Delio response")
+	}
+	return result, nil
 }

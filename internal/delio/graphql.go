@@ -509,6 +509,39 @@ const deliveryScheduleSlotsQuery = `query DeliveryScheduleSlots($coordinates: Co
   }
 }`
 
+const paymentSettingsQuery = `query PaymentSettings {
+  paymentSettings {
+    adyenClientKey
+    __typename
+  }
+}`
+
+const createPaymentMutation = `mutation CreatePayment($cartId: ID!) {
+  createPayment(cartId: $cartId) {
+    paymentId
+    __typename
+  }
+}`
+
+const paymentMethodsQuery = `query PaymentMethods($cartId: ID!, $paymentId: ID!) {
+  getPaymentMethods(cartId: $cartId, paymentId: $paymentId) {
+    adyenResponse
+    __typename
+  }
+}`
+
+const makePaymentMutation = `mutation MakePayment($cartId: ID!, $paymentId: ID!, $paymentConfig: PaymentConfigInput!, $paymentMethod: PaymentMethodInput!) {
+  makePayment(cartId: $cartId, paymentId: $paymentId, paymentConfig: $paymentConfig, paymentMethod: $paymentMethod) {
+    action
+    orderCode
+    paymentStatus
+    redirectUrl
+    resultCode
+    status
+    __typename
+  }
+}`
+
 const customerShippingAddressQuery = `query CustomerShippingAddress {
   defaultShippingAddress {
     apartment

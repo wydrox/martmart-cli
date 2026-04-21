@@ -1,0 +1,18 @@
+{
+  "_note": "Redacted / provisional Delio checkout finalize success response example. This is a contract-reference fixture only; Delio checkout is not yet implemented as a MartMart CLI command.",
+  "data": {
+    "placeOrder": {
+      "orderId": "delio_order_123456",
+      "status": "placed",
+      "payment": {
+        "provider": "adyen",
+        "status": "authorised",
+        "requiresAction": false
+      },
+      "summary": {
+        "total": 146.6,
+        "currency": "PLN"
+      }
+    }
+  }
+}

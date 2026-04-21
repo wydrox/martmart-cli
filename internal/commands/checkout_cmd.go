@@ -14,8 +14,15 @@ type checkoutCLIClient interface {
 	Finalize(s *session.Session, opts checkoutcore.FinalizeOptions) (*checkoutcore.FinalizeResult, error)
 }
 
-var checkoutLoadSession = loadSessionForSupportedProviders
-var newCheckoutClient = func() checkoutCLIClient { return checkoutcore.NewFriscoClient() }
+var checkoutLoadSession = loadSessionForRequest
+var newCheckoutClient = func(provider string) (checkoutCLIClient, error) {
+	switch session.NormalizeProvider(provider) {
+	case session.ProviderFrisco:
+		return checkoutcore.NewFriscoClient(), nil
+	default:
+		return nil, &checkoutcore.UnsupportedProviderError{Provider: provider, Supported: []string{session.ProviderFrisco}}
+	}
+}
 
 func newCheckoutCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -35,11 +42,15 @@ func newCheckoutPreviewCmd() *cobra.Command {
 		Use:   "preview",
 		Short: "Preview Frisco express checkout.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := checkoutLoadSession(cmd, session.ProviderFrisco)
+			provider, s, err := checkoutLoadSession(cmd)
 			if err != nil {
 				return err
 			}
-			preview, err := newCheckoutClient().Preview(s, checkoutcore.PreviewOptions{UserID: userID})
+			client, err := newCheckoutClient(provider)
+			if err != nil {
+				return err
+			}
+			preview, err := client.Preview(s, checkoutcore.PreviewOptions{Provider: provider, UserID: userID})
 			if err != nil {
 				return err
 			}
@@ -57,12 +68,15 @@ func newCheckoutFinalizeCmd() *cobra.Command {
 		Use:   "finalize",
 		Short: "Finalize Frisco express checkout. Requires explicit --confirm.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := checkoutLoadSession(cmd, session.ProviderFrisco)
+			provider, s, err := checkoutLoadSession(cmd)
 			if err != nil {
 				return err
 			}
-			client := newCheckoutClient()
-			preview, err := client.Preview(s, checkoutcore.PreviewOptions{UserID: userID})
+			client, err := newCheckoutClient(provider)
+			if err != nil {
+				return err
+			}
+			preview, err := client.Preview(s, checkoutcore.PreviewOptions{Provider: provider, UserID: userID})
 			if err != nil {
 				return err
 			}
@@ -82,8 +96,9 @@ func newCheckoutFinalizeCmd() *cobra.Command {
 			}
 
 			result, err := client.Finalize(s, checkoutcore.FinalizeOptions{
-				UserID: userID,
-				Guard:  finalizeGuardFromPreview(preview),
+				Provider: provider,
+				UserID:   userID,
+				Guard:    finalizeGuardFromPreview(preview),
 			})
 			if err != nil {
 				var actionErr *checkoutcore.ActionRequiredError
