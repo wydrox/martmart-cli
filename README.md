@@ -79,7 +79,7 @@ martmart mcp
 | Reservation reserve/cancel | ✅ | ❌ |
 | Account / orders | ✅ | MVP / partial |
 | MCP support | ✅ | partial, shared CLI path |
-| Checkout / payment finalization | ❌ | ❌ |
+| Checkout / payment finalization | ❌ (see Frisco research flow below) | ❌ |
 
 ## Safety and scope
 
@@ -98,6 +98,8 @@ Not implemented:
 - placing final orders
 
 That keeps the tool useful while reducing the risk of accidental purchases.
+
+Checkout work is currently limited to **Frisco research/documentation**. The released CLI still treats finalization as out of scope until the final browser/API step is confirmed from live captures.
 
 ## Installation
 
@@ -338,6 +340,62 @@ martmart --provider frisco cart add-batch --file list.json
 Template:
 - [examples/cart-add-batch.example.json](examples/cart-add-batch.example.json)
 
+## Frisco checkout research flow (documented, not fully enabled)
+
+MartMart now documents the **intended Frisco-only checkout flow** even though the final order-confirmation step is **not yet enabled in the released CLI**.
+
+Target flow:
+
+1. build the cart
+2. choose or reserve a delivery window
+3. request a **checkout preview**
+4. inspect totals / delivery / payment state
+5. only with an explicit user action, run **finalize** with `--confirm`
+6. if Frisco responds with a hosted redirect / 3DS step, stop the CLI flow and hand the user the redirect details
+
+Current limitations:
+
+- **Frisco only** for checkout research; Delio remains out of scope
+- finalization must never happen implicitly from MCP or agent loops
+- any future finalize command must require explicit `--confirm`
+- redirect / 3DS is expected to be **partial support** at first: detect it, surface the URL / metadata, and let the user finish externally
+- the exact finalization endpoint and success/error contract are still awaiting confirmation from real request/response captures
+
+Example payloads/responses captured as repo fixtures:
+
+- [examples/checkout-preview.request.example.json](examples/checkout-preview.request.example.json)
+- [examples/checkout-preview.response.example.json](examples/checkout-preview.response.example.json)
+- [examples/checkout-finalize.request.example.json](examples/checkout-finalize.request.example.json)
+- [examples/checkout-finalize.response.example.json](examples/checkout-finalize.response.example.json)
+- [examples/checkout-finalize.redirect-3ds.response.example.json](examples/checkout-finalize.redirect-3ds.response.example.json)
+
+These examples are **redacted / provisional**. They are meant to document the expected contract shape and failure modes for implementation work, not to claim that the final browser-confirmed endpoint is already fully verified.
+
+### Missing evidence before checkout finalization can be treated as implemented
+
+To move from research docs to a confirmed implementation, the repo still needs live browser/API evidence for the final Frisco step:
+
+1. **Checkout preview request + response**
+   - full request path/method
+   - JSON body actually accepted by Frisco
+   - success response fields used for totals, delivery slot, payment method, warnings, and order readiness
+2. **Finalize request + success response**
+   - exact endpoint/path
+   - headers/cookies/auth requirements
+   - request body including any confirmation/idempotency fields
+   - response proving an order was placed (order id / status / receipt-like summary)
+3. **Redirect / 3DS branch**
+   - finalize response when card auth is required
+   - fields for redirect URL, method, payload/form fields, transaction id, and return/callback identifiers
+   - the follow-up request/response that turns a successful 3DS challenge into a completed order (or marks it failed)
+4. **Negative cases**
+   - expired reservation / slot conflict
+   - price changed / product unavailable
+   - payment method rejected
+   - duplicate-submit / retry behavior
+
+A HAR file or equivalent redacted request/response log covering those cases is the exact blocker-removal artifact.
+
 ## AI assistant and MCP integration
 
 MartMart exposes a **stdio MCP server** for AI clients.
@@ -408,6 +466,7 @@ Example prompts you can give an MCP-capable assistant:
 - "Add 1 carton of milk to my Delio cart and then show the updated cart."
 - "Check delivery slots for the next 2 days on Frisco."
 - "Search Frisco for spaghetti, parmesan, and pancetta, then propose a carbonara shopping list."
+- "Prepare a Frisco checkout preview, but do not finalize anything unless I explicitly confirm."
 
 Example safe MCP workflows:
 
@@ -427,9 +486,14 @@ Example safe MCP workflows:
 4. **Delivery planning**
    - fetch available slots
    - compare providers if needed
-   - keep checkout/finalization out of scope
+   - keep checkout/finalization out of scope unless the user explicitly asks for Frisco checkout research
+5. **Checkout preview research (Frisco only, non-finalizing by default)**
+   - reserve/confirm the intended delivery context first
+   - prepare a preview request
+   - inspect totals, warnings, payment state, and whether redirect / 3DS might be required
+   - never call finalize unless the user explicitly confirms
 
-These flows are intentionally designed around **non-finalizing** actions.
+These flows are intentionally designed around **non-finalizing** actions by default.
 
 ## Local data layout
 
@@ -461,7 +525,8 @@ Near-term improvements:
 - stronger MCP/provider parity beyond the Frisco-first surface
 - better provider-aware account/order coverage
 - improved browser/profile discovery for login
-- safer checkout research without finalizing purchases
+- confirm the final Frisco checkout endpoint and success/error contract from live captures
+- add guarded Frisco finalize support with explicit `--confirm`
 - better docs and examples for automation flows
 
 ## Development

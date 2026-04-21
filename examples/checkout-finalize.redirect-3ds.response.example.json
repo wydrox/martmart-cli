@@ -1,0 +1,21 @@
+{
+  "_note": "Redacted / provisional Frisco finalize response when additional cardholder action (redirect / 3DS) is required.",
+  "status": "action_required",
+  "order": null,
+  "payment": {
+    "status": "requires_action",
+    "method": "card",
+    "transactionId": "txn_123",
+    "requiresAction": true
+  },
+  "redirect": {
+    "type": "3ds",
+    "method": "GET",
+    "url": "https://payments.example.test/3ds/challenge?token=REPLACE_ME",
+    "returnUrl": "https://www.frisco.pl/payment/return",
+    "callbackToken": "REPLACE_WITH_SERVER_TOKEN"
+  },
+  "warnings": [
+    "User must complete authentication outside the CLI before the order can be considered placed."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "_note": "Redacted / provisional Frisco checkout finalize example. Any future CLI command must require explicit --confirm before sending an equivalent request.",
+  "checkoutId": "chk_123",
+  "confirm": true,
+  "payment": {
+    "method": "card",
+    "paymentMethodId": "pm_123"
+  },
+  "reservation": {
+    "deliveryWindow": {
+      "warehouse": "WAW",
+      "deliveryMethod": "Van",
+      "startsAt": "2026-01-15T08:00:00+01:00",
+      "endsAt": "2026-01-15T10:00:00+01:00"
+    }
+  },
+  "clientContext": {
+    "source": "martmart-cli",
+    "intent": "finalize",
+    "idempotencyKey": "REPLACE_WITH_UUID"
+  }
+}

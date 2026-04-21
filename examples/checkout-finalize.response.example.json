@@ -1,0 +1,18 @@
+{
+  "_note": "Redacted / provisional Frisco checkout finalize success response example.",
+  "status": "completed",
+  "order": {
+    "id": "ORDER-123456",
+    "number": "1234567890",
+    "placedAt": "2026-01-14T20:15:03+01:00",
+    "total": 170.49,
+    "currency": "PLN"
+  },
+  "payment": {
+    "status": "captured",
+    "method": "card",
+    "requiresAction": false
+  },
+  "redirect": null,
+  "warnings": []
+}
