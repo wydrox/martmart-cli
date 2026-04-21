@@ -495,6 +495,22 @@ func TestApplyFromCurl_BaseURLUntrustedHostUnchanged(t *testing.T) {
 	}
 }
 
+func TestApplyFromCurl_InfersDelioProviderFromURL(t *testing.T) {
+	cmd := `curl 'https://www.delio.com.pl/api/proxy/delio' -H 'Cookie: authToken=a; idToken=b; refreshToken=c'`
+	c, err := ParseCurl(cmd)
+	if err != nil {
+		t.Fatalf("ParseCurl: %v", err)
+	}
+	s := defaultSession()
+	ApplyFromCurl(s, c)
+	if s.BaseURL != "https://www.delio.com.pl" {
+		t.Errorf("base_url: got %q, want https://www.delio.com.pl", s.BaseURL)
+	}
+	if s.Headers["Cookie"] == "" {
+		t.Fatal("expected Cookie header to be preserved")
+	}
+}
+
 func TestApplyFromCurl_BaseURLMalformedURLUnchanged(t *testing.T) {
 	s := &Session{BaseURL: "https://www.frisco.pl", Headers: map[string]string{}}
 	ApplyFromCurl(s, &CurlData{
@@ -794,6 +810,19 @@ func TestNormalizeHeaders_UnknownKeyPreservedAsIs(t *testing.T) {
 	}
 }
 
+func TestProviderForSession_InfersDelioFromCookieHeader(t *testing.T) {
+	s := &Session{Headers: map[string]string{"Cookie": "authToken=a; idToken=b; refreshToken=c"}}
+	if got := ProviderForSession(s, ""); got != ProviderDelio {
+		t.Fatalf("ProviderForSession: got %q, want %q", got, ProviderDelio)
+	}
+}
+
+func TestProviderForSession_FallsBackToExplicitProvider(t *testing.T) {
+	if got := ProviderForSession(&Session{}, ProviderDelio); got != ProviderDelio {
+		t.Fatalf("ProviderForSession fallback: got %q, want %q", got, ProviderDelio)
+	}
+}
+
 // ============================================================================
 // UserIDString / RequireUserID
 // ============================================================================
@@ -1007,6 +1036,22 @@ func TestSave_CreatesDir(t *testing.T) {
 	}
 	if _, err := os.Stat(sessionFile); os.IsNotExist(err) {
 		t.Errorf("Save should have written session file %q", sessionFile)
+	}
+}
+
+func TestSave_InfersDelioSessionFileWithoutBaseURL(t *testing.T) {
+	dir := t.TempDir()
+	setTempSession(t, dir)
+
+	s := &Session{Headers: map[string]string{"Cookie": "authToken=a; idToken=b; refreshToken=c"}}
+	if err := Save(s); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "delio-session.json")); err != nil {
+		t.Fatalf("expected delio-session.json to be written: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "frisco-session.json")); !os.IsNotExist(err) {
+		t.Fatalf("expected frisco-session.json to remain absent, got err=%v", err)
 	}
 }
 

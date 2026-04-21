@@ -145,9 +145,14 @@ var fromCurlHeaderAllow = map[string]struct{}{
 }
 
 // ApplyFromCurl updates a session with data extracted from a parsed curl command.
-// It preserves the historical default-provider behaviour (Frisco).
+// It infers the provider from the curl URL when possible and otherwise falls
+// back to the existing session contents.
 func ApplyFromCurl(s *Session, c *CurlData) {
-	ApplyFromCurlForProvider(s, c, ProviderFrisco)
+	provider := ProviderForSession(s, "")
+	if c != nil && strings.TrimSpace(c.URL) != "" {
+		provider = ProviderForURL(c.URL)
+	}
+	ApplyFromCurlForProvider(s, c, provider)
 }
 
 // ApplyFromCurlForProvider updates a session with data extracted from a parsed

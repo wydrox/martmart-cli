@@ -632,7 +632,7 @@ func saveDelioSessionFromCapture(s *session.Session, baseURL, profileDirectory s
 	if strings.TrimSpace(capture.UserID) != "" {
 		s.UserID = strings.TrimSpace(capture.UserID)
 	}
-	if err := session.SaveProvider(session.ProviderDelio, s); err != nil {
+	if err := session.SaveProvider(session.ProviderForSession(s, session.ProviderDelio), s); err != nil {
 		return nil, err
 	}
 	return &Result{
@@ -670,7 +670,7 @@ func saveFriscoSessionFromCapture(s *session.Session, baseURL, profileDirectory 
 	if strings.TrimSpace(capture.UserID) != "" {
 		s.UserID = strings.TrimSpace(capture.UserID)
 	}
-	if err := session.SaveProvider(session.ProviderFrisco, s); err != nil {
+	if err := session.SaveProvider(session.ProviderForSession(s, session.ProviderFrisco), s); err != nil {
 		return nil, err
 	}
 	return &Result{

@@ -242,7 +242,7 @@ func newOrdersListCmd() *cobra.Command {
 		Use:   "list",
 		Short: "Order list.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -401,7 +401,7 @@ func newOrdersGetCmd() *cobra.Command {
 		Use:   "get",
 		Short: "Single order details.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -463,7 +463,7 @@ func newOrdersDeliveryCmd() *cobra.Command {
 		Use:   "delivery",
 		Short: "Delivery details for order.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -491,7 +491,7 @@ func newOrdersPaymentsCmd() *cobra.Command {
 		Use:   "payments",
 		Short: "Payments for order.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -519,7 +519,7 @@ func newOrdersProductsCmd() *cobra.Command {
 		Use:   "products",
 		Short: "List products in an order.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}

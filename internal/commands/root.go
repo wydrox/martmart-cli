@@ -26,6 +26,10 @@ func NewRootCmd() *cobra.Command {
 		Short: "MartMart CLI — shared grocery CLI for Frisco.pl and Delio.",
 		Long:  "Session management, product search, cart, reservations and account operations across multiple grocery providers.",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			if err := withResolvedProvider(cmd); err != nil {
+				return err
+			}
+
 			format = strings.ToLower(strings.TrimSpace(format))
 			if format == "" {
 				format = "table"
@@ -70,7 +74,7 @@ func NewRootCmd() *cobra.Command {
 	root.PersistentFlags().String(
 		"provider",
 		"",
-		"Backend provider: frisco or delio (default comes from config).",
+		"Provider for this command invocation: frisco or delio. Falls back to config when omitted.",
 	)
 	root.PersistentFlags().Float64Var(
 		&rateLimitRPS,

@@ -98,9 +98,9 @@ func DefaultBaseURLForProvider(provider string) string {
 	}
 }
 
-// ProviderForBaseURL guesses the provider from a session base URL.
-func ProviderForBaseURL(baseURL string) string {
-	if u, err := url.Parse(strings.TrimSpace(baseURL)); err == nil {
+// ProviderForURL guesses the provider from an absolute URL.
+func ProviderForURL(rawURL string) string {
+	if u, err := url.Parse(strings.TrimSpace(rawURL)); err == nil {
 		host := strings.ToLower(strings.TrimSpace(u.Hostname()))
 		switch {
 		case host == "delio.com.pl" || strings.HasSuffix(host, ".delio.com.pl"):
@@ -108,6 +108,32 @@ func ProviderForBaseURL(baseURL string) string {
 		case host == "frisco.pl" || strings.HasSuffix(host, ".frisco.pl"):
 			return ProviderFrisco
 		}
+	}
+	return ProviderFrisco
+}
+
+// ProviderForBaseURL guesses the provider from a session base URL.
+func ProviderForBaseURL(baseURL string) string {
+	return ProviderForURL(baseURL)
+}
+
+// ProviderForSession infers the provider from persisted session fields and
+// falls back to fallbackProvider (or Frisco when empty/unknown).
+func ProviderForSession(s *Session, fallbackProvider string) string {
+	fallbackProvider = NormalizeProvider(fallbackProvider)
+	if s != nil {
+		if strings.TrimSpace(s.BaseURL) != "" {
+			return ProviderForBaseURL(s.BaseURL)
+		}
+		if provider := providerFromHeaders(s.Headers); provider != "" {
+			return provider
+		}
+		if TokenString(s) != "" || RefreshTokenString(s) != "" {
+			return ProviderFrisco
+		}
+	}
+	if fallbackProvider == ProviderDelio {
+		return ProviderDelio
 	}
 	return ProviderFrisco
 }
@@ -236,7 +262,7 @@ func SaveProvider(provider string, s *Session) error {
 // Save persists s to a provider-specific session file with 0600 permissions.
 // It infers the provider from the session base URL when possible.
 func Save(s *Session) error {
-	return SaveProvider(ProviderForBaseURL(s.BaseURL), s)
+	return SaveProvider(ProviderForSession(s, ""), s)
 }
 
 // IsAuthenticated reports whether the session has a token, Authorization header,
@@ -364,6 +390,40 @@ func NormalizeHeaders(headers map[string]string) map[string]string {
 
 // canonicalHeaderKey returns the canonical form of a known header name, or
 // original when the key is not in the recognised set.
+func providerFromHeaders(headers map[string]string) string {
+	cookie := ""
+	for k, v := range headers {
+		switch strings.ToLower(strings.TrimSpace(k)) {
+		case "cookie":
+			cookie = v
+		case "authorization":
+			if strings.TrimSpace(v) != "" {
+				return ProviderFrisco
+			}
+		case "origin", "referer":
+			if ProviderForURL(v) == ProviderDelio {
+				return ProviderDelio
+			}
+		}
+	}
+	for _, part := range strings.Split(cookie, ";") {
+		trimmed := strings.TrimSpace(part)
+		idx := strings.IndexByte(trimmed, '=')
+		if idx < 0 {
+			continue
+		}
+		name := strings.ToLower(strings.TrimSpace(trimmed[:idx]))
+		switch name {
+		case "authtoken", "idtoken", "refreshtoken":
+			return ProviderDelio
+		}
+		if strings.Contains(name, "rtoken") || strings.Contains(name, "sessionid") || strings.Contains(name, "userid") {
+			return ProviderFrisco
+		}
+	}
+	return ""
+}
+
 func canonicalHeaderKey(lowerKey, original string) string {
 	switch lowerKey {
 	case "authorization":

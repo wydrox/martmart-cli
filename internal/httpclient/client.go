@@ -90,9 +90,13 @@ func requestJSONWithAutoRefresh(
 	if opts.Client == nil {
 		opts.Client = defaultHTTPClient
 	}
-	baseURL := s.BaseURL
+	provider := session.ProviderForSession(s, "")
+	baseURL := ""
+	if s != nil {
+		baseURL = s.BaseURL
+	}
 	if baseURL == "" {
-		baseURL = session.DefaultBaseURLForProvider(session.ProviderFrisco)
+		baseURL = session.DefaultBaseURLForProvider(provider)
 	}
 	fullURL, err := makeURL(baseURL, pathOrURL)
 	if err != nil {
@@ -123,8 +127,10 @@ func requestJSONWithAutoRefresh(
 	}
 
 	headers := make(map[string]string)
-	for k, v := range session.NormalizeHeaders(s.Headers) {
-		headers[k] = v
+	if s != nil {
+		for k, v := range session.NormalizeHeaders(s.Headers) {
+			headers[k] = v
+		}
 	}
 	if tok := session.TokenString(s); tok != "" && !headerKeyPresent(headers, "authorization") {
 		headers["Authorization"] = "Bearer " + tok
@@ -307,7 +313,7 @@ func refreshAccessToken(s *session.Session, client *http.Client) (bool, error) {
 	if newRefresh, ok := m["refresh_token"].(string); ok && strings.TrimSpace(newRefresh) != "" {
 		s.RefreshToken = newRefresh
 	}
-	if err := session.SaveProvider(session.ProviderForBaseURL(s.BaseURL), s); err != nil {
+	if err := session.SaveProvider(session.ProviderForSession(s, session.ProviderFrisco), s); err != nil {
 		return false, err
 	}
 	return true, nil

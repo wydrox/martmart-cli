@@ -38,7 +38,7 @@ func newAccountProfileCmd() *cobra.Command {
 		Use:   "profile",
 		Short: "Fetch user profile.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -123,7 +123,7 @@ func newAccountAddressesListCmd() *cobra.Command {
 		Use:   "list",
 		Short: "Address list.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -201,7 +201,7 @@ func newAccountAddressesAddCmd() *cobra.Command {
 		Use:   "add",
 		Short: "Add address (JSON).",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -246,7 +246,7 @@ func newAccountAddressesDeleteCmd() *cobra.Command {
 		Use:   "delete",
 		Short: "Delete address by UUID.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -283,7 +283,7 @@ func newAccountConsentsShowCmd() *cobra.Command {
 		Use:   "show",
 		Short: "Show current consents.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -312,7 +312,7 @@ func newAccountConsentsToggleCmd() *cobra.Command {
 		Use:   "toggle",
 		Short: "Toggle a single consent key.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -387,7 +387,7 @@ func newAccountConsentsUpdateCmd() *cobra.Command {
 		Use:   "update",
 		Short: "Update consents using JSON payload.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -426,7 +426,7 @@ func newAccountVouchersCmd() *cobra.Command {
 		Use:   "vouchers",
 		Short: "Fetch vouchers.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -453,7 +453,7 @@ func newAccountPaymentsCmd() *cobra.Command {
 		Use:   "payments",
 		Short: "Fetch payment methods.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -531,7 +531,7 @@ func newAccountMembershipCardsCmd() *cobra.Command {
 		Use:   "cards",
 		Short: "Fetch membership cards.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -573,7 +573,7 @@ func newAccountMembershipPointsShowCmd() *cobra.Command {
 		Use:   "show",
 		Short: "Show points summary (balance, earned, spent).",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -656,7 +656,7 @@ func newAccountMembershipPointsHistoryCmd() *cobra.Command {
 		Use:   "history",
 		Short: "Show points history (paginated).",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}

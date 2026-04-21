@@ -16,10 +16,27 @@ import (
 	"github.com/wydrox/martmart-cli/internal/shared"
 )
 
-// mcpCPFriscoToolOut is the structured tool result envelope for cart/product tools.
+// mcpCPFriscoToolOut is the structured tool result envelope for MCP tools.
 type mcpCPFriscoToolOut struct {
-	OK   bool           `json:"ok" jsonschema:"true when the Frisco API call completed without a transport error"`
-	Data map[string]any `json:"data,omitempty" jsonschema:"Normalized payload envelope with api_response containing Frisco JSON"`
+	OK   bool           `json:"ok" jsonschema:"true when the provider API call completed without a transport error"`
+	Data map[string]any `json:"data,omitempty" jsonschema:"Normalized payload envelope with api_response containing provider JSON"`
+}
+
+const mcpFallbackProvider = session.ProviderFrisco
+
+func mcpResolveProvider(provider string) (string, error) {
+	provider = session.NormalizeProvider(provider)
+	if provider == "" {
+		provider = mcpFallbackProvider
+	}
+	if err := session.ValidateProvider(provider); err != nil {
+		return "", err
+	}
+	return provider, nil
+}
+
+func mcpAvailableProviders() []string {
+	return session.SupportedProviders()
 }
 
 // registerCartAndProductsTools registers all cart and product MCP tools.
@@ -57,11 +74,12 @@ func registerCartAndProductsTools(server *mcp.Server) {
 
 // mcpCPCartShowIn is the input type for the cart_show tool.
 type mcpCPCartShowIn struct {
-	UserID string `json:"user_id,omitempty" jsonschema:"Frisco user id; falls back to session user_id"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	UserID   string `json:"user_id,omitempty" jsonschema:"provider user id; falls back to session user_id"`
 }
 
 func mcpCPCartShow(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartShowIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -75,7 +93,8 @@ func mcpCPCartShow(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartShowIn
 
 // mcpCPCartAddIn is the input type for the cart_add tool.
 type mcpCPCartAddIn struct {
-	ProductID string `json:"product_id" jsonschema:"Frisco product id"`
+	Provider  string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	ProductID string `json:"product_id" jsonschema:"provider product id"`
 	Quantity  *int   `json:"quantity,omitempty" jsonschema:"defaults to 1 when omitted"`
 	UserID    string `json:"user_id,omitempty" jsonschema:"optional override of session user_id"`
 }
@@ -84,7 +103,7 @@ func mcpCPCartAdd(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartAddIn) 
 	if strings.TrimSpace(in.ProductID) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("product_id is required")
 	}
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -110,7 +129,8 @@ func mcpCPCartAdd(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartAddIn) 
 
 // mcpCPCartRemoveIn is the input type for the cart_remove tool.
 type mcpCPCartRemoveIn struct {
-	ProductID string `json:"product_id" jsonschema:"Frisco product id"`
+	Provider  string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	ProductID string `json:"product_id" jsonschema:"provider product id"`
 	UserID    string `json:"user_id,omitempty" jsonschema:"optional override of session user_id"`
 }
 
@@ -118,7 +138,7 @@ func mcpCPCartRemove(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartRemo
 	if strings.TrimSpace(in.ProductID) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("product_id is required")
 	}
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -140,8 +160,9 @@ func mcpCPCartRemove(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartRemo
 
 // mcpCPProductsSearchIn is the input type for the products_search tool.
 type mcpCPProductsSearchIn struct {
+	Provider       string  `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
 	Search         string  `json:"search" jsonschema:"search phrase (purpose=Listing)"`
-	CategoryID     string  `json:"category_id,omitempty" jsonschema:"optional Frisco categoryId to narrow results (e.g. 18703 Warzywa i owoce)"`
+	CategoryID     string  `json:"category_id,omitempty" jsonschema:"optional categoryId to narrow results"`
 	PageIndex      *int    `json:"page_index,omitempty" jsonschema:"1-based page index; default 1"`
 	PageSize       *int    `json:"page_size,omitempty" jsonschema:"default 84"`
 	DeliveryMethod *string `json:"delivery_method,omitempty" jsonschema:"default Van"`
@@ -152,7 +173,7 @@ func mcpCPProductsSearch(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProd
 	if strings.TrimSpace(in.Search) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("search is required")
 	}
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -191,7 +212,8 @@ func mcpCPProductsSearch(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProd
 
 // mcpCPProductsByIDsIn is the input type for the products_by_ids tool.
 type mcpCPProductsByIDsIn struct {
-	ProductIDs []string `json:"product_ids" jsonschema:"list of Frisco product ids"`
+	Provider   string   `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	ProductIDs []string `json:"product_ids" jsonschema:"list of provider product ids"`
 	UserID     string   `json:"user_id,omitempty" jsonschema:"optional override of session user_id"`
 }
 
@@ -199,7 +221,7 @@ func mcpCPProductsByIDs(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProdu
 	if len(in.ProductIDs) == 0 {
 		return nil, mcpCPFriscoToolOut{}, errors.New("product_ids must contain at least one id")
 	}
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -217,7 +239,8 @@ func mcpCPProductsByIDs(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProdu
 
 // mcpCPProductsNutritionIn is the input type for the products_nutrition tool.
 type mcpCPProductsNutritionIn struct {
-	ProductID string `json:"product_id" jsonschema:"Frisco product id"`
+	Provider  string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	ProductID string `json:"product_id" jsonschema:"provider product id"`
 	Raw       bool   `json:"raw,omitempty" jsonschema:"if true, return full API JSON; default false"`
 }
 
@@ -225,7 +248,11 @@ func mcpCPProductsNutrition(_ context.Context, _ *mcp.CallToolRequest, in mcpCPP
 	if strings.TrimSpace(in.ProductID) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("product_id is required")
 	}
-	s, err := session.LoadProvider(mcpDefaultProvider)
+	provider, err := mcpResolveProvider(in.Provider)
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
+	}
+	s, err := session.LoadProvider(provider)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -262,10 +289,14 @@ var errNotAuthenticated = errors.New(
 		"or use session_from_curl with a cURL copied from DevTools",
 )
 
-// loadSessionAuth loads the session and verifies it has authentication credentials.
-// Tools that don't require auth (e.g. products_search, session_from_curl) should use session.LoadProvider(mcpDefaultProvider) directly.
-func loadSessionAuth(explicitUserID string) (*session.Session, string, error) {
-	s, err := session.LoadProvider(mcpDefaultProvider)
+// loadSessionAuth loads the provider session and verifies it has authentication credentials.
+// Tools that don't require auth should resolve the provider and call session.LoadProvider directly.
+func loadSessionAuth(provider string, explicitUserID string) (*session.Session, string, error) {
+	provider, err := mcpResolveProvider(provider)
+	if err != nil {
+		return nil, "", err
+	}
+	s, err := session.LoadProvider(provider)
 	if err != nil {
 		return nil, "", err
 	}

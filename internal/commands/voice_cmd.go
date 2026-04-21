@@ -37,7 +37,7 @@ func newVoiceCmd() *cobra.Command {
 	runCmd := newVoiceRunCmd()
 	cmd := &cobra.Command{
 		Use:   "voice",
-		Short: "Run a local Pipecat + OpenAI voice shopping assistant.",
+		Short: "Run a local Pipecat + OpenAI voice shopping assistant over MartMart MCP.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runCmd.RunE(cmd, args)
 		},
@@ -95,7 +95,7 @@ func newVoiceRunCmd() *cobra.Command {
 	)
 	c := &cobra.Command{
 		Use:   "run",
-		Short: "Start the local voice shopping assistant.",
+		Short: "Start the local voice shopping assistant with multi-provider MCP access.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			cfg, err := config.Load()
 			if err != nil {
@@ -177,11 +177,7 @@ func newVoiceRunCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			provider, err := selectedProvider(cmd)
-			if err != nil {
-				return err
-			}
-			mcpArgs := []string{"--provider", provider, "mcp"}
+			mcpArgs := []string{"mcp"}
 
 			args := []string{
 				paths.ScriptPath,
