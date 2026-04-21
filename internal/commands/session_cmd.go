@@ -244,7 +244,7 @@ func newSessionLoginCmd() *cobra.Command {
 	}
 
 	c.Flags().StringVar(&loginURL, "login-url", "", "Optional start URL (default depends on provider).")
-	c.Flags().IntVar(&timeoutSec, "timeout", 10, "Maximum wait time for session detection (seconds).")
+	c.Flags().IntVar(&timeoutSec, "timeout", 180, "Maximum wait time for session detection (seconds).")
 	c.Flags().StringVar(&userDataDir, "user-data-dir", "", "Optional Chrome/Chromium user data dir to reuse.")
 	c.Flags().StringVar(&profileDirectory, "profile-directory", "", "Optional Chrome profile directory name, e.g. Default or Profile 1.")
 	return c

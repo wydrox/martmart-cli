@@ -67,7 +67,7 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 	}
 	timeoutSec := opts.TimeoutSec
 	if timeoutSec <= 0 {
-		timeoutSec = 10
+		timeoutSec = 180
 	}
 
 	profile, err := detectPreferredBrowserProfile(opts.UserDataDir, opts.ProfileDirectory)

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -87,6 +88,28 @@ func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, erro
 		return nil, err
 	}
 
+	if err := openLoginPageOnRemoteDebugBrowser(ctx, version.WebSocketDebuggerURL, loginURL); err != nil {
+		return nil, err
+	}
+
+	// Ensure the login tab is actually reachable by remote debugging before we wait
+	// for auth artifacts. If it disappears immediately, we surface a clear error
+	// instead of waiting only to return a generic timeout.
+	seenOpenTarget := false
+	openDeadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(openDeadline) {
+		if targetInfo, err := findProviderRemoteDebugTarget(debugBase, provider); err != nil {
+			return nil, fmt.Errorf("could not verify opened login tab: %w", err)
+		} else if targetInfo != nil {
+			seenOpenTarget = true
+			break
+		}
+		time.Sleep(300 * time.Millisecond)
+	}
+	if !seenOpenTarget {
+		return nil, fmt.Errorf("opened browser tab for %s was not detected in remote debug target list; try increasing --timeout or check the browser did not close immediately", providerDisplayName(provider))
+	}
+
 	deadline := time.Now().Add(time.Duration(timeoutSec) * time.Second)
 	var lastErr error
 
@@ -143,20 +166,124 @@ func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, erro
 }
 
 func openLoginPageOnRemoteDebugBrowser(ctx context.Context, browserWSURL, loginURL string) error {
+	loginURL = strings.TrimSpace(loginURL)
+	if loginURL == "" {
+		return errors.New("login URL is required")
+	}
+
+	var lastOpenErr error
+	if base := remoteDebugBaseFromWebSocket(browserWSURL); base != "" {
+		if _, err := openLoginPageViaRemoteDebugHTTP(base, loginURL); err == nil {
+			return nil
+		} else {
+			lastOpenErr = err
+		}
+	}
+
 	allocCtx, cancelAlloc := chromedp.NewRemoteAllocator(ctx, browserWSURL)
 	defer cancelAlloc()
 
 	taskCtx, cancelTask := chromedp.NewContext(allocCtx)
 	defer cancelTask()
 
-	targetID, err := target.CreateTarget(loginURL).WithNewWindow(true).Do(taskCtx)
+	// Fallback path: navigate current/first page and, if needed, create a new target.
+	// Retry briefly, because DevTools target attachment can be momentarily unavailable
+	// right after browser start.
+	var lastErr error
+	for i := 0; i < 5; i++ {
+		if i > 0 {
+			time.Sleep(250 * time.Millisecond)
+		}
+		if err := chromedp.Run(taskCtx, chromedp.Navigate(loginURL)); err == nil {
+			return nil
+		} else {
+			lastErr = err
+		}
+
+		targetID, createErr := target.CreateTarget(loginURL).WithNewWindow(true).Do(taskCtx)
+		if createErr == nil {
+			if err := target.ActivateTarget(targetID).Do(taskCtx); err == nil {
+				return nil
+			} else {
+				lastErr = err
+			}
+		} else {
+			lastErr = createErr
+		}
+	}
+
+	if lastErr != nil {
+		if lastOpenErr != nil {
+			return fmt.Errorf("could not open login page in remote-debug browser: %w; initial attempt via /json/new failed: %v", lastErr, lastOpenErr)
+		}
+		return fmt.Errorf("could not open login page in remote-debug browser: %w", lastErr)
+	}
+	return errors.New("could not open login page in remote-debug browser")
+}
+
+func remoteDebugBaseFromWebSocket(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+
+	u, err := url.Parse(raw)
 	if err != nil {
-		return fmt.Errorf("could not open login page in remote-debug browser: %w", err)
+		return ""
 	}
-	if err := target.ActivateTarget(targetID).Do(taskCtx); err != nil {
-		return fmt.Errorf("could not activate login page target: %w", err)
+	host := strings.TrimSpace(u.Host)
+	if host == "" {
+		return ""
 	}
-	return nil
+	out := *u
+	switch strings.ToLower(u.Scheme) {
+	case "ws":
+		out.Scheme = "http"
+	case "wss":
+		out.Scheme = "https"
+	default:
+		if out.Scheme == "" {
+			return ""
+		}
+	}
+	out.Host = host
+	out.Path = ""
+	out.RawQuery = ""
+	out.Fragment = ""
+	return strings.TrimRight(out.String(), "/")
+}
+
+func openLoginPageViaRemoteDebugHTTP(debugBase, loginURL string) (string, error) {
+	if strings.TrimSpace(debugBase) == "" {
+		return "", errors.New("empty remote debug base URL")
+	}
+	parsed, err := url.Parse(loginURL)
+	if err != nil {
+		return "", err
+	}
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return "", fmt.Errorf("unsupported login URL scheme %q", parsed.Scheme)
+	}
+
+	endpoint := debugBase + "/json/new?url=" + url.QueryEscape(parsed.String())
+	client := &http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Get(endpoint)
+	if err != nil {
+		return "", err
+	}
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("GET %s returned %s", endpoint, resp.Status)
+	}
+
+	var opened remoteDebugTarget
+	if err := json.NewDecoder(resp.Body).Decode(&opened); err != nil {
+		return "", fmt.Errorf("decode /json/new response: %w", err)
+	}
+	if strings.TrimSpace(opened.ID) == "" {
+		return "", fmt.Errorf("remote debug /json/new did not return a target id")
+	}
+	return opened.ID, nil
 }
 
 func providerDisplayName(provider string) string {
@@ -232,11 +359,16 @@ func findProviderRemoteDebugTarget(debugBase, provider string) (*remoteDebugTarg
 	}
 	prefix := providerRemoteDebugURLPrefix(provider)
 	for i := range targets {
-		if targets[i].Type != "page" {
+		target := targets[i]
+		if strings.TrimSpace(target.Type) != "page" {
 			continue
 		}
-		if strings.HasPrefix(strings.TrimSpace(targets[i].URL), prefix) {
-			copy := targets[i]
+		host := normalizeCookieHost(hostForURL(strings.TrimSpace(target.URL)))
+		if host == "" {
+			continue
+		}
+		if host == prefix || strings.HasSuffix(host, "."+prefix) {
+			copy := target
 			return &copy, nil
 		}
 	}
@@ -246,9 +378,9 @@ func findProviderRemoteDebugTarget(debugBase, provider string) (*remoteDebugTarg
 func providerRemoteDebugURLPrefix(provider string) string {
 	switch session.NormalizeProvider(provider) {
 	case session.ProviderDelio:
-		return "https://delio.com.pl/"
+		return "delio.com.pl"
 	default:
-		return "https://www.frisco.pl/"
+		return "frisco.pl"
 	}
 }
 
@@ -309,9 +441,6 @@ func captureDelioSessionFromRemoteTarget(ctx context.Context, browserWSURL, targ
 	var cookies []*network.Cookie
 	err := chromedp.Run(taskCtx,
 		network.Enable(),
-		chromedp.Evaluate(fetchExpr, &fetchResult, func(p *cdpruntime.EvaluateParams) *cdpruntime.EvaluateParams {
-			return p.WithAwaitPromise(true)
-		}),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			var err error
 			cookies, err = network.GetCookies().WithURLs([]string{loginURL}).Do(ctx)
@@ -321,9 +450,13 @@ func captureDelioSessionFromRemoteTarget(ctx context.Context, browserWSURL, targ
 	if err != nil {
 		return nil, err
 	}
-	if fetchResult.Status < 200 || fetchResult.Status >= 300 {
-		return nil, fmt.Errorf("Delio fetch via remote debug returned %d: %s", fetchResult.Status, strings.TrimSpace(fetchResult.Text))
-	}
+
+	// Best-effort request to capture request headers required for Delio API calls.
+	// This endpoint is not required for cookie-based auth capture, so we ignore failures
+	// and keep the function usable even if the page blocks or changes the endpoint.
+	_ = chromedp.Run(taskCtx, chromedp.Evaluate(fetchExpr, &fetchResult, func(p *cdpruntime.EvaluateParams) *cdpruntime.EvaluateParams {
+		return p.WithAwaitPromise(true)
+	}))
 	cookieHeader := cookieHeaderFromCDPCookies(cookies, hostForURL(loginURL))
 
 	headers := map[string]string{}

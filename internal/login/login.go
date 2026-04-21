@@ -320,12 +320,22 @@ func hostForURL(raw string) string {
 }
 
 func cookieMatchesHost(cookieDomain, host string) bool {
-	cd := strings.TrimSpace(strings.TrimPrefix(strings.ToLower(cookieDomain), "."))
-	h := strings.TrimSpace(strings.ToLower(host))
+	cd := normalizeCookieHost(cookieDomain)
+	h := normalizeCookieHost(host)
 	if cd == "" || h == "" {
 		return false
 	}
 	return h == cd || strings.HasSuffix(h, "."+cd)
+}
+
+func normalizeCookieHost(raw string) string {
+	raw = strings.TrimSpace(strings.ToLower(raw))
+	if raw == "" {
+		return ""
+	}
+	raw = strings.TrimPrefix(raw, ".")
+	raw = strings.TrimPrefix(raw, "www.")
+	return raw
 }
 
 func hasDelioAuthCookie(cookieHeader string) bool {
