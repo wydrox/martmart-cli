@@ -40,6 +40,7 @@ func newProductsGetCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
+				ingestGetBestEffort(provider, result)
 				return printJSON(result)
 			}
 			uid, err := session.RequireUserID(s, userID)
@@ -51,6 +52,7 @@ func newProductsGetCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			ingestGetBestEffort(provider, result)
 			if rawOutput || strings.EqualFold(outputFormat, "json") {
 				return printJSON(result)
 			}

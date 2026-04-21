@@ -59,6 +59,7 @@ func newCartShowCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
+				ingestCartBestEffort(provider, result)
 				if strings.EqualFold(outputFormat, "json") {
 					return printJSON(result)
 				}
@@ -73,6 +74,7 @@ func newCartShowCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			ingestCartBestEffort(provider, result)
 			if strings.EqualFold(outputFormat, "json") {
 				return printJSON(result)
 			}

@@ -53,6 +53,7 @@ func newProductsSearchCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
+				ingestSearchBestEffort(provider, search, result)
 				if rawOutput || strings.EqualFold(outputFormat, "json") {
 					return printJSON(result)
 				}
@@ -80,6 +81,7 @@ func newProductsSearchCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			ingestSearchBestEffort(provider, search, result)
 			if rawOutput || strings.EqualFold(outputFormat, "json") {
 				return printJSON(result)
 			}
