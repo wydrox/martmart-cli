@@ -1,0 +1,298 @@
+{
+  "id" : "b8a354b8-c958-11eb-a1e9-525400080521",
+  "name" : "Dobra Buła Wola",
+  "url" : "https://dobrabula.orderwebsite.com/dobra-bula-wola",
+  "title" : "Zamów online",
+  "keywords" : null,
+  "description" : null,
+  "noIndex" : false,
+  "noFollow" : false,
+  "street" : "Górczewska 62/64",
+  "postalCode" : "01-460",
+  "city" : "Warszawa",
+  "latitude" : 52.238793,
+  "longitude" : 20.952804,
+  "phone" : "+48 794 020 404",
+  "phone2" : null,
+  "mobilePhone" : null,
+  "email" : "biuro@dobrabula.pl",
+  "avarageDeliveryTime" : null,
+  "averageTakeawayOnsiteTime" : null,
+  "minOrderPrice" : null,
+  "minMinOrderPrice" : 38.0,
+  "maxMinOrderPrice" : 42.0,
+  "deliveryCost" : null,
+  "minDeliveryCost" : 5.0,
+  "maxDeliveryCost" : 9.0,
+  "freeDeliveryAbove" : null,
+  "cashPayment" : true,
+  "cardPayment" : false,
+  "onlinePayment" : true,
+  "onlinePaymentType" : "PAYU",
+  "onlinePaymentTypes" : [ {
+    "paymentProviderType" : "PAYU",
+    "methods" : [ {
+      "name" : "BLIK",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/blik.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "iPKO",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/ipko.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "mBank",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/mbank.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "ING",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/ing.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "Santander",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/santander.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "Pekao",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/pekao.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "Millenium",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/millenium.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "Alior bank",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/alior.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "Inteligo",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/inteligo.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "CA Bank",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/ca-bank.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "Citi handlowy",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/citi-handlowy.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "BOś bank",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/bos-bank.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "BNP Paribas",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/bnp-paribas.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "Velo bank",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/velo-bank.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "Banki spółdzielcze",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/banki-spoldzielcze.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "PLUS Bank",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/plus-bank.svg",
+      "additionalVerification" : false
+    }, {
+      "name" : "Nest bank",
+      "iconUrl" : "https://amv.cdn-upm.com/media/1255/images/admin/payment/small/nest-bank.svg",
+      "additionalVerification" : false
+    } ],
+    "moreThan3Methods" : 14
+  } ],
+  "deliveryTypes" : [ {
+    "id" : "DELIVERY",
+    "name" : null,
+    "type" : "DELIVERY",
+    "personalDataDisabled" : false
+  } ],
+  "delivery" : true,
+  "takeaway" : false,
+  "onsite" : false,
+  "deliveryEnabled" : true,
+  "onlyTableOrdering" : null,
+  "futureOrdering" : true,
+  "futureOrderingMinDays" : 0,
+  "futureOrderingMaxDays" : 14,
+  "openingHours" : {
+    "mondayOpen" : "13:00",
+    "mondayClose" : "21:00",
+    "monday" : false,
+    "tuesdayOpen" : "10:50",
+    "tuesdayClose" : "21:00",
+    "tuesday" : false,
+    "wednesdayOpen" : "10:50",
+    "wednesdayClose" : "21:00",
+    "wednesday" : false,
+    "thursdayOpen" : "10:50",
+    "thursdayClose" : "21:00",
+    "thursday" : false,
+    "fridayOpen" : "10:50",
+    "fridayClose" : "22:00",
+    "friday" : false,
+    "saturdayOpen" : "10:50",
+    "saturdayClose" : "22:00",
+    "saturday" : false,
+    "sundayOpen" : "10:50",
+    "sundayClose" : "21:00",
+    "sunday" : false
+  },
+  "openingHoursRange" : [ {
+    "from" : "MONDAY",
+    "to" : null,
+    "open" : "13:00",
+    "close" : "21:00",
+    "periods" : [ {
+      "from" : "13:00",
+      "to" : "21:00",
+      "deliveryType" : null
+    } ]
+  }, {
+    "from" : "TUESDAY",
+    "to" : "THURSDAY",
+    "open" : "10:50",
+    "close" : "21:00",
+    "periods" : [ {
+      "from" : "10:50",
+      "to" : "21:00",
+      "deliveryType" : null
+    } ]
+  }, {
+    "from" : "FRIDAY",
+    "to" : "SATURDAY",
+    "open" : "10:50",
+    "close" : "22:00",
+    "periods" : [ {
+      "from" : "10:50",
+      "to" : "22:00",
+      "deliveryType" : null
+    } ]
+  }, {
+    "from" : "SUNDAY",
+    "to" : null,
+    "open" : "10:50",
+    "close" : "21:00",
+    "periods" : [ {
+      "from" : "10:50",
+      "to" : "21:00",
+      "deliveryType" : null
+    } ]
+  } ],
+  "orderingHours" : {
+    "mondayOpen" : "10:50",
+    "mondayClose" : "21:00",
+    "monday" : true,
+    "tuesdayOpen" : "10:50",
+    "tuesdayClose" : "21:00",
+    "tuesday" : true,
+    "wednesdayOpen" : "10:50",
+    "wednesdayClose" : "21:00",
+    "wednesday" : true,
+    "thursdayOpen" : "10:50",
+    "thursdayClose" : "21:00",
+    "thursday" : true,
+    "fridayOpen" : "10:50",
+    "fridayClose" : "22:00",
+    "friday" : true,
+    "saturdayOpen" : "10:50",
+    "saturdayClose" : "21:00",
+    "saturday" : true,
+    "sundayOpen" : "10:50",
+    "sundayClose" : "21:00",
+    "sunday" : true
+  },
+  "orderingHoursRange" : [ {
+    "from" : "MONDAY",
+    "to" : "THURSDAY",
+    "open" : "10:50",
+    "close" : "21:00",
+    "periods" : [ {
+      "from" : "10:50",
+      "to" : "21:00",
+      "deliveryType" : null
+    } ]
+  }, {
+    "from" : "FRIDAY",
+    "to" : null,
+    "open" : "10:50",
+    "close" : "22:00",
+    "periods" : [ {
+      "from" : "10:50",
+      "to" : "22:00",
+      "deliveryType" : null
+    } ]
+  }, {
+    "from" : "SATURDAY",
+    "to" : "SUNDAY",
+    "open" : "10:50",
+    "close" : "21:00",
+    "periods" : [ {
+      "from" : "10:50",
+      "to" : "21:00",
+      "deliveryType" : null
+    } ]
+  } ],
+  "takeAwayHours" : null,
+  "takeAwayHoursRange" : [ ],
+  "bookingHours" : null,
+  "bookingHoursRange" : [ ],
+  "todayHours" : {
+    "openFrom" : "10:50",
+    "openTo" : "21:00",
+    "orderingFrom" : "10:50",
+    "orderingTo" : "21:00",
+    "takeawayFrom" : null,
+    "takeawayTo" : null,
+    "bookingFrom" : null,
+    "bookingTo" : null,
+    "hours" : [ {
+      "from" : "10:50",
+      "to" : "21:00",
+      "deliveryType" : null
+    } ]
+  },
+  "openNow" : true,
+  "orderingNow" : true,
+  "bookingNow" : null,
+  "takeawayNow" : true,
+  "onlineOrderingEnabled" : true,
+  "onlineOrderingDisabledDescription" : null,
+  "onlineBookingEnabled" : false,
+  "onlineBookingDisabledDescription" : null,
+  "tips" : false,
+  "tipRequired" : false,
+  "tipPercentage" : [ 0, 10, 20 ],
+  "facebook" : "https://www.facebook.com/dobrabulapl/about",
+  "twitter" : null,
+  "instagram" : "https://www.instagram.com/dobra_bula/",
+  "tiktok" : "https://www.tiktok.com/@dobra.bula?fbclid=IwY2xjawMa4pxleHRuA2FlbQIxMABicmlkETFPVnhFdjgzWkxjbHlqYnhhAR47z6-hODv2Mo4J4pjZvpCZ15Lk1Q8xna7IREkhMGrGex23x0y7dSbAKGLUWg_aem_0MW41DYDO7vofOGts3-T5A",
+  "youtube" : "https://www.youtube.com/@dobrabulapl",
+  "tripAdvisor" : null,
+  "attributes" : null,
+  "takeAwayMinPrice" : null,
+  "onSiteMinPrice" : null,
+  "minOrderPriceInRestaurant" : 38.0,
+  "maxOrderPriceInRestaurant" : 42.0,
+  "formattedAddress" : "Górczewska 62/64  <br/> 01-460 Warszawa ",
+  "averageGrade" : "4.65",
+  "deliveryRating" : "4.63",
+  "foodRating" : "4.66",
+  "priceRating" : "0",
+  "publishedRatings" : false,
+  "dateFormat" : "yyyy-MM-dd",
+  "timeFormat" : "HH:mm",
+  "dateTimeFormat" : "yyyy-MM-dd HH:mm",
+  "country" : "PL",
+  "currency" : "PLN",
+  "timezone" : "Europe/Warsaw",
+  "kitchenTypes" : [ ],
+  "logoImageUrl" : null,
+  "backgroundImageUrl" : null,
+  "activeAbo" : true,
+  "openUntil" : "Zamknięcie o  21:00",
+  "openFrom" : null,
+  "currentDay" : 2,
+  "permissions" : [ "ALL_ACCESS" ]
+}

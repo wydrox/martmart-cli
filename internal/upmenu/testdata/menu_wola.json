@@ -1,0 +1,1295 @@
+[ {
+  "id" : "1652dc5f-94d0-11f0-9141-525400080621",
+  "name" : "Burgery Specjalne",
+  "description" : null,
+  "image" : null,
+  "products" : [ {
+    "id" : "2e7372de-11b1-11f1-9141-525400080621",
+    "name" : "Truflowe Love Burger",
+    "description" : "wołowina Black Angus,  ser cheddar, ogórek konserwowy, pomidor, majonez, sos truflowy, rukola",
+    "lowestPrice" : 39.5,
+    "prices" : [ {
+      "id" : "6cc16155-1669-11f1-9141-525400080621",
+      "type" : null,
+      "price" : 39.5
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-f6f0/ITEM/fa0dd2c3-ebd7-4562-9911-1d86baa568a5",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-f6f0/ITEM/fa0dd2c3-ebd7-4562-9911-1d86baa568a5",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-f6f0/ITEM/fa0dd2c3-ebd7-4562-9911-1d86baa568a5",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-f6f0/ITEM/fa0dd2c3-ebd7-4562-9911-1d86baa568a5",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-f6f0/ITEM/fa0dd2c3-ebd7-4562-9911-1d86baa568a5",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-f6f0/ITEM/fa0dd2c3-ebd7-4562-9911-1d86baa568a5",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-f6f0/ITEM/fa0dd2c3-ebd7-4562-9911-1d86baa568a5",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  } ],
+  "children" : [ ],
+  "verifyAge" : false
+}, {
+  "id" : "083a4916-eca3-11ef-9141-525400080621",
+  "name" : "Ulubione Burgery",
+  "description" : null,
+  "image" : null,
+  "products" : [ {
+    "id" : "088ee36d-eca3-11ef-9141-525400080621",
+    "name" : "Podwójny Burger",
+    "description" : "Podwójna wołowina Black Angus, podwójny ser cheddar, chrupiący boczek, pomidor, czerwona cebula, ogorek konserwowy, rukola, sos do wyboru, bułka do wyboru<br><br>W porcji:<br>- energia - 1163 kcal<br>- tłuszcze - 73 g<br>- węglowodany - 67 g<br>- białko - 76 g",
+    "lowestPrice" : 55.9,
+    "prices" : [ {
+      "id" : "cfb5370e-444f-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 55.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-0ff1/ITEM/d37b808f-547d-4574-9f18-ad0bd5edaf91",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-0ff1/ITEM/d37b808f-547d-4574-9f18-ad0bd5edaf91",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-0ff1/ITEM/d37b808f-547d-4574-9f18-ad0bd5edaf91",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-0ff1/ITEM/d37b808f-547d-4574-9f18-ad0bd5edaf91",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-0ff1/ITEM/d37b808f-547d-4574-9f18-ad0bd5edaf91",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-0ff1/ITEM/d37b808f-547d-4574-9f18-ad0bd5edaf91",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-0ff1/ITEM/d37b808f-547d-4574-9f18-ad0bd5edaf91",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "0886150a-eca3-11ef-9141-525400080621",
+    "name" : "Ser Burger",
+    "description" : "Wołowina Black Angus, ser Cheddar, pomidor, czerwona cebula, ogórek konserwowy, rukola, sos do wyboru, bułka do wyboru<br><br>W porcji:<br>- energia- 705kcal<br>- tłuszcze - 37 g<br>- węglowodany - 66g<br>- białko - 42g",
+    "lowestPrice" : 37.4,
+    "prices" : [ {
+      "id" : "cfb54029-444f-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 37.4
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-4817/ITEM/9b2ad355-24db-427f-8934-63a19761c4f6",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-4817/ITEM/9b2ad355-24db-427f-8934-63a19761c4f6",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-4817/ITEM/9b2ad355-24db-427f-8934-63a19761c4f6",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-4817/ITEM/9b2ad355-24db-427f-8934-63a19761c4f6",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-4817/ITEM/9b2ad355-24db-427f-8934-63a19761c4f6",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-4817/ITEM/9b2ad355-24db-427f-8934-63a19761c4f6",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-4817/ITEM/9b2ad355-24db-427f-8934-63a19761c4f6",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "0899b0e6-eca3-11ef-9141-525400080621",
+    "name" : "SerBekon Burger",
+    "description" : "Wołowina Black Angus, chrupiący boczek, ser Cheddar, czerwona cebula, pomidor, ogórek konserwowy, rukola, sos do wyboru,  bułka do wyboru<br><br>W porcji:<br>- energia - 806 kcal<br>- tłuszcze - 47 g<br>- węglowodany - 66 g<br>- białko - 45 g",
+    "lowestPrice" : 41.4,
+    "prices" : [ {
+      "id" : "cfb548b9-444f-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 41.4
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-1f4d/ITEM/9641a948-f5a9-403a-bda2-321eb4e31b0c",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-1f4d/ITEM/9641a948-f5a9-403a-bda2-321eb4e31b0c",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-1f4d/ITEM/9641a948-f5a9-403a-bda2-321eb4e31b0c",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-1f4d/ITEM/9641a948-f5a9-403a-bda2-321eb4e31b0c",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-1f4d/ITEM/9641a948-f5a9-403a-bda2-321eb4e31b0c",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-1f4d/ITEM/9641a948-f5a9-403a-bda2-321eb4e31b0c",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-1f4d/ITEM/9641a948-f5a9-403a-bda2-321eb4e31b0c",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "0883faee-eca3-11ef-9141-525400080621",
+    "name" : "Crispy Burger",
+    "description" : "Wołowina Black Angus, chrupiący boczek, pikantne Chorizo, ser Cheddar, pomidor, ogórek konserwowy, rukola, prażona cebulka, sos do wyboru, bułka do wyboru<br><br>W porcji:<br>- energia - 1002 kcal<br>- tłuszcze - 62 g<br>- węglowodany - 73 g<br>- białko - 52 g",
+    "lowestPrice" : 43.4,
+    "prices" : [ {
+      "id" : "cfb5507f-444f-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 43.4
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-278e/ITEM/55b51568-bfb0-46b4-aac5-cfc31fe87f37",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-278e/ITEM/55b51568-bfb0-46b4-aac5-cfc31fe87f37",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-278e/ITEM/55b51568-bfb0-46b4-aac5-cfc31fe87f37",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-278e/ITEM/55b51568-bfb0-46b4-aac5-cfc31fe87f37",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-278e/ITEM/55b51568-bfb0-46b4-aac5-cfc31fe87f37",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-278e/ITEM/55b51568-bfb0-46b4-aac5-cfc31fe87f37",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-278e/ITEM/55b51568-bfb0-46b4-aac5-cfc31fe87f37",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "088b58f3-eca3-11ef-9141-525400080621",
+    "name" : "AvoBeko Burger",
+    "description" : "Wołowina Black Angus, awokado, chrupiący boczek, ser Cheddar, pomidor, czerwona cebula, ogórek konserwowy, rukola, sos do wyboru, bułka do wyboru <br><br>W porcji:<br>- energia - 844 kcal<br>- tłuszcze - 50 g<br>- węglowodany - 68 g<br>- białko - 46 g",
+    "lowestPrice" : 43.4,
+    "prices" : [ {
+      "id" : "cfb56a57-444f-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 43.4
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-143e/ITEM/e4d64cf1-dbed-4f69-aeb1-aaf9b57a519d",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-143e/ITEM/e4d64cf1-dbed-4f69-aeb1-aaf9b57a519d",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-143e/ITEM/e4d64cf1-dbed-4f69-aeb1-aaf9b57a519d",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-143e/ITEM/e4d64cf1-dbed-4f69-aeb1-aaf9b57a519d",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-143e/ITEM/e4d64cf1-dbed-4f69-aeb1-aaf9b57a519d",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-143e/ITEM/e4d64cf1-dbed-4f69-aeb1-aaf9b57a519d",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-143e/ITEM/e4d64cf1-dbed-4f69-aeb1-aaf9b57a519d",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "088ffae9-eca3-11ef-9141-525400080621",
+    "name" : "New York Burger",
+    "description" : "Wołowina Black Angus , ser Cheddar, chrupiący boczek, jajo sadzone, pomidor, rukola, sos do wyboru, bułka do wyboru<br><br>W porcji:<br>- energia - 849 kcal<br>- tłuszcze - 50 g<br>- węglowodany - 66 g<br>- białko - 50 g",
+    "lowestPrice" : 43.4,
+    "prices" : [ {
+      "id" : "cfb571dd-444f-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 43.4
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-c27e/ITEM/c9198828-71fd-43f6-890c-3eaa83102de3",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-c27e/ITEM/c9198828-71fd-43f6-890c-3eaa83102de3",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-c27e/ITEM/c9198828-71fd-43f6-890c-3eaa83102de3",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-c27e/ITEM/c9198828-71fd-43f6-890c-3eaa83102de3",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-c27e/ITEM/c9198828-71fd-43f6-890c-3eaa83102de3",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-c27e/ITEM/c9198828-71fd-43f6-890c-3eaa83102de3",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-c27e/ITEM/c9198828-71fd-43f6-890c-3eaa83102de3",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08878d0c-eca3-11ef-9141-525400080621",
+    "name" : "Kozi Burger",
+    "description" : "Wołowina Black Angus, kremowy ser kozi, dżem cebulowy, żurawina, pomidor, rukola, sos do wyboru,bułka do wyboru<br><br>W porcji:<br>- energia - 773 kcal<br>- tłuszcze - 40 g<br>- węglowodany - 75 g<br>- białko - 44 g",
+    "lowestPrice" : 41.4,
+    "prices" : [ {
+      "id" : "cfb58269-444f-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 41.4
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-0a86/ITEM/04ce481d-87e7-4152-9958-7f6fc5243e7d",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-0a86/ITEM/04ce481d-87e7-4152-9958-7f6fc5243e7d",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-0a86/ITEM/04ce481d-87e7-4152-9958-7f6fc5243e7d",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-0a86/ITEM/04ce481d-87e7-4152-9958-7f6fc5243e7d",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-0a86/ITEM/04ce481d-87e7-4152-9958-7f6fc5243e7d",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-0a86/ITEM/04ce481d-87e7-4152-9958-7f6fc5243e7d",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-0a86/ITEM/04ce481d-87e7-4152-9958-7f6fc5243e7d",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "089154f0-eca3-11ef-9141-525400080621",
+    "name" : "Mex Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, świeże awokado, grillowany ananas, powidła pomidorowe z nutą jalapeño, ser cheddar, nachos, świeży pomidor, rukola oraz sos do wyboru.<br><br>W porcji:<br>- energia - 836kcal<br>- tłuszcze - 45 g<br>- węglowodany - 80 g<br>- białko - 43 g",
+    "lowestPrice" : 43.4,
+    "prices" : [ {
+      "id" : "cfb57a8c-444f-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 43.4
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-9a4d/ITEM/e1fa8510-16da-45ac-94c6-65580c855e47",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-9a4d/ITEM/e1fa8510-16da-45ac-94c6-65580c855e47",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-9a4d/ITEM/e1fa8510-16da-45ac-94c6-65580c855e47",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-9a4d/ITEM/e1fa8510-16da-45ac-94c6-65580c855e47",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-9a4d/ITEM/e1fa8510-16da-45ac-94c6-65580c855e47",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-9a4d/ITEM/e1fa8510-16da-45ac-94c6-65580c855e47",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-9a4d/ITEM/e1fa8510-16da-45ac-94c6-65580c855e47",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "088d9209-eca3-11ef-9141-525400080621",
+    "name" : "Standard Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, świeży pomidor, czerwona cebula, ogórek konserwowy, rukola oraz sos do wyboru<br><br>W porcji:<br>- energia - 642 kcal<br>- tłuszcze - 32 g<br>- węglowodany - 66 g<br>- białko - 38 g",
+    "lowestPrice" : 34.4,
+    "prices" : [ {
+      "id" : "cfb59451-444f-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 34.4
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-8ad6/ITEM/0472d2c3-c667-41f0-9698-8143f4c9d430",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-8ad6/ITEM/0472d2c3-c667-41f0-9698-8143f4c9d430",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-8ad6/ITEM/0472d2c3-c667-41f0-9698-8143f4c9d430",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-8ad6/ITEM/0472d2c3-c667-41f0-9698-8143f4c9d430",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-8ad6/ITEM/0472d2c3-c667-41f0-9698-8143f4c9d430",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-8ad6/ITEM/0472d2c3-c667-41f0-9698-8143f4c9d430",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-8ad6/ITEM/0472d2c3-c667-41f0-9698-8143f4c9d430",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "0892a116-eca3-11ef-9141-525400080621",
+    "name" : "Grillowane Warzywa Burger",
+    "description" : "Kotlet z grillowanych warzyw, ser cheddar, świeży pomidor, ogórek konserwowy, czerwona cebula, rukola oraz sos do wyboru,<br>W porcji:<br>- energia( kcal) - 645<br>- tłuszcze - 34 g<br>- węglowodany - 77 g<br>- białko - 21 g",
+    "lowestPrice" : 38.9,
+    "prices" : [ {
+      "id" : "08f1cd45-eca3-11ef-9141-525400080621",
+      "type" : null,
+      "price" : 38.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-a8cb/ITEM/8f87485c-cf9a-45be-9dbe-a4b6f925dc3f",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-a8cb/ITEM/8f87485c-cf9a-45be-9dbe-a4b6f925dc3f",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-a8cb/ITEM/8f87485c-cf9a-45be-9dbe-a4b6f925dc3f",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-a8cb/ITEM/8f87485c-cf9a-45be-9dbe-a4b6f925dc3f",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-a8cb/ITEM/8f87485c-cf9a-45be-9dbe-a4b6f925dc3f",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-a8cb/ITEM/8f87485c-cf9a-45be-9dbe-a4b6f925dc3f",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-a8cb/ITEM/8f87485c-cf9a-45be-9dbe-a4b6f925dc3f",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "419eabbb-09a9-11f0-9141-525400080621",
+    "name" : "MINI New York Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, ser cheddar, chrupiący bekon, jajko sadzone, świeży pomidor, czerwona cebula, ogórek konserwowy, rukola oraz sos do wyboru.<br><br>W porcji:<br>- energia - 613 kcal<br>- tłuszcze - 39 g<br>- węglowodany - 44 g<br>- białko - 35 g",
+    "lowestPrice" : 29.9,
+    "prices" : [ {
+      "id" : "41afe9df-09a9-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 29.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-abb6/ITEM/cdbf5a03-997a-4d67-b1d0-8919a6f49c0b",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-abb6/ITEM/cdbf5a03-997a-4d67-b1d0-8919a6f49c0b",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-abb6/ITEM/cdbf5a03-997a-4d67-b1d0-8919a6f49c0b",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-abb6/ITEM/cdbf5a03-997a-4d67-b1d0-8919a6f49c0b",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-abb6/ITEM/cdbf5a03-997a-4d67-b1d0-8919a6f49c0b",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-abb6/ITEM/cdbf5a03-997a-4d67-b1d0-8919a6f49c0b",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-abb6/ITEM/cdbf5a03-997a-4d67-b1d0-8919a6f49c0b",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "419ff094-09a9-11f0-9141-525400080621",
+    "name" : "MINI Standard Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, świeży pomidor, czerwona cebula, ogórek konserwowy, rukola oraz sos do wyboru.<br><br>W porcji:<br>- energia - 456 kcal<br>- tłuszcze - 26 g<br>- węglowodany - 43 g<br>- białko - 25 g",
+    "lowestPrice" : 23.9,
+    "prices" : [ {
+      "id" : "41aff3c6-09a9-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 23.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-2a24/ITEM/c224290f-2317-4c11-af31-4b4f480cffba",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-2a24/ITEM/c224290f-2317-4c11-af31-4b4f480cffba",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-2a24/ITEM/c224290f-2317-4c11-af31-4b4f480cffba",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-2a24/ITEM/c224290f-2317-4c11-af31-4b4f480cffba",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-2a24/ITEM/c224290f-2317-4c11-af31-4b4f480cffba",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-2a24/ITEM/c224290f-2317-4c11-af31-4b4f480cffba",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-2a24/ITEM/c224290f-2317-4c11-af31-4b4f480cffba",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "41a14ce9-09a9-11f0-9141-525400080621",
+    "name" : "MINI AvoBeko Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, ser cheddar, chrupiący bekon, awokado, świeży pomidor,  czerwona cebula, ogórek konserwowy, rukola oraz sos do wyboru.<br><br>W porcji:<br>- energia - 595 kcal<br>- tłuszcze - 39 g<br>- węglowodany - 45 g<br>- białko - 31 g",
+    "lowestPrice" : 29.9,
+    "prices" : [ {
+      "id" : "41afff17-09a9-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 29.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-ca99/ITEM/f5c55ef0-8ed6-47d4-b823-a0a8835aff6e",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-ca99/ITEM/f5c55ef0-8ed6-47d4-b823-a0a8835aff6e",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-ca99/ITEM/f5c55ef0-8ed6-47d4-b823-a0a8835aff6e",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-ca99/ITEM/f5c55ef0-8ed6-47d4-b823-a0a8835aff6e",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-ca99/ITEM/f5c55ef0-8ed6-47d4-b823-a0a8835aff6e",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-ca99/ITEM/f5c55ef0-8ed6-47d4-b823-a0a8835aff6e",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-ca99/ITEM/f5c55ef0-8ed6-47d4-b823-a0a8835aff6e",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "41a235ee-09a9-11f0-9141-525400080621",
+    "name" : "MINI  AvoChorizo Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, ser cheddar, kiełbasa chorizo, awokado, pomidor, czerwona cebula, rukola, ogórek konserwowy oraz sos do wyboru.<br><br>W porcji:<br>- energia - 600 kcal<br>- tłuszcze - 38 g<br>- węglowodany - 45 g<br>- białko - 33 g",
+    "lowestPrice" : 29.9,
+    "prices" : [ {
+      "id" : "41b007f1-09a9-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 29.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-f337/ITEM/9ab4b87f-3d1a-4fcf-ad87-cd3b4b3c6ba4",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-f337/ITEM/9ab4b87f-3d1a-4fcf-ad87-cd3b4b3c6ba4",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-f337/ITEM/9ab4b87f-3d1a-4fcf-ad87-cd3b4b3c6ba4",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-f337/ITEM/9ab4b87f-3d1a-4fcf-ad87-cd3b4b3c6ba4",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-f337/ITEM/9ab4b87f-3d1a-4fcf-ad87-cd3b4b3c6ba4",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-f337/ITEM/9ab4b87f-3d1a-4fcf-ad87-cd3b4b3c6ba4",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-f337/ITEM/9ab4b87f-3d1a-4fcf-ad87-cd3b4b3c6ba4",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "41a36d28-09a9-11f0-9141-525400080621",
+    "name" : "MINI Baca Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, chrupiący placek ziemniaczany, ser cheddar, prażona cebulka, pomidor, rukola, czerwona cebula oraz sos do wyboru.<br><br>W porcji:<br>- energia - 646 kcal<br>- tłuszcze - 37 g<br>- węglowodany - 59 g<br>- białko - 31 g",
+    "lowestPrice" : 29.9,
+    "prices" : [ {
+      "id" : "41b01094-09a9-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 29.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-b121/ITEM/0415efbe-561b-44aa-bb7a-f9d9ebd94166",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-b121/ITEM/0415efbe-561b-44aa-bb7a-f9d9ebd94166",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-b121/ITEM/0415efbe-561b-44aa-bb7a-f9d9ebd94166",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-b121/ITEM/0415efbe-561b-44aa-bb7a-f9d9ebd94166",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-b121/ITEM/0415efbe-561b-44aa-bb7a-f9d9ebd94166",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-b121/ITEM/0415efbe-561b-44aa-bb7a-f9d9ebd94166",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-b121/ITEM/0415efbe-561b-44aa-bb7a-f9d9ebd94166",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "41a454a9-09a9-11f0-9141-525400080621",
+    "name" : "MINI Kozi Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, dżem cebulowy, ser kozi, żurawina, pomidor, rukola oraz sos do wyboru.<br><br>W porcji:<br>- energia - 519 kcal<br>- tłuszcze - 30 g<br>- węglowodany - 48 g<br>- białko - 28 g",
+    "lowestPrice" : 29.9,
+    "prices" : [ {
+      "id" : "41b01919-09a9-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 29.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-6273/ITEM/f6c76859-d61c-4e54-86ce-f1ea3f8a7db8",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-6273/ITEM/f6c76859-d61c-4e54-86ce-f1ea3f8a7db8",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-6273/ITEM/f6c76859-d61c-4e54-86ce-f1ea3f8a7db8",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-6273/ITEM/f6c76859-d61c-4e54-86ce-f1ea3f8a7db8",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-6273/ITEM/f6c76859-d61c-4e54-86ce-f1ea3f8a7db8",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-6273/ITEM/f6c76859-d61c-4e54-86ce-f1ea3f8a7db8",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-6273/ITEM/f6c76859-d61c-4e54-86ce-f1ea3f8a7db8",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "41a5343e-09a9-11f0-9141-525400080621",
+    "name" : "MINI Ser Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, ser cheddar, świeży pomidor, czerwona cebula, ogórek konserwowy, rukola oraz sos do wyboru.<br><br>W porcji:<br>- energia - 519 kcal<br>- tłuszcze - 32 g<br>- węglowodany - 44 g<br>- białko - 29 g",
+    "lowestPrice" : 26.9,
+    "prices" : [ {
+      "id" : "41b021c0-09a9-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 26.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-3650/ITEM/d4bb23a5-4fb1-4fbe-b6b3-859bfa0595fd",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-3650/ITEM/d4bb23a5-4fb1-4fbe-b6b3-859bfa0595fd",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-3650/ITEM/d4bb23a5-4fb1-4fbe-b6b3-859bfa0595fd",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-3650/ITEM/d4bb23a5-4fb1-4fbe-b6b3-859bfa0595fd",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-3650/ITEM/d4bb23a5-4fb1-4fbe-b6b3-859bfa0595fd",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-3650/ITEM/d4bb23a5-4fb1-4fbe-b6b3-859bfa0595fd",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-3650/ITEM/d4bb23a5-4fb1-4fbe-b6b3-859bfa0595fd",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "41a62ea1-09a9-11f0-9141-525400080621",
+    "name" : "MINI Crispy Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, chrupiący bekon, kiełbasa  chorizo, ser cheddar, prażona cebulka, ogórek konserwowy, świeży pomidor, rukola oraz sosy do wyboru.<br><br>W porcji:<br>- energia - 681 kcal<br>- tłuszcze - 45 g<br>- węglowodany - 47 g<br>- białko - 35 g",
+    "lowestPrice" : 29.9,
+    "prices" : [ {
+      "id" : "41b02a7a-09a9-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 29.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-5a09/ITEM/fbd6730b-c2d2-4694-a9a8-485028eeee06",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-5a09/ITEM/fbd6730b-c2d2-4694-a9a8-485028eeee06",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-5a09/ITEM/fbd6730b-c2d2-4694-a9a8-485028eeee06",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-5a09/ITEM/fbd6730b-c2d2-4694-a9a8-485028eeee06",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-5a09/ITEM/fbd6730b-c2d2-4694-a9a8-485028eeee06",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-5a09/ITEM/fbd6730b-c2d2-4694-a9a8-485028eeee06",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-5a09/ITEM/fbd6730b-c2d2-4694-a9a8-485028eeee06",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "41a89ae4-09a9-11f0-9141-525400080621",
+    "name" : "MINI Mex Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, świeże awokado, grillowany ananas, powidła pomidorowe z nutą jalapeño, ser cheddar, nachos, świeży pomidor, rukola oraz sos do wyboru.<br><br>W porcji:<br>- energia - 601 kcal<br>- tłuszcze - 36 g<br>- węglowodany - 54 g<br>- białko - 30 g",
+    "lowestPrice" : 29.9,
+    "prices" : [ {
+      "id" : "41b03311-09a9-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 29.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-94b0/ITEM/4b9324f3-a138-43dc-bbb3-c5012fb85c32",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-94b0/ITEM/4b9324f3-a138-43dc-bbb3-c5012fb85c32",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-94b0/ITEM/4b9324f3-a138-43dc-bbb3-c5012fb85c32",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-94b0/ITEM/4b9324f3-a138-43dc-bbb3-c5012fb85c32",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-94b0/ITEM/4b9324f3-a138-43dc-bbb3-c5012fb85c32",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-94b0/ITEM/4b9324f3-a138-43dc-bbb3-c5012fb85c32",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-94b0/ITEM/4b9324f3-a138-43dc-bbb3-c5012fb85c32",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "41a98516-09a9-11f0-9141-525400080621",
+    "name" : "MINI SerBekon Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, chrupiący bekon, ser cheddar, świeży pomidor, czerwona cebula, ogórek konserwowy, rukola oraz sos do wyboru.<br><br>W porcji:<br>- energia - 569 kcal<br>- tłuszcze - 36 g<br>- węglowodany - 44 g<br>- białko - 31 g",
+    "lowestPrice" : 27.9,
+    "prices" : [ {
+      "id" : "41b04213-09a9-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 27.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-c2ce/ITEM/c63b2377-4b4e-434a-b81e-92a792ee78df",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-c2ce/ITEM/c63b2377-4b4e-434a-b81e-92a792ee78df",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-c2ce/ITEM/c63b2377-4b4e-434a-b81e-92a792ee78df",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-c2ce/ITEM/c63b2377-4b4e-434a-b81e-92a792ee78df",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-c2ce/ITEM/c63b2377-4b4e-434a-b81e-92a792ee78df",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-c2ce/ITEM/c63b2377-4b4e-434a-b81e-92a792ee78df",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-c2ce/ITEM/c63b2377-4b4e-434a-b81e-92a792ee78df",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08939f06-eca3-11ef-9141-525400080621",
+    "name" : "Beyond Burger - 100% roślinny burger",
+    "description" : "Beyond Meat - pierwszy 100% roślinny Burger, imitujący teksturę i smak sezonowanej wołowiny, ser cheddar, świeży pomidor, czerwona cebula, ogórek konserwowy, rukola oraz sos do wyboru.<br><br>W porcji:<br>- energia - 696 kcal<br>- tłuszcze - 38 g<br>- węglowodany - 68 g<br>- białko - 34 g",
+    "lowestPrice" : 49.5,
+    "prices" : [ {
+      "id" : "08f1d6d1-eca3-11ef-9141-525400080621",
+      "type" : null,
+      "price" : 49.5
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-e368/ITEM/b95660f4-9ed3-46c9-bec7-7d8e4a1b1fca",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-e368/ITEM/b95660f4-9ed3-46c9-bec7-7d8e4a1b1fca",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-e368/ITEM/b95660f4-9ed3-46c9-bec7-7d8e4a1b1fca",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-e368/ITEM/b95660f4-9ed3-46c9-bec7-7d8e4a1b1fca",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-e368/ITEM/b95660f4-9ed3-46c9-bec7-7d8e4a1b1fca",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-e368/ITEM/b95660f4-9ed3-46c9-bec7-7d8e4a1b1fca",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-e368/ITEM/b95660f4-9ed3-46c9-bec7-7d8e4a1b1fca",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "0888cf76-eca3-11ef-9141-525400080621",
+    "name" : "Baca Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, chrupiący placek ziemniaczany, ser cheddar, prażona cebulka, pomidor, rukola, czerwona cebula oraz sos do wyboru.<br><br>W porcji:<br>- energia - 890 kcal<br>- tłuszcze - 47 g<br>- węglowodany - 85 g<br>- białko - 45 g",
+    "lowestPrice" : 41.4,
+    "prices" : [ {
+      "id" : "cfb58cc0-444f-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 41.4
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-221f/ITEM/b4b2b6ce-00fc-47de-b6b7-877f3e83cfec",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-221f/ITEM/b4b2b6ce-00fc-47de-b6b7-877f3e83cfec",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-221f/ITEM/b4b2b6ce-00fc-47de-b6b7-877f3e83cfec",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-221f/ITEM/b4b2b6ce-00fc-47de-b6b7-877f3e83cfec",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-221f/ITEM/b4b2b6ce-00fc-47de-b6b7-877f3e83cfec",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-221f/ITEM/b4b2b6ce-00fc-47de-b6b7-877f3e83cfec",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-221f/ITEM/b4b2b6ce-00fc-47de-b6b7-877f3e83cfec",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "088a17b5-eca3-11ef-9141-525400080621",
+    "name" : "AvoChorizo Burger",
+    "description" : "Soczysta sezonowana wołowina rasy Black Angus, ser cheddar, kiełbasa chorizo, awokado, pomidor, czerwona cebula, rukola, ogórek konserwowy oraz sos do wyboru.<br><br>W porcji:<br>- energia - 828 kcal<br>- tłuszcze - 48 g<br>- węglowodany - 68 g<br>- białko - 47 g",
+    "lowestPrice" : 43.4,
+    "prices" : [ {
+      "id" : "cfb56114-444f-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 43.4
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-fd6f/ITEM/76532f52-f857-4db5-99b9-3e9b94f1560c",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-fd6f/ITEM/76532f52-f857-4db5-99b9-3e9b94f1560c",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-fd6f/ITEM/76532f52-f857-4db5-99b9-3e9b94f1560c",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-fd6f/ITEM/76532f52-f857-4db5-99b9-3e9b94f1560c",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-fd6f/ITEM/76532f52-f857-4db5-99b9-3e9b94f1560c",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-fd6f/ITEM/76532f52-f857-4db5-99b9-3e9b94f1560c",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-fd6f/ITEM/76532f52-f857-4db5-99b9-3e9b94f1560c",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  } ],
+  "children" : [ ],
+  "verifyAge" : false
+}, {
+  "id" : "fd2956f9-d59d-11f0-9141-525400080621",
+  "name" : "Nasz Smash",
+  "description" : null,
+  "image" : null,
+  "products" : [ {
+    "id" : "fd8d648a-d59d-11f0-9141-525400080621",
+    "name" : "Nasz smash",
+    "description" : "2x chrupiąca wołowina smash, sos serowy, ser cheddar, cebula grillowana, sos \"Szefa\", ogórek piklowany, brioszka maślana",
+    "lowestPrice" : 40.0,
+    "prices" : [ {
+      "id" : "2ec7924f-11b1-11f1-9141-525400080621",
+      "type" : null,
+      "price" : 40.0
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-20c7/ITEM/266c4c7c-f374-4b88-b6d8-8e47e1042429",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-20c7/ITEM/266c4c7c-f374-4b88-b6d8-8e47e1042429",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-20c7/ITEM/266c4c7c-f374-4b88-b6d8-8e47e1042429",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-20c7/ITEM/266c4c7c-f374-4b88-b6d8-8e47e1042429",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-20c7/ITEM/266c4c7c-f374-4b88-b6d8-8e47e1042429",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-20c7/ITEM/266c4c7c-f374-4b88-b6d8-8e47e1042429",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-20c7/ITEM/266c4c7c-f374-4b88-b6d8-8e47e1042429",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "fd8e3794-d59d-11f0-9141-525400080621",
+    "name" : "Barbeks.",
+    "description" : "2x chrupiąca wołowina smash, chrupiący boczek, ser cheddar, cebula czerwona, sałata lodowa, ogórek piklowany, sos BBQ, sos aioli, brioszka maślana",
+    "lowestPrice" : 44.0,
+    "prices" : [ {
+      "id" : "2ec79d2b-11b1-11f1-9141-525400080621",
+      "type" : null,
+      "price" : 44.0
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-d542/ITEM/eb2a11e1-b89f-4b27-873e-b89304f23c66",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-d542/ITEM/eb2a11e1-b89f-4b27-873e-b89304f23c66",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-d542/ITEM/eb2a11e1-b89f-4b27-873e-b89304f23c66",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-d542/ITEM/eb2a11e1-b89f-4b27-873e-b89304f23c66",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-d542/ITEM/eb2a11e1-b89f-4b27-873e-b89304f23c66",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-d542/ITEM/eb2a11e1-b89f-4b27-873e-b89304f23c66",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-d542/ITEM/eb2a11e1-b89f-4b27-873e-b89304f23c66",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  } ],
+  "children" : [ ],
+  "verifyAge" : false
+}, {
+  "id" : "43f3b2be-988d-11f0-9141-525400080621",
+  "name" : "Dobra Kura",
+  "description" : null,
+  "image" : null,
+  "products" : [ {
+    "id" : "4416fdc3-988d-11f0-9141-525400080621",
+    "name" : "5 szt panierowanych Skrzydełek + Duże Frytki",
+    "description" : "Zestaw 5 szt panierowanych skrzydełek z kurczaka + frytki oraz sos do wyboru",
+    "lowestPrice" : 31.9,
+    "prices" : [ {
+      "id" : "441d7df3-988d-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 31.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-8fce/ITEM/bfd9ec4f-1dad-45fe-99b9-df2fd6b9d562",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-8fce/ITEM/bfd9ec4f-1dad-45fe-99b9-df2fd6b9d562",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-8fce/ITEM/bfd9ec4f-1dad-45fe-99b9-df2fd6b9d562",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-8fce/ITEM/bfd9ec4f-1dad-45fe-99b9-df2fd6b9d562",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-8fce/ITEM/bfd9ec4f-1dad-45fe-99b9-df2fd6b9d562",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-8fce/ITEM/bfd9ec4f-1dad-45fe-99b9-df2fd6b9d562",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-8fce/ITEM/bfd9ec4f-1dad-45fe-99b9-df2fd6b9d562",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "441781d0-988d-11f0-9141-525400080621",
+    "name" : "Zestaw Stripsy + Frytki Crispy",
+    "description" : "Zestaw trzech ręcznie panierowanych stripsów z piersi kurczaka, frytki crispy  oraz sos do wyboru",
+    "lowestPrice" : 31.9,
+    "prices" : [ {
+      "id" : "441d878e-988d-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 31.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-838f/ITEM/ee025288-20f1-4e70-9d2f-1881bf326835",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-838f/ITEM/ee025288-20f1-4e70-9d2f-1881bf326835",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-838f/ITEM/ee025288-20f1-4e70-9d2f-1881bf326835",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-838f/ITEM/ee025288-20f1-4e70-9d2f-1881bf326835",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-838f/ITEM/ee025288-20f1-4e70-9d2f-1881bf326835",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-838f/ITEM/ee025288-20f1-4e70-9d2f-1881bf326835",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-838f/ITEM/ee025288-20f1-4e70-9d2f-1881bf326835",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "44182f6a-988d-11f0-9141-525400080621",
+    "name" : "Kura Burger",
+    "description" : "Panierowane polędwiczki z kurczaka, pikantne Chorizo, ser Cheddar, świeży pomidor, ogorek konserwowy, czerwona cebula, rukola, sos i bułka do wyboru<br><br>W porcji:<br>- energia - 850 kcal<br>- tłuszcze - 37 g<br>- węglowodany - 75 g<br>- białko - 66 g",
+    "lowestPrice" : 39.9,
+    "prices" : [ {
+      "id" : "441d8fab-988d-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 39.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-193c/ITEM/59849a13-cf35-41e8-afc0-644c1bf70c7b",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-193c/ITEM/59849a13-cf35-41e8-afc0-644c1bf70c7b",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-193c/ITEM/59849a13-cf35-41e8-afc0-644c1bf70c7b",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-193c/ITEM/59849a13-cf35-41e8-afc0-644c1bf70c7b",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-193c/ITEM/59849a13-cf35-41e8-afc0-644c1bf70c7b",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-193c/ITEM/59849a13-cf35-41e8-afc0-644c1bf70c7b",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-193c/ITEM/59849a13-cf35-41e8-afc0-644c1bf70c7b",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  } ],
+  "children" : [ ],
+  "verifyAge" : false
+}, {
+  "id" : "083a8699-eca3-11ef-9141-525400080621",
+  "name" : "Dodatki",
+  "description" : null,
+  "image" : null,
+  "products" : [ {
+    "id" : "b0e6cef3-a35c-11f0-9141-525400080621",
+    "name" : "FRYTKI CRISPY NOWOŚĆ!",
+    "description" : "Chrupiące frytki  z solą w saszetce",
+    "lowestPrice" : 11.9,
+    "prices" : [ {
+      "id" : "b10a09b0-a35c-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 11.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-1f82/ITEM/bbca3de3-57e9-49b0-acae-4ad9e7fa5009",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-1f82/ITEM/bbca3de3-57e9-49b0-acae-4ad9e7fa5009",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-1f82/ITEM/bbca3de3-57e9-49b0-acae-4ad9e7fa5009",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-1f82/ITEM/bbca3de3-57e9-49b0-acae-4ad9e7fa5009",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-1f82/ITEM/bbca3de3-57e9-49b0-acae-4ad9e7fa5009",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-1f82/ITEM/bbca3de3-57e9-49b0-acae-4ad9e7fa5009",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-1f82/ITEM/bbca3de3-57e9-49b0-acae-4ad9e7fa5009",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08d9a737-eca3-11ef-9141-525400080621",
+    "name" : "Krążki Cebulowe",
+    "description" : "Chrupiące krążki cebulowe w cieście piwnym, podawane z sosem do wyboru",
+    "lowestPrice" : 16.9,
+    "prices" : [ {
+      "id" : "08f223f6-eca3-11ef-9141-525400080621",
+      "type" : null,
+      "price" : 16.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-5912/ITEM/2c44c2bd-c95d-4425-a7ce-62eee49827be",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-5912/ITEM/2c44c2bd-c95d-4425-a7ce-62eee49827be",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-5912/ITEM/2c44c2bd-c95d-4425-a7ce-62eee49827be",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-5912/ITEM/2c44c2bd-c95d-4425-a7ce-62eee49827be",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-5912/ITEM/2c44c2bd-c95d-4425-a7ce-62eee49827be",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-5912/ITEM/2c44c2bd-c95d-4425-a7ce-62eee49827be",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-5912/ITEM/2c44c2bd-c95d-4425-a7ce-62eee49827be",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08d9fda7-eca3-11ef-9141-525400080621",
+    "name" : "FRYTKI Z BATATÓW",
+    "description" : "Chrupiące frytki ze słodkich ziemniaków, podawane z solą w saszetce.<br><br>W porcji:<br>- energia - 396 kcal<br>- tłuszcze - 18 g<br>- węglowodany - 50 g<br>- białko - 3 g",
+    "lowestPrice" : 19.9,
+    "prices" : [ {
+      "id" : "08f22d20-eca3-11ef-9141-525400080621",
+      "type" : null,
+      "price" : 19.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-5de8/ITEM/0023c6f1-5e8e-4860-b1c7-9223e1dec3d6",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-5de8/ITEM/0023c6f1-5e8e-4860-b1c7-9223e1dec3d6",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-5de8/ITEM/0023c6f1-5e8e-4860-b1c7-9223e1dec3d6",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-5de8/ITEM/0023c6f1-5e8e-4860-b1c7-9223e1dec3d6",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-5de8/ITEM/0023c6f1-5e8e-4860-b1c7-9223e1dec3d6",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-5de8/ITEM/0023c6f1-5e8e-4860-b1c7-9223e1dec3d6",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-5de8/ITEM/0023c6f1-5e8e-4860-b1c7-9223e1dec3d6",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08da374d-eca3-11ef-9141-525400080621",
+    "name" : "KULKI SEROWE 8szt",
+    "description" : "Kulki z ciągnącym się serem w środku, podawane z sosem do wyboru.<br><br>W porcji:<br>- energia - 262 kcal<br>- tłuszcze - 10 g<br>- węglowodany - 17 g<br>- białko - 12 g",
+    "lowestPrice" : 20.9,
+    "prices" : [ {
+      "id" : "08f23640-eca3-11ef-9141-525400080621",
+      "type" : null,
+      "price" : 20.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-de20/ITEM/b9222b74-576a-4e22-b191-25408a05b8b1",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-de20/ITEM/b9222b74-576a-4e22-b191-25408a05b8b1",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-de20/ITEM/b9222b74-576a-4e22-b191-25408a05b8b1",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-de20/ITEM/b9222b74-576a-4e22-b191-25408a05b8b1",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-de20/ITEM/b9222b74-576a-4e22-b191-25408a05b8b1",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-de20/ITEM/b9222b74-576a-4e22-b191-25408a05b8b1",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-de20/ITEM/b9222b74-576a-4e22-b191-25408a05b8b1",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08da9338-eca3-11ef-9141-525400080621",
+    "name" : "Nachosy",
+    "description" : "Porcja pysznych nachosów, podawana z sosem do wyboru",
+    "lowestPrice" : 11.9,
+    "prices" : [ {
+      "id" : "08f24236-eca3-11ef-9141-525400080621",
+      "type" : null,
+      "price" : 11.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-97c8/ITEM/40baf799-8435-488d-b296-9b3e45653f74",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-97c8/ITEM/40baf799-8435-488d-b296-9b3e45653f74",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-97c8/ITEM/40baf799-8435-488d-b296-9b3e45653f74",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-97c8/ITEM/40baf799-8435-488d-b296-9b3e45653f74",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-97c8/ITEM/40baf799-8435-488d-b296-9b3e45653f74",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-97c8/ITEM/40baf799-8435-488d-b296-9b3e45653f74",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-97c8/ITEM/40baf799-8435-488d-b296-9b3e45653f74",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08daedbc-eca3-11ef-9141-525400080621",
+    "name" : "COLESŁAW",
+    "description" : "Klasyczna surówka colesław, na bazie marchwi i białej kapusty",
+    "lowestPrice" : 9.9,
+    "prices" : [ {
+      "id" : "4e19c0a7-245c-11f1-9141-525400080621",
+      "type" : null,
+      "price" : 9.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-49b0/ITEM/df2b7e0b-c52a-4fe9-9e5d-172468e99587",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-49b0/ITEM/df2b7e0b-c52a-4fe9-9e5d-172468e99587",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-49b0/ITEM/df2b7e0b-c52a-4fe9-9e5d-172468e99587",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-49b0/ITEM/df2b7e0b-c52a-4fe9-9e5d-172468e99587",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-49b0/ITEM/df2b7e0b-c52a-4fe9-9e5d-172468e99587",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-49b0/ITEM/df2b7e0b-c52a-4fe9-9e5d-172468e99587",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-49b0/ITEM/df2b7e0b-c52a-4fe9-9e5d-172468e99587",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  } ],
+  "children" : [ ],
+  "verifyAge" : false
+}, {
+  "id" : "083abe1d-eca3-11ef-9141-525400080621",
+  "name" : "Napoje",
+  "description" : null,
+  "image" : null,
+  "products" : [ {
+    "id" : "08e6180c-eca3-11ef-9141-525400080621",
+    "name" : "COCA COLA 0,33 l puszka",
+    "description" : null,
+    "lowestPrice" : 9.0,
+    "prices" : [ {
+      "id" : "8e02b867-646e-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 9.0
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-f50c/ITEM/8f9ceba9-f4a3-4643-b289-858df49035da",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-f50c/ITEM/8f9ceba9-f4a3-4643-b289-858df49035da",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-f50c/ITEM/8f9ceba9-f4a3-4643-b289-858df49035da",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-f50c/ITEM/8f9ceba9-f4a3-4643-b289-858df49035da",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-f50c/ITEM/8f9ceba9-f4a3-4643-b289-858df49035da",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-f50c/ITEM/8f9ceba9-f4a3-4643-b289-858df49035da",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-f50c/ITEM/8f9ceba9-f4a3-4643-b289-858df49035da",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08e63457-eca3-11ef-9141-525400080621",
+    "name" : "COCA COLA ZERO 0,33 l puszka",
+    "description" : null,
+    "lowestPrice" : 9.0,
+    "prices" : [ {
+      "id" : "8e02c31e-646e-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 9.0
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-958c/ITEM/ea2d8ad0-ee13-474c-8e8f-8f0ee1a85855",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-958c/ITEM/ea2d8ad0-ee13-474c-8e8f-8f0ee1a85855",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-958c/ITEM/ea2d8ad0-ee13-474c-8e8f-8f0ee1a85855",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-958c/ITEM/ea2d8ad0-ee13-474c-8e8f-8f0ee1a85855",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-958c/ITEM/ea2d8ad0-ee13-474c-8e8f-8f0ee1a85855",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-958c/ITEM/ea2d8ad0-ee13-474c-8e8f-8f0ee1a85855",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-958c/ITEM/ea2d8ad0-ee13-474c-8e8f-8f0ee1a85855",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "0a32e2d8-9d5d-11f0-9141-525400080621",
+    "name" : "Corona Free",
+    "description" : null,
+    "lowestPrice" : 12.0,
+    "prices" : [ {
+      "id" : "0a5a3f0b-9d5d-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 12.0
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-92ff/ITEM/eb49b32f-d687-476c-9e2c-20227c522506",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-92ff/ITEM/eb49b32f-d687-476c-9e2c-20227c522506",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-92ff/ITEM/eb49b32f-d687-476c-9e2c-20227c522506",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-92ff/ITEM/eb49b32f-d687-476c-9e2c-20227c522506",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-92ff/ITEM/eb49b32f-d687-476c-9e2c-20227c522506",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-92ff/ITEM/eb49b32f-d687-476c-9e2c-20227c522506",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-92ff/ITEM/eb49b32f-d687-476c-9e2c-20227c522506",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  } ],
+  "children" : [ ],
+  "verifyAge" : false
+}, {
+  "id" : "083a10df-eca3-11ef-9141-525400080621",
+  "name" : "Zestawy Dobra Buła",
+  "description" : null,
+  "image" : null,
+  "products" : [ {
+    "id" : "b0e7c10e-a35c-11f0-9141-525400080621",
+    "name" : "Zestaw dla dzieci z zabawką (Kids burger z małymi chrispy frytkami)",
+    "description" : "wołowina, ser cheddar,pomidor, cebula czerwona, ogórek konserwowy, rukola, sos, bułka mała pszenna + chrupiące frytki",
+    "lowestPrice" : 33.9,
+    "prices" : [ {
+      "id" : "ba559408-17cb-11f1-9141-525400080621",
+      "type" : null,
+      "price" : 33.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-d869/ITEM/14657ad8-b158-4329-939a-9f6af6f869b1",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-d869/ITEM/14657ad8-b158-4329-939a-9f6af6f869b1",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-d869/ITEM/14657ad8-b158-4329-939a-9f6af6f869b1",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-d869/ITEM/14657ad8-b158-4329-939a-9f6af6f869b1",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-d869/ITEM/14657ad8-b158-4329-939a-9f6af6f869b1",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-d869/ITEM/14657ad8-b158-4329-939a-9f6af6f869b1",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-d869/ITEM/14657ad8-b158-4329-939a-9f6af6f869b1",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  } ],
+  "children" : [ ],
+  "verifyAge" : false
+}, {
+  "id" : "083aeb53-eca3-11ef-9141-525400080621",
+  "name" : "Extra sosy w pojemniczku",
+  "description" : null,
+  "image" : null,
+  "products" : [ {
+    "id" : "08e8350b-eca3-11ef-9141-525400080621",
+    "name" : "Sos Aioli 30 ml ( z opakowaniem)",
+    "description" : "Sos na bazie majonezu i pieczonego czosnku. Nasz nr 1",
+    "lowestPrice" : 4.0,
+    "prices" : [ {
+      "id" : "16848b98-94d0-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 4.0
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08e87cee-eca3-11ef-9141-525400080621",
+    "name" : "Sos Pika 30 ml ( z opakowaniem)",
+    "description" : "Sos ze świeżych pomidorów i papryczek jalapenio. <br>Sos delikatnie pikantny 6/10",
+    "lowestPrice" : 4.0,
+    "prices" : [ {
+      "id" : "16849324-94d0-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 4.0
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-f263/ITEM/3e3b798c-87a2-4ce9-a31b-84d2536d5383",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-f263/ITEM/3e3b798c-87a2-4ce9-a31b-84d2536d5383",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-f263/ITEM/3e3b798c-87a2-4ce9-a31b-84d2536d5383",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-f263/ITEM/3e3b798c-87a2-4ce9-a31b-84d2536d5383",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-f263/ITEM/3e3b798c-87a2-4ce9-a31b-84d2536d5383",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-f263/ITEM/3e3b798c-87a2-4ce9-a31b-84d2536d5383",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-f263/ITEM/3e3b798c-87a2-4ce9-a31b-84d2536d5383",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08e8a269-eca3-11ef-9141-525400080621",
+    "name" : "Sos BBQ 30 ml( z opakowaniem)",
+    "description" : "Dymny klasyczny sos BBQ",
+    "lowestPrice" : 4.0,
+    "prices" : [ {
+      "id" : "16849b8a-94d0-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 4.0
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-bc74/ITEM/6297590a-830c-4d01-ae50-6b8c54491adb",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-bc74/ITEM/6297590a-830c-4d01-ae50-6b8c54491adb",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-bc74/ITEM/6297590a-830c-4d01-ae50-6b8c54491adb",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-bc74/ITEM/6297590a-830c-4d01-ae50-6b8c54491adb",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-bc74/ITEM/6297590a-830c-4d01-ae50-6b8c54491adb",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-bc74/ITEM/6297590a-830c-4d01-ae50-6b8c54491adb",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-bc74/ITEM/6297590a-830c-4d01-ae50-6b8c54491adb",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08e8c8e0-eca3-11ef-9141-525400080621",
+    "name" : "Sos Estragonowy 30 m ( z opakowaniem)",
+    "description" : "Sos ziołowy, a'la 1000 wysp",
+    "lowestPrice" : 4.0,
+    "prices" : [ {
+      "id" : "1684a3f3-94d0-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 4.0
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-2a5a/ITEM/732dcf86-6317-46ef-8be7-dfcb8523dd72",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-2a5a/ITEM/732dcf86-6317-46ef-8be7-dfcb8523dd72",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-2a5a/ITEM/732dcf86-6317-46ef-8be7-dfcb8523dd72",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-2a5a/ITEM/732dcf86-6317-46ef-8be7-dfcb8523dd72",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-2a5a/ITEM/732dcf86-6317-46ef-8be7-dfcb8523dd72",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-2a5a/ITEM/732dcf86-6317-46ef-8be7-dfcb8523dd72",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-2a5a/ITEM/732dcf86-6317-46ef-8be7-dfcb8523dd72",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08e8ec30-eca3-11ef-9141-525400080621",
+    "name" : "Sos Texas 30 ml ( z opakowaniem)",
+    "description" : "Sos na bazie majonezu i sambali. <br>Sos ostry 8/10",
+    "lowestPrice" : 4.0,
+    "prices" : [ {
+      "id" : "1684abbf-94d0-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 4.0
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-e2b3/ITEM/4f02d088-61fe-40d4-a222-a5d05649f97e",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-e2b3/ITEM/4f02d088-61fe-40d4-a222-a5d05649f97e",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-e2b3/ITEM/4f02d088-61fe-40d4-a222-a5d05649f97e",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-e2b3/ITEM/4f02d088-61fe-40d4-a222-a5d05649f97e",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-e2b3/ITEM/4f02d088-61fe-40d4-a222-a5d05649f97e",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-e2b3/ITEM/4f02d088-61fe-40d4-a222-a5d05649f97e",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-e2b3/ITEM/4f02d088-61fe-40d4-a222-a5d05649f97e",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08e90ef1-eca3-11ef-9141-525400080621",
+    "name" : "Sos Musztardowo-Chrzanowy 30 m (z opakowaniem)",
+    "description" : "Sos na bazie musztardy oraz chrzanu",
+    "lowestPrice" : 4.0,
+    "prices" : [ {
+      "id" : "441da029-988d-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 4.0
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-4d28/ITEM/14923385-29ff-4c92-95aa-bb00aaf60139",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-4d28/ITEM/14923385-29ff-4c92-95aa-bb00aaf60139",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-4d28/ITEM/14923385-29ff-4c92-95aa-bb00aaf60139",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-4d28/ITEM/14923385-29ff-4c92-95aa-bb00aaf60139",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-4d28/ITEM/14923385-29ff-4c92-95aa-bb00aaf60139",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-4d28/ITEM/14923385-29ff-4c92-95aa-bb00aaf60139",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-4d28/ITEM/14923385-29ff-4c92-95aa-bb00aaf60139",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  }, {
+    "id" : "08e9345b-eca3-11ef-9141-525400080621",
+    "name" : "Sos z Serem Pleśniowym 30 ml ( z opakowaniem)",
+    "description" : "Sos na bazie sera blue oraz majonezu",
+    "lowestPrice" : 4.0,
+    "prices" : [ {
+      "id" : "1684b302-94d0-11f0-9141-525400080621",
+      "type" : null,
+      "price" : 4.0
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-cad8/ITEM/1c8209f9-b45c-4a5e-9f11-14244235c0bc",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-cad8/ITEM/1c8209f9-b45c-4a5e-9f11-14244235c0bc",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-cad8/ITEM/1c8209f9-b45c-4a5e-9f11-14244235c0bc",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-cad8/ITEM/1c8209f9-b45c-4a5e-9f11-14244235c0bc",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-cad8/ITEM/1c8209f9-b45c-4a5e-9f11-14244235c0bc",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-cad8/ITEM/1c8209f9-b45c-4a5e-9f11-14244235c0bc",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-cad8/ITEM/1c8209f9-b45c-4a5e-9f11-14244235c0bc",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  } ],
+  "children" : [ ],
+  "verifyAge" : false
+}, {
+  "id" : "083b2038-eca3-11ef-9141-525400080621",
+  "name" : "Akcesoria",
+  "description" : null,
+  "image" : null,
+  "products" : [ {
+    "id" : "08ec8e72-eca3-11ef-9141-525400080621",
+    "name" : "Worek Dobra Buła",
+    "description" : null,
+    "lowestPrice" : 19.9,
+    "prices" : [ {
+      "id" : "c7f38e73-2131-11f1-9141-525400080621",
+      "type" : null,
+      "price" : 19.9
+    } ],
+    "attributes" : [ ],
+    "image" : {
+      "url" : "https://assets.restaurants.restimo.com/item/item-b620/ITEM/78b9bbe1-3f8d-4158-894d-cd8f23d48297",
+      "icon_url" : "https://assets.restaurants.restimo.com/item/item-b620/ITEM/78b9bbe1-3f8d-4158-894d-cd8f23d48297",
+      "small_url" : "https://assets.restaurants.restimo.com/item/item-b620/ITEM/78b9bbe1-3f8d-4158-894d-cd8f23d48297",
+      "compact_url" : "https://assets.restaurants.restimo.com/item/item-b620/ITEM/78b9bbe1-3f8d-4158-894d-cd8f23d48297",
+      "medium_url" : "https://assets.restaurants.restimo.com/item/item-b620/ITEM/78b9bbe1-3f8d-4158-894d-cd8f23d48297",
+      "large_url" : "https://assets.restaurants.restimo.com/item/item-b620/ITEM/78b9bbe1-3f8d-4158-894d-cd8f23d48297",
+      "huge_url" : "https://assets.restaurants.restimo.com/item/item-b620/ITEM/78b9bbe1-3f8d-4158-894d-cd8f23d48297",
+      "themeUrl" : null
+    },
+    "purchaseDisabled" : false,
+    "cssClass" : null,
+    "hidden" : false,
+    "verifyAge" : false,
+    "recommendationTypes" : [ ]
+  } ],
+  "children" : [ ],
+  "verifyAge" : false
+} ]

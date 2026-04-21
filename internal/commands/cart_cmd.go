@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sort"
@@ -27,8 +28,8 @@ func newCartCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if provider == session.ProviderDelio {
-				return fmt.Errorf("interactive cart TUI requires --provider %s; for --provider %s use 'cart show', 'cart add', or 'cart remove'", session.ProviderFrisco, session.ProviderDelio)
+			if provider != session.ProviderFrisco {
+				return fmt.Errorf("interactive cart TUI requires --provider %s; for --provider %s or --provider %s use 'cart show', 'cart add', or 'cart remove'", session.ProviderFrisco, session.ProviderDelio, session.ProviderUpMenu)
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {
@@ -46,6 +47,10 @@ func newCartShowCmd() *cobra.Command {
 	var userID string
 	var sortBy string
 	var top int
+	var restaurantURL string
+	var language string
+	var cartID string
+	var customerID string
 	c := &cobra.Command{
 		Use:   "show",
 		Short: "Fetch cart.",
@@ -53,6 +58,17 @@ func newCartShowCmd() *cobra.Command {
 			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
+			}
+			if provider == session.ProviderUpMenu {
+				client, err := newUpMenuCLIClient(s, restaurantURL, language)
+				if err != nil {
+					return err
+				}
+				result, err := client.CartShow(context.Background(), cartID, customerID)
+				if err != nil {
+					return err
+				}
+				return printJSON(result)
 			}
 			if provider == session.ProviderDelio {
 				result, err := delio.CurrentCart(s)
@@ -88,6 +104,10 @@ func newCartShowCmd() *cobra.Command {
 	c.Flags().StringVar(&userID, "user-id", "", "")
 	c.Flags().StringVar(&sortBy, "sort-by", "", "Sort items by: total, price-per-kg, name. Default: keep API order.")
 	c.Flags().IntVar(&top, "top", 0, "Show only top N items (0 = show all).")
+	c.Flags().StringVar(&restaurantURL, "restaurant-url", "", "UpMenu absolute restaurant page URL override.")
+	c.Flags().StringVar(&language, "language", "", "UpMenu storefront language header override.")
+	c.Flags().StringVar(&cartID, "cart-id", "", "UpMenu public cart ID to resume.")
+	c.Flags().StringVar(&customerID, "customer-id", "", "UpMenu public/customer ID to resume.")
 	return c
 }
 
@@ -352,6 +372,10 @@ func newCartAddCmd() *cobra.Command {
 	var userID, productID, searchPhrase, categoryID string
 	var quantity int
 	var lat, long float64
+	var restaurantURL string
+	var language string
+	var cartID string
+	var customerID string
 	c := &cobra.Command{
 		Use:   "add",
 		Short: "Add/set product quantity in cart.",
@@ -369,6 +393,20 @@ func newCartAddCmd() *cobra.Command {
 			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
+			}
+			if provider == session.ProviderUpMenu {
+				if hasSearch {
+					return fmt.Errorf("cart add does not support --search for --provider %s in the MVP; use --product-id with an UpMenu product price id from 'restaurant menu'", session.ProviderUpMenu)
+				}
+				client, err := newUpMenuCLIClient(s, restaurantURL, language)
+				if err != nil {
+					return err
+				}
+				result, err := client.CartAdd(context.Background(), cartID, productID, customerID, quantity)
+				if err != nil {
+					return err
+				}
+				return printJSON(result)
 			}
 			if provider == session.ProviderDelio {
 				coords, err := delioCoordsFromFlags(cmd, lat, long)
@@ -428,6 +466,10 @@ func newCartAddCmd() *cobra.Command {
 	c.Flags().StringVar(&userID, "user-id", "", "")
 	c.Flags().Float64Var(&lat, "lat", 0, "Delio latitude override.")
 	c.Flags().Float64Var(&long, "long", 0, "Delio longitude override.")
+	c.Flags().StringVar(&restaurantURL, "restaurant-url", "", "UpMenu absolute restaurant page URL override.")
+	c.Flags().StringVar(&language, "language", "", "UpMenu storefront language header override.")
+	c.Flags().StringVar(&cartID, "cart-id", "", "UpMenu public cart ID to resume.")
+	c.Flags().StringVar(&customerID, "customer-id", "", "UpMenu public/customer ID to resume.")
 	return c
 }
 
@@ -521,6 +563,9 @@ func newCartRemoveCmd() *cobra.Command {
 			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
+			}
+			if provider == session.ProviderUpMenu {
+				return unsupportedProviderError(cmd, provider, session.ProviderFrisco, session.ProviderDelio)
 			}
 			if provider == session.ProviderDelio {
 				current, err := delio.CurrentCart(s)

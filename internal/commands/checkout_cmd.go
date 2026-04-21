@@ -41,6 +41,9 @@ func newCheckoutPreviewCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if provider == session.ProviderUpMenu {
+				return unsupportedProviderError(cmd, provider, session.ProviderFrisco, session.ProviderDelio)
+			}
 			client, err := newCheckoutClient(provider)
 			if err != nil {
 				return err
@@ -66,6 +69,9 @@ func newCheckoutFinalizeCmd() *cobra.Command {
 			provider, s, err := checkoutLoadSession(cmd)
 			if err != nil {
 				return err
+			}
+			if provider == session.ProviderUpMenu {
+				return unsupportedProviderError(cmd, provider, session.ProviderFrisco, session.ProviderDelio)
 			}
 			client, err := newCheckoutClient(provider)
 			if err != nil {

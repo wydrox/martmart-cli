@@ -41,6 +41,9 @@ func newProductsSearchCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if provider == session.ProviderUpMenu {
+				return unsupportedProviderError(cmd, provider, session.ProviderFrisco, session.ProviderDelio)
+			}
 			if provider == session.ProviderDelio {
 				coords, err := delioCoordsFromFlags(cmd, lat, long)
 				if err != nil {
@@ -112,6 +115,9 @@ func newProductsByIDsCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if provider == session.ProviderUpMenu {
+				return unsupportedProviderError(cmd, provider, session.ProviderFrisco, session.ProviderDelio)
+			}
 			if provider == session.ProviderDelio {
 				return fmt.Errorf("products by-ids requires --provider %s; for --provider %s use 'products get --product-id <sku>' or --slug", session.ProviderFrisco, session.ProviderDelio)
 			}
@@ -147,6 +153,9 @@ func newProductsNutritionCmd() *cobra.Command {
 			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
+			}
+			if provider == session.ProviderUpMenu {
+				return unsupportedProviderError(cmd, provider, session.ProviderFrisco, session.ProviderDelio)
 			}
 			if provider == session.ProviderDelio {
 				return fmt.Errorf("products nutrition requires --provider %s; for --provider %s use 'products get --product-id <sku> --format json'", session.ProviderFrisco, session.ProviderDelio)
@@ -349,6 +358,9 @@ func newProductsPickCmd() *cobra.Command {
 			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
+			}
+			if provider == session.ProviderUpMenu {
+				return unsupportedProviderError(cmd, provider, session.ProviderFrisco, session.ProviderDelio)
 			}
 			if provider == session.ProviderDelio {
 				return fmt.Errorf("products pick requires --provider %s; for --provider %s use 'products search' or 'products get'", session.ProviderFrisco, session.ProviderDelio)

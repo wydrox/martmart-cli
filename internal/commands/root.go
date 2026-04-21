@@ -92,6 +92,7 @@ func NewRootCmd() *cobra.Command {
 
 	root.AddCommand(
 		newSessionCmd(),
+		newRestaurantCmd(),
 		newProductsCmd(),
 		newCartCmd(),
 		newCheckoutCmd(),

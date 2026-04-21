@@ -31,6 +31,9 @@ func newProductsGetCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if provider == session.ProviderUpMenu {
+				return unsupportedProviderError(cmd, provider, session.ProviderFrisco, session.ProviderDelio)
+			}
 			if provider == session.ProviderDelio {
 				coords, err := delioCoordsFromFlags(cmd, lat, long)
 				if err != nil {

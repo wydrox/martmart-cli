@@ -33,7 +33,7 @@ func newCartAddBatchCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if provider == session.ProviderDelio {
+			if provider != session.ProviderFrisco {
 				return fmt.Errorf("cart add-batch requires --provider %s", session.ProviderFrisco)
 			}
 			uid, err := session.RequireUserID(s, userID)

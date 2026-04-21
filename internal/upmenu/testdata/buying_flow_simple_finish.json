@@ -1,0 +1,40 @@
+{
+  "buyingFlowId" : "undefined",
+  "restaurantId" : "b8a354b8-c958-11eb-a1e9-525400080521",
+  "cartId" : "2c62e3d7-3da9-11f1-9141-525400080621",
+  "cartItemId" : null,
+  "groupedItemIds" : null,
+  "customerId" : null,
+  "deviceType" : null,
+  "productName" : "Sos Aioli 30 ml ( z opakowaniem)",
+  "productDescription" : "Sos na bazie majonezu i pieczonego czosnku. Nasz nr 1",
+  "productTypeName" : null,
+  "productPriceId" : "16848b98-94d0-11f0-9141-525400080621",
+  "productPrice" : 4.0,
+  "quantity" : 1,
+  "image" : {
+    "url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+    "icon_url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+    "small_url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+    "compact_url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+    "medium_url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+    "large_url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+    "huge_url" : "https://assets.restaurants.restimo.com/item/item-416a/ITEM/259bcbf4-88f0-437d-b029-98115719c550",
+    "themeUrl" : null
+  },
+  "comment" : null,
+  "serviceOrder" : null,
+  "types" : [ ],
+  "steps" : [ ],
+  "half" : {
+    "enabled" : false,
+    "selected" : false
+  },
+  "firstStep" : true,
+  "lastStep" : true,
+  "disabled" : false,
+  "requireComments" : false,
+  "attributes" : [ ],
+  "errors" : [ ],
+  "totalPrice" : 4.0
+}

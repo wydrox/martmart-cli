@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/wydrox/martmart-cli/internal/upmenu"
 )
 
 func TestMCPResolveProvider_RejectsUpMenuAlias(t *testing.T) {
@@ -42,9 +44,9 @@ func TestToolUpMenuRestaurantInfo(t *testing.T) {
 	if !out.OK || res == nil {
 		t.Fatalf("unexpected result envelope: %+v %v", out, res)
 	}
-	payload := out.Data["api_response"].(map[string]any)
-	if payload["name"] != "Dobra Buła" {
-		t.Fatalf("unexpected payload: %v", payload)
+	payload, ok := out.Data["api_response"].(*upmenu.RestaurantInfo)
+	if !ok || payload.Name != "Dobra Buła" {
+		t.Fatalf("unexpected payload: %#v", out.Data["api_response"])
 	}
 }
 
@@ -59,7 +61,7 @@ func TestToolUpMenuCartShow(t *testing.T) {
 				t.Fatalf("decode body: %v", err)
 			}
 			w.Header().Set("Content-Type", "application/json")
-			_, _ = w.Write([]byte(`{"cartId":"cart-b","items":[]}`))
+			_, _ = w.Write([]byte(`{"cart":{"id":"cart-b","items":[],"itemsSize":0}}`))
 		default:
 			http.NotFound(w, r)
 		}
@@ -74,12 +76,12 @@ func TestToolUpMenuCartShow(t *testing.T) {
 	if err != nil {
 		t.Fatalf("toolUpMenuCartShow: %v", err)
 	}
-	if payload["cartId"] != "cart-b" || payload["customerId"] != "cust-b" {
+	if payload["cartId"] != "cart-b" {
 		t.Fatalf("unexpected cart payload: %v", payload)
 	}
-	api := out.Data["api_response"].(map[string]any)
-	if api["cartId"] != "cart-b" {
-		t.Fatalf("unexpected api response: %v", api)
+	api, ok := out.Data["api_response"].(*upmenu.Cart)
+	if !ok || api.ID != "cart-b" {
+		t.Fatalf("unexpected api response: %#v", out.Data["api_response"])
 	}
 }
 
