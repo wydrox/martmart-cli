@@ -74,8 +74,13 @@ func registerAccountSessionAuthTools(server *mcp.Server) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "session_show",
-		Description: "Current session with secrets redacted (same as CLI session show).",
+		Description: "Provider sessions with secrets redacted. Pass provider to inspect one session, or omit it to list all supported providers and saved sessions.",
 	}, toolSessionShow)
+
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "providers_list",
+		Description: "List supported providers and whether a saved authenticated session exists for each provider.",
+	}, toolProvidersList)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "session_from_curl",
@@ -593,12 +598,69 @@ type sessionShowIn struct {
 	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; optional; when omitted returns all saved sessions"`
 }
 
-func toolSessionShow(_ context.Context, _ *mcp.CallToolRequest, _ sessionShowIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, err := session.LoadProvider(mcpDefaultProvider)
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
+func toolSessionShow(_ context.Context, _ *mcp.CallToolRequest, in sessionShowIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
+	if strings.TrimSpace(in.Provider) != "" {
+		provider, err := mcpResolveProvider(in.Provider)
+		if err != nil {
+			return nil, mcpCPFriscoToolOut{}, err
+		}
+		snapshot, err := mcpASASessionSnapshot(provider)
+		if err != nil {
+			return nil, mcpCPFriscoToolOut{}, err
+		}
+		return mcpCPWrapFriscoResult(snapshot)
 	}
-	return mcpCPWrapFriscoResult(session.RedactedCopy(s))
+
+	providers := mcpAvailableProviders()
+	sessions := make(map[string]any, len(providers))
+	for _, provider := range providers {
+		snapshot, err := mcpASASessionSnapshot(provider)
+		if err != nil {
+			return nil, mcpCPFriscoToolOut{}, err
+		}
+		sessions[provider] = snapshot
+	}
+	return mcpCPWrapFriscoResult(map[string]any{
+		"available_providers": providers,
+		"sessions":            sessions,
+	})
+}
+
+func toolProvidersList(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
+	providers := mcpAvailableProviders()
+	items := make([]map[string]any, 0, len(providers))
+	for _, provider := range providers {
+		s, sourcePath, err := session.LoadProviderWithPath(provider)
+		if err != nil {
+			return nil, mcpCPFriscoToolOut{}, err
+		}
+		items = append(items, map[string]any{
+			"provider":          provider,
+			"base_url":          s.BaseURL,
+			"session_file":      sourcePath,
+			"session_saved":     sourcePath != "",
+			"authenticated":     session.IsAuthenticated(s),
+			"default_base_url":  session.DefaultBaseURLForProvider(provider),
+		})
+	}
+	return mcpCPWrapFriscoResult(map[string]any{
+		"available_providers": providers,
+		"providers":           items,
+	})
+}
+
+func mcpASASessionSnapshot(provider string) (map[string]any, error) {
+	s, sourcePath, err := session.LoadProviderWithPath(provider)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]any{
+		"provider":      provider,
+		"session_file":  sourcePath,
+		"session_saved": sourcePath != "",
+		"authenticated": session.IsAuthenticated(s),
+		"session":       session.RedactedCopy(s),
+	}, nil
 }
 
 // sessionFromCurlIn is the input type for the session_from_curl tool.
@@ -611,19 +673,24 @@ func toolSessionFromCurl(_ context.Context, _ *mcp.CallToolRequest, in sessionFr
 	if strings.TrimSpace(in.Curl) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("curl is required")
 	}
+	provider, err := mcpResolveProvider(in.Provider)
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
+	}
 	cd, err := session.ParseCurl(in.Curl)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
-	s, err := session.LoadProvider(mcpDefaultProvider)
+	s, err := session.LoadProvider(provider)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
-	session.ApplyFromCurlForProvider(s, cd, mcpDefaultProvider)
-	if err := session.SaveProvider(mcpDefaultProvider, s); err != nil {
+	session.ApplyFromCurlForProvider(s, cd, provider)
+	if err := session.SaveProvider(provider, s); err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
 	return mcpCPWrapFriscoResult(map[string]any{
+		"provider":      provider,
 		"saved":         true,
 		"base_url":      s.BaseURL,
 		"user_id":       s.UserID,
@@ -639,7 +706,11 @@ type authRefreshTokenIn struct {
 }
 
 func toolAuthRefreshToken(_ context.Context, _ *mcp.CallToolRequest, in authRefreshTokenIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, err := session.LoadProvider(mcpDefaultProvider)
+	provider, err := mcpResolveProvider(in.Provider)
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
+	}
+	s, err := session.LoadProvider(provider)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -673,10 +744,11 @@ func toolAuthRefreshToken(_ context.Context, _ *mcp.CallToolRequest, in authRefr
 		if nr, ok := mcpASAStringField(m["refresh_token"]); ok && nr != "" {
 			s.RefreshToken = nr
 		}
-		if err := session.SaveProvider(mcpDefaultProvider, s); err != nil {
+		if err := session.SaveProvider(provider, s); err != nil {
 			return nil, mcpCPFriscoToolOut{}, err
 		}
 		return mcpCPWrapFriscoResult(map[string]any{
+			"provider":            provider,
 			"saved":               true,
 			"token_saved":         mcpASATokenSaved(s),
 			"refresh_token_saved": session.RefreshTokenString(s) != "",
@@ -684,6 +756,7 @@ func toolAuthRefreshToken(_ context.Context, _ *mcp.CallToolRequest, in authRefr
 		})
 	}
 	return mcpCPWrapFriscoResult(map[string]any{
+		"provider":            provider,
 		"saved":               false,
 		"token_saved":         mcpASATokenSaved(s),
 		"refresh_token_saved": session.RefreshTokenString(s) != "",
@@ -708,12 +781,17 @@ func sessionLoginTimeoutSec(in sessionLoginIn) int {
 }
 
 func toolSessionLogin(ctx context.Context, _ *mcp.CallToolRequest, in sessionLoginIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
+	provider, err := mcpResolveProvider(in.Provider)
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
+	}
 	timeout := sessionLoginTimeoutSec(in)
-	result, err := login.Run(ctx, login.Options{Provider: mcpDefaultProvider, TimeoutSec: timeout})
+	result, err := login.Run(ctx, login.Options{Provider: provider, TimeoutSec: timeout})
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
 	return mcpCPWrapFriscoResult(map[string]any{
+		"provider":            provider,
 		"saved":               result.Saved,
 		"base_url":            result.BaseURL,
 		"user_id":             result.UserID,

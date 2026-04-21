@@ -71,6 +71,7 @@ func registerOrdersAndReservationTools(server *mcp.Server) {
 
 // orOrdersListIn is the input type for the orders_list tool.
 type orOrdersListIn struct {
+	Provider  string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
 	UserID    string `json:"user_id,omitempty" jsonschema:"Optional override, defaults to session user_id"`
 	PageIndex int    `json:"page_index,omitempty" jsonschema:"1-based page index, default 1"`
 	PageSize  int    `json:"page_size,omitempty" jsonschema:"Page size, default 10"`
@@ -87,8 +88,9 @@ type orOrdersListOut struct {
 
 // orOrdersDetailsIn is the input type for the orders_details tool.
 type orOrdersDetailsIn struct {
-	UserID  string `json:"user_id,omitempty"`
-	OrderID string `json:"order_id" jsonschema:"Order id"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	UserID   string `json:"user_id,omitempty"`
+	OrderID  string `json:"order_id" jsonschema:"Order id"`
 }
 
 // orOrdersDetailsOut is the output type for the orders_details tool.
@@ -98,8 +100,9 @@ type orOrdersDetailsOut struct {
 
 // orOrdersDeliveryIn is the input type for the orders_delivery tool.
 type orOrdersDeliveryIn struct {
-	UserID  string `json:"user_id,omitempty"`
-	OrderID string `json:"order_id" jsonschema:"Order id"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	UserID   string `json:"user_id,omitempty"`
+	OrderID  string `json:"order_id" jsonschema:"Order id"`
 }
 
 // orOrdersDeliveryOut is the output type for the orders_delivery tool.
@@ -109,8 +112,9 @@ type orOrdersDeliveryOut struct {
 
 // orOrdersPaymentsIn is the input type for the orders_payments tool.
 type orOrdersPaymentsIn struct {
-	UserID  string `json:"user_id,omitempty"`
-	OrderID string `json:"order_id" jsonschema:"Order id"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	UserID   string `json:"user_id,omitempty"`
+	OrderID  string `json:"order_id" jsonschema:"Order id"`
 }
 
 // orOrdersPaymentsOut is the output type for the orders_payments tool.
@@ -120,6 +124,7 @@ type orOrdersPaymentsOut struct {
 
 // orReservationDeliveryOptionsIn is the input type for the reservation_delivery_options tool.
 type orReservationDeliveryOptionsIn struct {
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
 	Postcode string `json:"postcode" jsonschema:"postcode, e.g. 00-001"`
 }
 
@@ -130,6 +135,7 @@ type orReservationDeliveryOptionsOut struct {
 
 // orReservationCalendarIn is the input type for the reservation_calendar tool.
 type orReservationCalendarIn struct {
+	Provider        string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
 	UserID          string         `json:"user_id,omitempty"`
 	ShippingAddress map[string]any `json:"shipping_address" jsonschema:"shipping address object"`
 	Date            string         `json:"date,omitempty" jsonschema:"optional YYYY-M-D or YYYY-MM-DD"`
@@ -142,6 +148,7 @@ type orReservationCalendarOut struct {
 
 // orReservationSlotsIn is the input type for the reservation_slots tool.
 type orReservationSlotsIn struct {
+	Provider        string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
 	UserID          string         `json:"user_id,omitempty"`
 	Days            int            `json:"days,omitempty" jsonschema:"Consecutive days to check, default 3"`
 	StartDate       string         `json:"start_date,omitempty" jsonschema:"YYYY-MM-DD, default today"`
@@ -157,6 +164,7 @@ type orReservationSlotsOut struct {
 
 // orReservationReserveIn is the input type for the reservation_reserve tool.
 type orReservationReserveIn struct {
+	Provider        string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
 	UserID          string         `json:"user_id,omitempty"`
 	Date            string         `json:"date" jsonschema:"YYYY-MM-DD"`
 	FromTime        string         `json:"from_time" jsonschema:"HH:MM window start"`
@@ -173,7 +181,8 @@ type orReservationReserveOut struct {
 
 // orReservationCancelIn is the input type for the reservation_cancel tool.
 type orReservationCancelIn struct {
-	UserID string `json:"user_id,omitempty"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	UserID   string `json:"user_id,omitempty"`
 }
 
 // orReservationCancelOut is the output type for the reservation_cancel tool.
@@ -183,8 +192,9 @@ type orReservationCancelOut struct {
 
 // orReservationPlanIn is the input type for the reservation_plan tool.
 type orReservationPlanIn struct {
-	UserID  string         `json:"user_id,omitempty"`
-	Payload map[string]any `json:"payload" jsonschema:"reservation payload object"`
+	Provider string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	UserID   string         `json:"user_id,omitempty"`
+	Payload  map[string]any `json:"payload" jsonschema:"reservation payload object"`
 }
 
 // orReservationPlanOut is the output type for the reservation_plan tool.
@@ -195,7 +205,7 @@ type orReservationPlanOut struct {
 // --- Handlers ---
 
 func orToolOrdersList(_ context.Context, _ *mcp.CallToolRequest, in orOrdersListIn) (*mcp.CallToolResult, orOrdersListOut, error) {
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, orOrdersListOut{}, err
 	}
@@ -299,7 +309,7 @@ func orToolOrdersDetails(_ context.Context, _ *mcp.CallToolRequest, in orOrdersD
 	if strings.TrimSpace(in.OrderID) == "" {
 		return nil, orOrdersDetailsOut{}, fmt.Errorf("order_id is required")
 	}
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, orOrdersDetailsOut{}, err
 	}
@@ -315,7 +325,7 @@ func orToolOrdersDelivery(_ context.Context, _ *mcp.CallToolRequest, in orOrders
 	if strings.TrimSpace(in.OrderID) == "" {
 		return nil, orOrdersDeliveryOut{}, fmt.Errorf("order_id is required")
 	}
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, orOrdersDeliveryOut{}, err
 	}
@@ -331,7 +341,7 @@ func orToolOrdersPayments(_ context.Context, _ *mcp.CallToolRequest, in orOrders
 	if strings.TrimSpace(in.OrderID) == "" {
 		return nil, orOrdersPaymentsOut{}, fmt.Errorf("order_id is required")
 	}
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, orOrdersPaymentsOut{}, err
 	}
@@ -347,7 +357,11 @@ func orToolReservationDeliveryOptions(_ context.Context, _ *mcp.CallToolRequest,
 	if strings.TrimSpace(in.Postcode) == "" {
 		return nil, orReservationDeliveryOptionsOut{}, fmt.Errorf("postcode is required")
 	}
-	s, err := session.LoadProvider(mcpDefaultProvider)
+	provider, err := mcpResolveProvider(in.Provider)
+	if err != nil {
+		return nil, orReservationDeliveryOptionsOut{}, err
+	}
+	s, err := session.LoadProvider(provider)
 	if err != nil {
 		return nil, orReservationDeliveryOptionsOut{}, err
 	}
@@ -367,7 +381,7 @@ func orToolReservationCalendar(_ context.Context, _ *mcp.CallToolRequest, in orR
 	if len(in.ShippingAddress) == 0 {
 		return nil, orReservationCalendarOut{}, fmt.Errorf("shipping_address is required")
 	}
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, orReservationCalendarOut{}, err
 	}
@@ -392,7 +406,7 @@ func orToolReservationCalendar(_ context.Context, _ *mcp.CallToolRequest, in orR
 }
 
 func orToolReservationSlots(_ context.Context, _ *mcp.CallToolRequest, in orReservationSlotsIn) (*mcp.CallToolResult, orReservationSlotsOut, error) {
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, orReservationSlotsOut{}, err
 	}
@@ -447,7 +461,7 @@ func orToolReservationSlots(_ context.Context, _ *mcp.CallToolRequest, in orRese
 }
 
 func orToolReservationReserve(_ context.Context, _ *mcp.CallToolRequest, in orReservationReserveIn) (*mcp.CallToolResult, orReservationReserveOut, error) {
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, orReservationReserveOut{}, err
 	}
@@ -523,7 +537,7 @@ func orToolReservationReserve(_ context.Context, _ *mcp.CallToolRequest, in orRe
 }
 
 func orToolReservationCancel(_ context.Context, _ *mcp.CallToolRequest, in orReservationCancelIn) (*mcp.CallToolResult, orReservationCancelOut, error) {
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, orReservationCancelOut{}, err
 	}
@@ -539,7 +553,7 @@ func orToolReservationPlan(_ context.Context, _ *mcp.CallToolRequest, in orReser
 	if len(in.Payload) == 0 {
 		return nil, orReservationPlanOut{}, fmt.Errorf("payload is required")
 	}
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, orReservationPlanOut{}, err
 	}
