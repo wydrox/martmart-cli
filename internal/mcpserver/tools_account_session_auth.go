@@ -73,11 +73,6 @@ func registerAccountSessionAuthTools(server *mcp.Server) {
 	}, toolSessionLogin)
 
 	mcp.AddTool(server, &mcp.Tool{
-		Name:        "session_show",
-		Description: "Provider sessions with secrets redacted. Pass provider to inspect one session, or omit it to list all supported providers and saved sessions.",
-	}, toolSessionShow)
-
-	mcp.AddTool(server, &mcp.Tool{
 		Name:        "providers_list",
 		Description: "List supported providers and whether a saved authenticated session exists for each provider.",
 	}, toolProvidersList)
@@ -593,39 +588,6 @@ func toolAccountMembershipPoints(_ context.Context, _ *mcp.CallToolRequest, in a
 	return mcpCPWrapFriscoResult(result)
 }
 
-// sessionShowIn is the (empty) input type for the session_show tool.
-type sessionShowIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; optional; when omitted returns all saved sessions"`
-}
-
-func toolSessionShow(_ context.Context, _ *mcp.CallToolRequest, in sessionShowIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	if strings.TrimSpace(in.Provider) != "" {
-		provider, err := mcpResolveProvider(in.Provider)
-		if err != nil {
-			return nil, mcpCPFriscoToolOut{}, err
-		}
-		snapshot, err := mcpASASessionSnapshot(provider)
-		if err != nil {
-			return nil, mcpCPFriscoToolOut{}, err
-		}
-		return mcpCPWrapFriscoResult(snapshot)
-	}
-
-	providers := mcpAvailableProviders()
-	sessions := make(map[string]any, len(providers))
-	for _, provider := range providers {
-		snapshot, err := mcpASASessionSnapshot(provider)
-		if err != nil {
-			return nil, mcpCPFriscoToolOut{}, err
-		}
-		sessions[provider] = snapshot
-	}
-	return mcpCPWrapFriscoResult(map[string]any{
-		"available_providers": providers,
-		"sessions":            sessions,
-	})
-}
-
 func toolProvidersList(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
 	providers := mcpAvailableProviders()
 	items := make([]map[string]any, 0, len(providers))
@@ -647,20 +609,6 @@ func toolProvidersList(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*
 		"available_providers": providers,
 		"providers":           items,
 	})
-}
-
-func mcpASASessionSnapshot(provider string) (map[string]any, error) {
-	s, sourcePath, err := session.LoadProviderWithPath(provider)
-	if err != nil {
-		return nil, err
-	}
-	return map[string]any{
-		"provider":      provider,
-		"session_file":  sourcePath,
-		"session_saved": sourcePath != "",
-		"authenticated": session.IsAuthenticated(s),
-		"session":       session.RedactedCopy(s),
-	}, nil
 }
 
 // sessionFromCurlIn is the input type for the session_from_curl tool.

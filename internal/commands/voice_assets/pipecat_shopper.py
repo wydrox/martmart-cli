@@ -341,7 +341,6 @@ def build_tool_output_filters() -> dict[str, callable]:
         "cart_add": lambda raw: summarize_cart_output(raw, "cart_add"),
         "cart_remove": lambda raw: summarize_cart_output(raw, "cart_remove"),
         "reservation_slots": summarize_reservation_slots_output,
-        "session_show": lambda raw: summarize_session_output(raw, "session_show"),
         "session_login": lambda raw: summarize_session_output(raw, "session_login"),
         "session_refresh_token": lambda raw: summarize_session_output(raw, "session_refresh_token"),
     }
