@@ -40,7 +40,7 @@ func newCheckoutPreviewCmd() *cobra.Command {
 	var userID string
 	c := &cobra.Command{
 		Use:   "preview",
-		Short: "Preview Frisco express checkout.",
+		Short: "Preview provider checkout.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			provider, s, err := checkoutLoadSession(cmd)
 			if err != nil {
@@ -66,7 +66,7 @@ func newCheckoutFinalizeCmd() *cobra.Command {
 	var confirm bool
 	c := &cobra.Command{
 		Use:   "finalize",
-		Short: "Finalize Frisco express checkout. Requires explicit --confirm.",
+		Short: "Finalize provider checkout. Requires explicit --confirm.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			provider, s, err := checkoutLoadSession(cmd)
 			if err != nil {

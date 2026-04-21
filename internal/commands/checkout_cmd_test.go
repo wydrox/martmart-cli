@@ -62,10 +62,7 @@ func TestCheckoutFinalizeRequiresConfirm(t *testing.T) {
 		newCheckoutClient = origClient
 	}()
 
-	checkoutLoadSession = func(_ *cobra.Command, supported ...string) (string, *session.Session, error) {
-		if len(supported) != 1 || supported[0] != session.ProviderFrisco {
-			t.Fatalf("supported = %v", supported)
-		}
+	checkoutLoadSession = func(_ *cobra.Command) (string, *session.Session, error) {
 		return session.ProviderFrisco, &session.Session{BaseURL: session.DefaultBaseURL, UserID: "u-1"}, nil
 	}
 	preview := &checkoutcore.CheckoutPreview{
@@ -75,9 +72,15 @@ func TestCheckoutFinalizeRequiresConfirm(t *testing.T) {
 		ItemCount:       2,
 		ReadyToFinalize: true,
 	}
-	newCheckoutClient = func() checkoutCLIClient {
+	newCheckoutClient = func(provider string) (checkoutCLIClient, error) {
+		if provider != session.ProviderFrisco {
+			t.Fatalf("factory provider = %q, want %q", provider, session.ProviderFrisco)
+		}
 		return &fakeCheckoutClient{
 			previewFn: func(_ *session.Session, opts checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+				if opts.Provider != session.ProviderFrisco {
+					t.Fatalf("preview opts.Provider = %q, want %q", opts.Provider, session.ProviderFrisco)
+				}
 				if opts.UserID != "" {
 					t.Fatalf("preview opts.UserID = %q, want empty", opts.UserID)
 				}
@@ -87,7 +90,7 @@ func TestCheckoutFinalizeRequiresConfirm(t *testing.T) {
 				t.Fatal("finalize must not be called without --confirm")
 				return nil, nil
 			},
-		}
+		}, nil
 	}
 
 	out := captureStdout(func() {
@@ -127,12 +130,18 @@ func TestCheckoutPreviewJSONOutputShape(t *testing.T) {
 		newCheckoutClient = origClient
 	}()
 
-	checkoutLoadSession = func(_ *cobra.Command, _ ...string) (string, *session.Session, error) {
+	checkoutLoadSession = func(_ *cobra.Command) (string, *session.Session, error) {
 		return session.ProviderFrisco, &session.Session{BaseURL: session.DefaultBaseURL, UserID: "u-1"}, nil
 	}
-	newCheckoutClient = func() checkoutCLIClient {
+	newCheckoutClient = func(provider string) (checkoutCLIClient, error) {
+		if provider != session.ProviderFrisco {
+			t.Fatalf("factory provider = %q, want %q", provider, session.ProviderFrisco)
+		}
 		return &fakeCheckoutClient{
-			previewFn: func(_ *session.Session, _ checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+			previewFn: func(_ *session.Session, opts checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+				if opts.Provider != session.ProviderFrisco {
+					t.Fatalf("preview opts.Provider = %q, want %q", opts.Provider, session.ProviderFrisco)
+				}
 				return &checkoutcore.CheckoutPreview{
 					Provider:        session.ProviderFrisco,
 					UserID:          "u-1",
@@ -146,7 +155,7 @@ func TestCheckoutPreviewJSONOutputShape(t *testing.T) {
 			finalizeFn: func(_ *session.Session, _ checkoutcore.FinalizeOptions) (*checkoutcore.FinalizeResult, error) {
 				return nil, errors.New("unexpected finalize")
 			},
-		}
+		}, nil
 	}
 
 	out := captureStdout(func() {
@@ -168,6 +177,60 @@ func TestCheckoutPreviewJSONOutputShape(t *testing.T) {
 	}
 }
 
+func TestCheckoutPreviewRoutesDelioProvider(t *testing.T) {
+	origLoad := checkoutLoadSession
+	origClient := newCheckoutClient
+	defer func() {
+		checkoutLoadSession = origLoad
+		newCheckoutClient = origClient
+	}()
+
+	checkoutLoadSession = func(_ *cobra.Command) (string, *session.Session, error) {
+		return session.ProviderDelio, &session.Session{BaseURL: session.DefaultDelioBaseURL, UserID: "d-1"}, nil
+	}
+	newCheckoutClient = func(provider string) (checkoutCLIClient, error) {
+		if provider != session.ProviderDelio {
+			t.Fatalf("factory provider = %q, want %q", provider, session.ProviderDelio)
+		}
+		return &fakeCheckoutClient{
+			previewFn: func(_ *session.Session, opts checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+				if opts.Provider != session.ProviderDelio {
+					t.Fatalf("preview opts.Provider = %q, want %q", opts.Provider, session.ProviderDelio)
+				}
+				return &checkoutcore.CheckoutPreview{
+					Provider:        session.ProviderDelio,
+					UserID:          "d-1",
+					CartID:          "delio-cart-1",
+					ItemCount:       1,
+					ReadyToFinalize: true,
+				}, nil
+			},
+			finalizeFn: func(_ *session.Session, _ checkoutcore.FinalizeOptions) (*checkoutcore.FinalizeResult, error) {
+				return nil, errors.New("unexpected finalize")
+			},
+		}, nil
+	}
+
+	out := captureStdout(func() {
+		root := NewRootCmd()
+		root.SetArgs([]string{"--provider", session.ProviderDelio, "--format", "json", "checkout", "preview"})
+		if err := root.Execute(); err != nil {
+			t.Fatalf("Execute: %v", err)
+		}
+	})
+
+	var parsed map[string]any
+	if err := json.Unmarshal([]byte(strings.TrimSpace(out)), &parsed); err != nil {
+		t.Fatalf("output is not valid JSON: %v\n%s", err, out)
+	}
+	if parsed["provider"] != session.ProviderDelio {
+		t.Fatalf("provider = %v, want %s", parsed["provider"], session.ProviderDelio)
+	}
+	if parsed["cart_id"] != "delio-cart-1" {
+		t.Fatalf("cart_id = %v, want delio-cart-1", parsed["cart_id"])
+	}
+}
+
 func TestCheckoutFinalizeConfirmReadback(t *testing.T) {
 	origLoad := checkoutLoadSession
 	origClient := newCheckoutClient
@@ -176,7 +239,7 @@ func TestCheckoutFinalizeConfirmReadback(t *testing.T) {
 		newCheckoutClient = origClient
 	}()
 
-	checkoutLoadSession = func(_ *cobra.Command, _ ...string) (string, *session.Session, error) {
+	checkoutLoadSession = func(_ *cobra.Command) (string, *session.Session, error) {
 		return session.ProviderFrisco, &session.Session{BaseURL: session.DefaultBaseURL, UserID: "u-1"}, nil
 	}
 	preview := &checkoutcore.CheckoutPreview{
@@ -187,12 +250,21 @@ func TestCheckoutFinalizeConfirmReadback(t *testing.T) {
 		ReadyToFinalize: true,
 		Total:           &checkoutcore.Money{Amount: 42.5, Currency: "PLN"},
 	}
-	newCheckoutClient = func() checkoutCLIClient {
+	newCheckoutClient = func(provider string) (checkoutCLIClient, error) {
+		if provider != session.ProviderFrisco {
+			t.Fatalf("factory provider = %q, want %q", provider, session.ProviderFrisco)
+		}
 		return &fakeCheckoutClient{
-			previewFn: func(_ *session.Session, _ checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+			previewFn: func(_ *session.Session, opts checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+				if opts.Provider != session.ProviderFrisco {
+					t.Fatalf("preview opts.Provider = %q, want %q", opts.Provider, session.ProviderFrisco)
+				}
 				return preview, nil
 			},
 			finalizeFn: func(_ *session.Session, opts checkoutcore.FinalizeOptions) (*checkoutcore.FinalizeResult, error) {
+				if opts.Provider != session.ProviderFrisco {
+					t.Fatalf("finalize opts.Provider = %q, want %q", opts.Provider, session.ProviderFrisco)
+				}
 				if opts.Guard == nil || opts.Guard.ExpectedCartID != "cart-1" {
 					t.Fatalf("guard = %+v, want cart-1", opts.Guard)
 				}
@@ -215,7 +287,7 @@ func TestCheckoutFinalizeConfirmReadback(t *testing.T) {
 					},
 				}, nil
 			},
-		}
+		}, nil
 	}
 
 	out := captureStdout(func() {
@@ -256,7 +328,7 @@ func TestCheckoutFinalizeActionRequiredPrintsStructuredResult(t *testing.T) {
 		newCheckoutClient = origClient
 	}()
 
-	checkoutLoadSession = func(_ *cobra.Command, _ ...string) (string, *session.Session, error) {
+	checkoutLoadSession = func(_ *cobra.Command) (string, *session.Session, error) {
 		return session.ProviderFrisco, &session.Session{BaseURL: session.DefaultBaseURL, UserID: "u-1"}, nil
 	}
 	preview := &checkoutcore.CheckoutPreview{Provider: session.ProviderFrisco, UserID: "u-1", CartID: "cart-1", ItemCount: 1}
@@ -272,15 +344,24 @@ func TestCheckoutFinalizeActionRequiredPrintsStructuredResult(t *testing.T) {
 			Method: "GET",
 		},
 	}
-	newCheckoutClient = func() checkoutCLIClient {
+	newCheckoutClient = func(provider string) (checkoutCLIClient, error) {
+		if provider != session.ProviderFrisco {
+			t.Fatalf("factory provider = %q, want %q", provider, session.ProviderFrisco)
+		}
 		return &fakeCheckoutClient{
-			previewFn: func(_ *session.Session, _ checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+			previewFn: func(_ *session.Session, opts checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+				if opts.Provider != session.ProviderFrisco {
+					t.Fatalf("preview opts.Provider = %q, want %q", opts.Provider, session.ProviderFrisco)
+				}
 				return preview, nil
 			},
-			finalizeFn: func(_ *session.Session, _ checkoutcore.FinalizeOptions) (*checkoutcore.FinalizeResult, error) {
+			finalizeFn: func(_ *session.Session, opts checkoutcore.FinalizeOptions) (*checkoutcore.FinalizeResult, error) {
+				if opts.Provider != session.ProviderFrisco {
+					t.Fatalf("finalize opts.Provider = %q, want %q", opts.Provider, session.ProviderFrisco)
+				}
 				return result, &checkoutcore.ActionRequiredError{Action: result.Action, Result: result}
 			},
-		}
+		}, nil
 	}
 
 	out := captureStdout(func() {
