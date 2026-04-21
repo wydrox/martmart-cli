@@ -137,26 +137,26 @@ export PATH="$PATH:~/.local/bin"
 Recommended for both providers:
 
 ```bash
-martmart session login
+martmart --provider frisco session login
 martmart --provider delio session login
 ```
 
-For **Delio on macOS**, MartMart opens the URL in your current Chromium-based browser and reads the needed cookies from that browser profile.
-For other flows, MartMart may still fall back to the older snapshot-based Chrome/Chromium login.
+For **Delio on macOS**, MartMart opens the URL in your default browser and reads the needed session data from that browser profile.
 If you are not logged in yet, sign in in the opened browser tab/window and wait for the CLI to save the session.
 
 Useful flags:
 
 ```bash
-martmart session login --profile-directory Default
-martmart session login --user-data-dir "/path/to/browser/user-data"
-martmart session login --timeout 240
+martmart --provider frisco session login --profile-directory Default
+martmart --provider frisco session login --user-data-dir "/path/to/browser/user-data"
+martmart --provider frisco session login --timeout 240
+martmart --provider frisco session login --debug --keep-open-on-failure
 ```
 
 ### 2) Verify the session
 
 ```bash
-martmart session verify
+martmart --provider frisco session verify
 martmart --provider delio session verify
 ```
 
@@ -171,11 +171,11 @@ martmart session list
 #### Frisco examples
 
 ```bash
-martmart products search --search banana
-martmart cart show
-martmart cart add --search "mleko" --quantity 1
-martmart reservation slots --days 2
-martmart account orders list --all-pages
+martmart --provider frisco products search --search banana
+martmart --provider frisco cart show
+martmart --provider frisco cart add --search "mleko" --quantity 1
+martmart --provider frisco reservation slots --days 2
+martmart --provider frisco account orders list --all-pages
 ```
 
 #### Delio examples
@@ -192,25 +192,25 @@ martmart --provider delio reservation slots
 
 ### Switch provider per command
 
-Provider is resolved on each invocation: explicit `--provider` wins, otherwise MartMart falls back to the saved default provider.
+Provider must be passed explicitly for provider-specific actions.
 
 ```bash
 martmart --provider frisco cart show
 martmart --provider delio cart show
 ```
 
-### Save default provider and rate limit
+### Save rate limit settings
 
 ```bash
 martmart config show
-martmart config set --default-provider delio --rate-limit-rps 2 --rate-limit-burst 2
+martmart config set --rate-limit-rps 2 --rate-limit-burst 2
 ```
 
 ### Use JSON output for scripting
 
 ```bash
-martmart cart show --format json
-martmart products search --search mleko --format json
+martmart --provider frisco cart show --format json
+martmart --provider frisco products search --search mleko --format json
 ```
 
 ### Import session from cURL when needed
@@ -230,15 +230,15 @@ martmart --provider delio session from-curl --curl "curl 'https://delio.com.pl/a
 ## Core commands
 
 ```bash
-martmart cart show
-martmart cart add --product-id <id> --quantity 1
-martmart cart remove --product-id <id>
-martmart products search --search <phrase>
-martmart products get --product-id <id>
-martmart reservation slots --days 2
-martmart session login
+martmart --provider frisco cart show
+martmart --provider frisco cart add --product-id <id> --quantity 1
+martmart --provider frisco cart remove --product-id <id>
+martmart --provider frisco products search --search <phrase>
+martmart --provider frisco products get --product-id <id>
+martmart --provider frisco reservation slots --days 2
+martmart --provider frisco session login
 martmart session list   # inspect stored sessions across providers
-martmart session verify
+martmart --provider frisco session verify
 martmart mcp
 ```
 
@@ -332,7 +332,7 @@ Frisco supports batch additions from JSON shopping lists.
 Example:
 
 ```bash
-martmart cart add-batch --file list.json
+martmart --provider frisco cart add-batch --file list.json
 ```
 
 Template:
@@ -438,6 +438,9 @@ Session/config files are stored under `~/.martmart-cli/`.
 - Delio session: `~/.martmart-cli/delio-session.json`
 - Shared config: `~/.martmart-cli/config.json`
 - Use `martmart session list` to inspect stored sessions across all providers at once.
+
+Planned local catalog work:
+- product catalog ingest plan: [`docs/product-catalog-ingest-plan.md`](docs/product-catalog-ingest-plan.md)
 
 Legacy compatibility:
 - if a file is missing in `~/.martmart-cli/`, MartMart will also try older Frisco session locations such as `~/.martmart-cli/session.json` and `~/.frisco-cli/session.json`

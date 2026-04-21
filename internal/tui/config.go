@@ -10,7 +10,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/wydrox/martmart-cli/internal/config"
-	"github.com/wydrox/martmart-cli/internal/session"
 )
 
 const (
@@ -75,13 +74,6 @@ func initialConfigEditModel(base config.Config) configEditModel {
 	return configEditModel{
 		base: base,
 		fields: []configEditField{
-			{
-				Key:   "default_provider",
-				Label: "Default provider (frisco/delio)",
-				Help:  "Value: frisco or delio",
-				Kind:  configKindString,
-				Value: base.DefaultProvider,
-			},
 			{
 				Key:   "rate_limit_rps",
 				Label: "Rate limit RPS",
@@ -353,16 +345,6 @@ func configFromFields(base config.Config, fields []configEditField) (config.Conf
 	updated := base
 	for _, f := range fields {
 		switch f.Key {
-		case "default_provider":
-			v := strings.TrimSpace(f.Value)
-			if v == "" {
-				v = base.DefaultProvider
-			}
-			v = session.NormalizeProvider(v)
-			if err := session.ValidateProvider(v); err != nil {
-				return config.Config{}, fmt.Errorf("default_provider: %w", err)
-			}
-			updated.DefaultProvider = v
 		case "rate_limit_rps":
 			v, err := parseFloatField(f.Value, base.RateLimitRPS)
 			if err != nil {
@@ -455,8 +437,7 @@ func parseIntField(raw string, current int) (int, error) {
 }
 
 func configEquals(a, b config.Config) bool {
-	return a.DefaultProvider == b.DefaultProvider &&
-		a.RateLimitRPS == b.RateLimitRPS &&
+	return a.RateLimitRPS == b.RateLimitRPS &&
 		a.RateLimitBurst == b.RateLimitBurst &&
 		a.OpenAIAPIKey == b.OpenAIAPIKey &&
 		a.OpenAIModel == b.OpenAIModel &&

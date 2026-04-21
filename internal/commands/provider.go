@@ -7,45 +7,54 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/wydrox/martmart-cli/internal/config"
 	"github.com/wydrox/martmart-cli/internal/session"
 )
 
 type resolvedProviderContextKey struct{}
 
-// selectedProvider resolves the provider for the current command invocation.
-// It prefers a provider already attached to the command context, then an
-// explicit --provider flag, then the saved config fallback, then Frisco.
-func selectedProvider(cmd *cobra.Command) (string, error) {
+func providerRequiredError() error {
+	return fmt.Errorf("provider is required; pass --provider %s or --provider %s", session.ProviderFrisco, session.ProviderDelio)
+}
+
+func explicitProvider(cmd *cobra.Command) (string, bool, error) {
 	if cmd != nil {
 		if v, ok := cmd.Context().Value(resolvedProviderContextKey{}).(string); ok {
 			provider := session.NormalizeProvider(strings.TrimSpace(v))
-			if err := session.ValidateProvider(provider); err != nil {
-				return "", err
+			if provider == "" {
+				return "", false, nil
 			}
-			return provider, nil
+			if err := session.ValidateProvider(provider); err != nil {
+				return "", false, err
+			}
+			return provider, true, nil
 		}
 	}
 
-	provider := ""
 	if cmd != nil {
 		if v, err := cmd.Flags().GetString("provider"); err == nil {
-			provider = strings.TrimSpace(v)
+			provider := session.NormalizeProvider(strings.TrimSpace(v))
+			if provider == "" {
+				return "", false, nil
+			}
+			if err := session.ValidateProvider(provider); err != nil {
+				return "", false, err
+			}
+			return provider, true, nil
 		}
 	}
-	if provider == "" {
-		cfg, err := config.Load()
-		if err != nil {
-			return "", err
-		}
-		provider = strings.TrimSpace(cfg.DefaultProvider)
-	}
-	provider = session.NormalizeProvider(provider)
-	if provider == "" {
-		provider = session.ProviderFrisco
-	}
-	if err := session.ValidateProvider(provider); err != nil {
+
+	return "", false, nil
+}
+
+// selectedProvider resolves the provider for the current command invocation.
+// The provider must be passed explicitly; MartMart does not infer it automatically.
+func selectedProvider(cmd *cobra.Command) (string, error) {
+	provider, ok, err := explicitProvider(cmd)
+	if err != nil {
 		return "", err
+	}
+	if !ok {
+		return "", providerRequiredError()
 	}
 	return provider, nil
 }
@@ -54,9 +63,12 @@ func withResolvedProvider(cmd *cobra.Command) error {
 	if cmd == nil {
 		return nil
 	}
-	provider, err := selectedProvider(cmd)
+	provider, ok, err := explicitProvider(cmd)
 	if err != nil {
 		return err
+	}
+	if !ok {
+		return nil
 	}
 	cmd.SetContext(context.WithValue(cmd.Context(), resolvedProviderContextKey{}, provider))
 	return nil

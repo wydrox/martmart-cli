@@ -68,8 +68,13 @@ func registerAccountSessionAuthTools(server *mcp.Server) {
 	}, toolAccountMembershipPoints)
 
 	mcp.AddTool(server, &mcp.Tool{
+		Name:        "session_status",
+		Description: "Inspect saved session/auth status for one provider or all providers. Use this before deciding whether interactive login is needed.",
+	}, toolSessionStatus)
+
+	mcp.AddTool(server, &mcp.Tool{
 		Name:        "session_login",
-		Description: "Opens the provider page in the user's default Chromium-based browser app with temporary remote debugging, captures auth session data automatically, and saves the session.",
+		Description: "Opens the provider page in the user's default browser app with temporary remote debugging, captures auth session data automatically, and saves the session. Prefer session_status first so you do not open login unnecessarily.",
 	}, toolSessionLogin)
 
 	mcp.AddTool(server, &mcp.Tool{
@@ -90,13 +95,13 @@ func registerAccountSessionAuthTools(server *mcp.Server) {
 
 // accountAddressesListIn is the input type for the account_addresses_list tool.
 type accountAddressesListIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID   string `json:"user_id,omitempty" jsonschema:"optional; defaults to session user_id"`
 }
 
 // accountProfileIn is the input type for the account_profile tool.
 type accountProfileIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID   string `json:"user_id,omitempty" jsonschema:"optional; defaults to session user_id"`
 }
 
@@ -128,7 +133,7 @@ func toolAccountAddressesList(_ context.Context, _ *mcp.CallToolRequest, in acco
 
 // accountAddressesAddIn is the input type for the account_addresses_add tool.
 type accountAddressesAddIn struct {
-	Provider string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string         `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID   string         `json:"user_id,omitempty"`
 	Payload  map[string]any `json:"payload"`
 }
@@ -155,7 +160,7 @@ func toolAccountAddressesAdd(_ context.Context, _ *mcp.CallToolRequest, in accou
 
 // accountAddressesUpdateIn is the input type for the account_addresses_update tool.
 type accountAddressesUpdateIn struct {
-	Provider  string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider  string         `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID    string         `json:"user_id,omitempty"`
 	AddressID string         `json:"address_id"`
 	Payload   map[string]any `json:"payload"`
@@ -186,7 +191,7 @@ func toolAccountAddressesUpdate(_ context.Context, _ *mcp.CallToolRequest, in ac
 
 // accountAddressesDeleteIn is the input type for the account_addresses_delete tool.
 type accountAddressesDeleteIn struct {
-	Provider  string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider  string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID    string `json:"user_id,omitempty"`
 	AddressID string `json:"address_id"`
 }
@@ -218,7 +223,7 @@ func wrapShippingAddressPayload(data map[string]any) map[string]any {
 
 // accountConsentsUpdateIn is the input type for the account_consents_update tool.
 type accountConsentsUpdateIn struct {
-	Provider string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string         `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID   string         `json:"user_id,omitempty"`
 	Payload  map[string]any `json:"payload"`
 }
@@ -499,7 +504,7 @@ func mcpASAGetBoolAny(m map[string]any, keys ...string) (bool, bool) {
 
 // accountVouchersIn is the input type for the account_vouchers tool.
 type accountVouchersIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID   string `json:"user_id,omitempty"`
 }
 
@@ -518,7 +523,7 @@ func toolAccountVouchers(_ context.Context, _ *mcp.CallToolRequest, in accountVo
 
 // accountPaymentsIn is the input type for the account_payments tool.
 type accountPaymentsIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID   string `json:"user_id,omitempty"`
 }
 
@@ -537,7 +542,7 @@ func toolAccountPayments(_ context.Context, _ *mcp.CallToolRequest, in accountPa
 
 // accountMembershipCardsIn is the input type for the account_membership_cards tool.
 type accountMembershipCardsIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID   string `json:"user_id,omitempty"`
 }
 
@@ -556,7 +561,7 @@ func toolAccountMembershipCards(_ context.Context, _ *mcp.CallToolRequest, in ac
 
 // accountMembershipPointsIn is the input type for the account_membership_points tool.
 type accountMembershipPointsIn struct {
-	Provider  string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider  string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID    string `json:"user_id,omitempty"`
 	PageIndex int    `json:"page_index,omitempty"`
 	PageSize  int    `json:"page_size,omitempty"`
@@ -588,32 +593,103 @@ func toolAccountMembershipPoints(_ context.Context, _ *mcp.CallToolRequest, in a
 	return mcpCPWrapFriscoResult(result)
 }
 
+type sessionStatusIn struct {
+	Provider string `json:"provider,omitempty" jsonschema:"optional provider id; when omitted returns all providers; one of delio, frisco"`
+}
+
+func toolSessionStatus(_ context.Context, _ *mcp.CallToolRequest, in sessionStatusIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
+	payload, err := sessionStatusPayload(strings.TrimSpace(in.Provider))
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
+	}
+	return mcpCPWrapFriscoResult(payload)
+}
+
 func toolProvidersList(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
+	payload, err := sessionStatusPayload("")
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
+	}
+	return mcpCPWrapFriscoResult(payload)
+}
+
+func sessionStatusPayload(requestedProvider string) (map[string]any, error) {
 	providers := mcpAvailableProviders()
-	items := make([]map[string]any, 0, len(providers))
-	for _, provider := range providers {
+	targetProviders := providers
+	if strings.TrimSpace(requestedProvider) != "" {
+		provider, err := mcpResolveProvider(requestedProvider)
+		if err != nil {
+			return nil, err
+		}
+		targetProviders = []string{provider}
+	}
+
+	items := make([]map[string]any, 0, len(targetProviders))
+	savedProviders := make([]string, 0, len(targetProviders))
+	authenticatedProviders := make([]string, 0, len(targetProviders))
+	for _, provider := range targetProviders {
 		s, sourcePath, err := session.LoadProviderWithPath(provider)
 		if err != nil {
-			return nil, mcpCPFriscoToolOut{}, err
+			return nil, err
 		}
-		items = append(items, map[string]any{
-			"provider":         provider,
-			"base_url":         s.BaseURL,
-			"session_file":     sourcePath,
-			"session_saved":    sourcePath != "",
-			"authenticated":    session.IsAuthenticated(s),
-			"default_base_url": session.DefaultBaseURLForProvider(provider),
-		})
+		item := sessionStatusEntry(provider, s, sourcePath)
+		items = append(items, item)
+		if item["session_saved"] == true {
+			savedProviders = append(savedProviders, provider)
+		}
+		if item["authenticated"] == true {
+			authenticatedProviders = append(authenticatedProviders, provider)
+		}
 	}
-	return mcpCPWrapFriscoResult(map[string]any{
-		"available_providers": providers,
-		"providers":           items,
-	})
+
+	payload := map[string]any{
+		"available_providers":     providers,
+		"providers":               items,
+		"saved_providers":         savedProviders,
+		"authenticated_providers": authenticatedProviders,
+	}
+	if strings.TrimSpace(requestedProvider) != "" {
+		payload["requested_provider"] = targetProviders[0]
+	}
+	return payload, nil
+}
+
+func sessionStatusEntry(provider string, s *session.Session, sourcePath string) map[string]any {
+	authorizationSaved := session.HeaderValue(s, "Authorization") != ""
+	cookieSaved := session.HeaderValue(s, "Cookie") != ""
+	tokenSaved := mcpASATokenSaved(s)
+	refreshTokenSaved := session.RefreshTokenString(s) != ""
+	authMechanisms := make([]string, 0, 3)
+	if tokenSaved {
+		authMechanisms = append(authMechanisms, "token")
+	}
+	if authorizationSaved {
+		authMechanisms = append(authMechanisms, "authorization_header")
+	}
+	if cookieSaved {
+		authMechanisms = append(authMechanisms, "cookie")
+	}
+	return map[string]any{
+		"provider":               provider,
+		"base_url":               s.BaseURL,
+		"default_base_url":       session.DefaultBaseURLForProvider(provider),
+		"session_file":           sourcePath,
+		"session_saved":          sourcePath != "",
+		"authenticated":          session.IsAuthenticated(s),
+		"user_id":                session.UserIDString(s),
+		"token_saved":            tokenSaved,
+		"authorization_saved":    authorizationSaved,
+		"refresh_token_saved":    refreshTokenSaved,
+		"cookie_saved":           cookieSaved,
+		"header_keys":            mcpASAHeaderKeysSorted(s.Headers),
+		"auth_mechanisms":        authMechanisms,
+		"interactive_login_hint": !session.IsAuthenticated(s),
+	}
 }
 
 // sessionFromCurlIn is the input type for the session_from_curl tool.
 type sessionFromCurlIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	Curl     string `json:"curl"`
 }
 
@@ -649,7 +725,7 @@ func toolSessionFromCurl(_ context.Context, _ *mcp.CallToolRequest, in sessionFr
 
 // authRefreshTokenIn is the input type for the session_refresh_token tool.
 type authRefreshTokenIn struct {
-	Provider     string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider     string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	RefreshToken string `json:"refresh_token,omitempty" jsonschema:"optional; else session refresh_token"`
 }
 
@@ -716,7 +792,7 @@ const defaultSessionLoginTimeoutSec = 180
 
 // sessionLoginIn is the input type for the session_login tool.
 type sessionLoginIn struct {
-	Provider   string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider   string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	TimeoutSec *int   `json:"timeout_sec,omitempty" jsonschema:"Login timeout in seconds; default 180"`
 }
 
@@ -739,13 +815,16 @@ func toolSessionLogin(ctx context.Context, _ *mcp.CallToolRequest, in sessionLog
 		return nil, mcpCPFriscoToolOut{}, err
 	}
 	return mcpCPWrapFriscoResult(map[string]any{
-		"provider":            provider,
-		"saved":               result.Saved,
-		"base_url":            result.BaseURL,
-		"user_id":             result.UserID,
-		"token_saved":         result.TokenSaved,
-		"refresh_token_saved": result.RefreshTokenSaved,
-		"cookie_saved":        result.CookieSaved,
+		"provider":              provider,
+		"saved":                 result.Saved,
+		"browser_app":           result.BrowserApp,
+		"browser_user_data_dir": result.BrowserUserDataDir,
+		"profile_directory":     result.ProfileDirectory,
+		"base_url":              result.BaseURL,
+		"user_id":               result.UserID,
+		"token_saved":           result.TokenSaved,
+		"refresh_token_saved":   result.RefreshTokenSaved,
+		"cookie_saved":          result.CookieSaved,
 	})
 }
 

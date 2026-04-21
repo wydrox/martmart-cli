@@ -228,7 +228,7 @@ func LoadProvider(provider string) (*Session, error) {
 	return s, err
 }
 
-// Load reads the default provider's session file.
+// Load reads the Frisco session file.
 func Load() (*Session, error) {
 	return LoadProvider(ProviderFrisco)
 }

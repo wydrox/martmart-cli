@@ -71,7 +71,7 @@ func registerOrdersAndReservationTools(server *mcp.Server) {
 
 // orOrdersListIn is the input type for the orders_list tool.
 type orOrdersListIn struct {
-	Provider  string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider  string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID    string `json:"user_id,omitempty" jsonschema:"Optional override, defaults to session user_id"`
 	PageIndex int    `json:"page_index,omitempty" jsonschema:"1-based page index, default 1"`
 	PageSize  int    `json:"page_size,omitempty" jsonschema:"Page size, default 10"`
@@ -88,7 +88,7 @@ type orOrdersListOut struct {
 
 // orOrdersDetailsIn is the input type for the orders_details tool.
 type orOrdersDetailsIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID   string `json:"user_id,omitempty"`
 	OrderID  string `json:"order_id" jsonschema:"Order id"`
 }
@@ -100,7 +100,7 @@ type orOrdersDetailsOut struct {
 
 // orOrdersDeliveryIn is the input type for the orders_delivery tool.
 type orOrdersDeliveryIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID   string `json:"user_id,omitempty"`
 	OrderID  string `json:"order_id" jsonschema:"Order id"`
 }
@@ -112,7 +112,7 @@ type orOrdersDeliveryOut struct {
 
 // orOrdersPaymentsIn is the input type for the orders_payments tool.
 type orOrdersPaymentsIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID   string `json:"user_id,omitempty"`
 	OrderID  string `json:"order_id" jsonschema:"Order id"`
 }
@@ -124,7 +124,7 @@ type orOrdersPaymentsOut struct {
 
 // orReservationDeliveryOptionsIn is the input type for the reservation_delivery_options tool.
 type orReservationDeliveryOptionsIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	Postcode string `json:"postcode" jsonschema:"postcode, e.g. 00-001"`
 }
 
@@ -135,7 +135,7 @@ type orReservationDeliveryOptionsOut struct {
 
 // orReservationCalendarIn is the input type for the reservation_calendar tool.
 type orReservationCalendarIn struct {
-	Provider        string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider        string         `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID          string         `json:"user_id,omitempty"`
 	ShippingAddress map[string]any `json:"shipping_address" jsonschema:"shipping address object"`
 	Date            string         `json:"date,omitempty" jsonschema:"optional YYYY-M-D or YYYY-MM-DD"`
@@ -148,7 +148,7 @@ type orReservationCalendarOut struct {
 
 // orReservationSlotsIn is the input type for the reservation_slots tool.
 type orReservationSlotsIn struct {
-	Provider        string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider        string         `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID          string         `json:"user_id,omitempty"`
 	Days            int            `json:"days,omitempty" jsonschema:"Consecutive days to check, default 3"`
 	StartDate       string         `json:"start_date,omitempty" jsonschema:"YYYY-MM-DD, default today"`
@@ -164,7 +164,7 @@ type orReservationSlotsOut struct {
 
 // orReservationReserveIn is the input type for the reservation_reserve tool.
 type orReservationReserveIn struct {
-	Provider        string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider        string         `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID          string         `json:"user_id,omitempty"`
 	Date            string         `json:"date" jsonschema:"YYYY-MM-DD"`
 	FromTime        string         `json:"from_time" jsonschema:"HH:MM window start"`
@@ -181,7 +181,7 @@ type orReservationReserveOut struct {
 
 // orReservationCancelIn is the input type for the reservation_cancel tool.
 type orReservationCancelIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID   string `json:"user_id,omitempty"`
 }
 
@@ -192,7 +192,7 @@ type orReservationCancelOut struct {
 
 // orReservationPlanIn is the input type for the reservation_plan tool.
 type orReservationPlanIn struct {
-	Provider string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string         `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID   string         `json:"user_id,omitempty"`
 	Payload  map[string]any `json:"payload" jsonschema:"reservation payload object"`
 }

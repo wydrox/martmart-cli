@@ -5,13 +5,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/wydrox/martmart-cli/internal/session"
 )
 
 // Config stores shared CLI settings that apply across providers.
 type Config struct {
-	DefaultProvider          string  `json:"default_provider"`
 	RateLimitRPS             float64 `json:"rate_limit_rps"`
 	RateLimitBurst           int     `json:"rate_limit_burst"`
 	OpenAIAPIKey             string  `json:"openai_api_key"`
@@ -37,7 +34,6 @@ func init() {
 
 func defaultConfig() *Config {
 	return &Config{
-		DefaultProvider:          session.ProviderFrisco,
 		RateLimitRPS:             0,
 		RateLimitBurst:           1,
 		OpenAIModel:              "gpt-realtime",
@@ -83,13 +79,6 @@ func Normalize(cfg *Config) (*Config, error) {
 		return defaultConfig(), nil
 	}
 	out := *cfg
-	out.DefaultProvider = session.NormalizeProvider(strings.TrimSpace(out.DefaultProvider))
-	if out.DefaultProvider == "" {
-		out.DefaultProvider = session.ProviderFrisco
-	}
-	if err := session.ValidateProvider(out.DefaultProvider); err != nil {
-		return nil, err
-	}
 	if out.RateLimitBurst < 1 {
 		out.RateLimitBurst = 1
 	}

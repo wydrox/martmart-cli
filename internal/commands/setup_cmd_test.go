@@ -73,10 +73,10 @@ func TestWriteMCPConfig_MergesExisting(t *testing.T) {
 	}
 }
 
-func TestChromeCandidates_ReturnsNonEmpty(t *testing.T) {
-	paths := login.ChromeCandidates()
+func TestBrowserCandidates_ReturnsNonEmpty(t *testing.T) {
+	paths := login.BrowserCandidates()
 	if len(paths) == 0 {
-		t.Error("ChromeCandidates returned empty list")
+		t.Error("BrowserCandidates returned empty list")
 	}
 }
 

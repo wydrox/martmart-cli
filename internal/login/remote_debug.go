@@ -52,7 +52,7 @@ type remoteDebugFetchResult struct {
 	Text   string `json:"text"`
 }
 
-var errNoRemoteDebugEndpoint = errors.New("no Chromium remote debugging endpoint available")
+var errNoRemoteDebugEndpoint = errors.New("no browser remote debugging endpoint available")
 
 func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, error) {
 	provider := session.NormalizeProvider(opts.Provider)
@@ -124,7 +124,7 @@ func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, erro
 			switch provider {
 			case session.ProviderDelio:
 				if targetInfo == nil {
-					lastErr = errors.New("open a logged-in Delio tab in your current Chromium browser and keep it open for session capture")
+					lastErr = errors.New("open a logged-in Delio tab in your current browser and keep it open for session capture")
 					break
 				}
 				capture, err := captureDelioSessionFromRemoteTarget(ctx, version.WebSocketDebuggerURL, targetInfo.ID, loginURL)
@@ -148,7 +148,7 @@ func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, erro
 				if err != nil {
 					lastErr = err
 				} else {
-					lastErr = errors.New("Frisco session token not detected in the current Chromium browser yet")
+					lastErr = errors.New("Frisco session token not detected in the current browser yet")
 				}
 			}
 		}
@@ -157,7 +157,7 @@ func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, erro
 	}
 
 	if lastErr == nil {
-		lastErr = fmt.Errorf("timed out waiting for a logged-in %s tab on the Chromium remote debugging endpoint", providerDisplayName(provider))
+		lastErr = fmt.Errorf("timed out waiting for a logged-in %s tab on the browser remote debugging endpoint", providerDisplayName(provider))
 	}
 	return nil, lastErr
 }

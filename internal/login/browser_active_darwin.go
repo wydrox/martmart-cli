@@ -11,10 +11,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -33,7 +35,7 @@ type activeBrowserProfile struct {
 	KeychainAccount  string
 }
 
-type chromiumCookie struct {
+type browserCookie struct {
 	HostKey           string
 	Name              string
 	Value             string
@@ -67,36 +69,61 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 		timeoutSec = 180
 	}
 
-	profile, err := detectPreferredBrowserProfile(opts.UserDataDir, opts.ProfileDirectory)
+	profile, err := detectPreferredBrowserProfile(opts)
 	if err != nil {
 		return nil, err
 	}
+	loginDebugf(opts, "provider=%s login_url=%s timeout=%ds browser=%s user_data_dir=%s profile=%s", provider, loginURL, timeoutSec, profile.AppName, profile.UserDataDir, profile.ProfileDirectory)
 
 	browserProfile, cleanupProfile, err := prepareActiveBrowserSnapshot(profile)
 	if err != nil {
 		return nil, err
 	}
-	defer cleanupProfile()
+	shouldCleanup := true
+	defer func() {
+		if !shouldCleanup {
+			loginDebugf(opts, "keeping temporary browser profile for inspection: %s", browserProfile.SnapshotUserData)
+			return
+		}
+		cleanupProfile()
+	}()
 
-	debugBase, cleanupBrowser, err := launchBrowserWithRemoteDebug(browserProfile)
+	debugBase, cleanupBrowser, err := launchBrowserWithRemoteDebug(browserProfile, opts)
 	if err != nil {
 		return nil, err
 	}
-	defer cleanupBrowser()
+	defer func() {
+		if !shouldCleanup {
+			loginDebugf(opts, "keeping spawned browser window open for inspection")
+			return
+		}
+		cleanupBrowser()
+	}()
 
 	version, err := waitForRemoteDebugVersion(ctx, debugBase, time.Duration(timeoutSec)*time.Second)
 	if err != nil {
+		if opts.keepBrowserOnFailureEnabled() {
+			shouldCleanup = false
+		}
 		return nil, err
 	}
+	loginDebugf(opts, "remote debugging endpoint ready: %s", debugBase)
 	if err := openLoginPageOnRemoteDebugBrowser(ctx, version.WebSocketDebuggerURL, loginURL); err != nil {
+		if opts.keepBrowserOnFailureEnabled() {
+			shouldCleanup = false
+		}
 		return nil, err
 	}
+	loginDebugf(opts, "opened login page in spawned browser")
 
 	deadline := time.Now().Add(time.Duration(timeoutSec) * time.Second)
 	var lastErr error
 	for time.Now().Before(deadline) {
 		select {
 		case <-ctx.Done():
+			if opts.keepBrowserOnFailureEnabled() {
+				shouldCleanup = false
+			}
 			return nil, ctx.Err()
 		default:
 		}
@@ -104,6 +131,7 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 		targetInfo, err := findProviderRemoteDebugTarget(debugBase, provider)
 		if err != nil {
 			lastErr = err
+			loginDebugf(opts, "target discovery error: %v", err)
 			time.Sleep(1 * time.Second)
 			continue
 		}
@@ -112,18 +140,25 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 		case session.ProviderDelio:
 			if targetInfo == nil {
 				lastErr = fmt.Errorf("waiting for a Delio page in %s profile %q", profile.AppName, profile.ProfileDirectory)
+				loginDebugf(opts, "%v", lastErr)
 				time.Sleep(1 * time.Second)
 				continue
 			}
 			capture, err := captureDelioSessionFromRemoteTarget(ctx, version.WebSocketDebuggerURL, targetInfo.ID, loginURL)
 			if err == nil && hasDelioAuthCookie(capture.CookieHeader) {
-				return saveDelioSessionFromCapture(s, baseURL, profile.ProfileDirectory, capture)
+				result, saveErr := saveDelioSessionFromCapture(s, baseURL, profile.ProfileDirectory, capture)
+				if saveErr == nil && result != nil {
+					result.BrowserApp = profile.AppName
+					result.BrowserUserDataDir = profile.UserDataDir
+				}
+				return result, saveErr
 			}
 			if err != nil {
 				lastErr = err
 			} else {
 				lastErr = fmt.Errorf("Delio auth cookies not detected in %s profile %q yet", profile.AppName, profile.ProfileDirectory)
 			}
+			loginDebugf(opts, "%v", lastErr)
 		default:
 			targetID := ""
 			if targetInfo != nil {
@@ -131,18 +166,27 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 			}
 			capture, err := captureFriscoSessionFromRemoteTarget(ctx, version.WebSocketDebuggerURL, targetID, loginURL)
 			if err == nil && capture.AccessToken != "" {
-				return saveFriscoSessionFromCapture(s, baseURL, profile.ProfileDirectory, capture)
+				result, saveErr := saveFriscoSessionFromCapture(s, baseURL, profile.ProfileDirectory, capture)
+				if saveErr == nil && result != nil {
+					result.BrowserApp = profile.AppName
+					result.BrowserUserDataDir = profile.UserDataDir
+				}
+				return result, saveErr
 			}
 			if err != nil {
 				lastErr = err
 			} else {
 				lastErr = fmt.Errorf("Frisco access token not detected in %s profile %q yet", profile.AppName, profile.ProfileDirectory)
 			}
+			loginDebugf(opts, "%v", lastErr)
 		}
 
 		time.Sleep(1 * time.Second)
 	}
 
+	if opts.keepBrowserOnFailureEnabled() {
+		shouldCleanup = false
+	}
 	if lastErr != nil {
 		return nil, lastErr
 	}
@@ -152,13 +196,14 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 	return nil, fmt.Errorf("Frisco access token not detected in %s profile %q within %ds", profile.AppName, profile.ProfileDirectory, timeoutSec)
 }
 
-func detectPreferredBrowserProfile(userDataDir, profileDir string) (*activeBrowserProfile, error) {
-	if strings.TrimSpace(userDataDir) != "" {
-		resolved, err := resolveUserDataDir(userDataDir)
+func detectPreferredBrowserProfile(opts Options) (*activeBrowserProfile, error) {
+	if strings.TrimSpace(opts.UserDataDir) != "" {
+		resolved, err := resolveUserDataDir(opts.UserDataDir)
 		if err != nil {
 			return nil, err
 		}
-		prof := strings.TrimSpace(profileDir)
+		resolved = normalizeBrowserUserDataDir(resolved)
+		prof := strings.TrimSpace(opts.ProfileDirectory)
 		if prof == "" {
 			prof = detectLastUsedProfile(resolved)
 		}
@@ -183,20 +228,9 @@ func detectPreferredBrowserProfile(userDataDir, profileDir string) (*activeBrows
 	}
 	profile, ok := knownDarwinBrowsersByBundleID[strings.TrimSpace(bundleID)]
 	if !ok {
-		return nil, fmt.Errorf("default browser %q is not supported yet; use a Chromium-based default browser or pass --user-data-dir/--profile-directory", bundleID)
+		return nil, fmt.Errorf("default browser %q is not supported yet; use --user-data-dir/--profile-directory", bundleID)
 	}
-	profile.ProfileDirectory = strings.TrimSpace(profileDir)
-	if profile.ProfileDirectory == "" {
-		profile.ProfileDirectory = detectLastUsedProfile(profile.UserDataDir)
-	}
-	if profile.ProfileDirectory == "" {
-		profile.ProfileDirectory = "Default"
-	}
-	if err := ensureProfileExists(profile.UserDataDir, profile.ProfileDirectory); err != nil {
-		return nil, err
-	}
-	copy := profile
-	return &copy, nil
+	return finalizeBrowserProfile(profile, opts.ProfileDirectory)
 }
 
 var knownDarwinBrowsers = map[string]activeBrowserProfile{
@@ -228,7 +262,7 @@ var knownDarwinBrowsers = map[string]activeBrowserProfile{
 		AppName:         "Arc",
 		BundleID:        "company.thebrowser.Browser",
 		ExecPath:        "/Applications/Arc.app/Contents/MacOS/Arc",
-		UserDataDir:     filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "Arc"),
+		UserDataDir:     filepath.Join(os.Getenv("HOME"), "Library", "Application Support", "Arc", "User Data"),
 		KeychainService: "Arc Safe Storage",
 		KeychainAccount: "Arc",
 	},
@@ -259,14 +293,56 @@ var knownDarwinBrowsersByBundleID = map[string]activeBrowserProfile{
 	"net.imput.helium":           knownDarwinBrowsers["Helium"],
 }
 
-func inferProfileMetadataFromUserDataDir(userDataDir string) activeBrowserProfile {
+func finalizeBrowserProfile(profile activeBrowserProfile, requestedProfileDir string) (*activeBrowserProfile, error) {
+	profile.UserDataDir = normalizeBrowserUserDataDir(profile.UserDataDir)
+	if strings.TrimSpace(profile.ProfileDirectory) == "" {
+		profile.ProfileDirectory = strings.TrimSpace(requestedProfileDir)
+	}
+	if strings.TrimSpace(profile.ProfileDirectory) == "" {
+		profile.ProfileDirectory = detectLastUsedProfile(profile.UserDataDir)
+	}
+	if strings.TrimSpace(profile.ProfileDirectory) == "" {
+		profile.ProfileDirectory = "Default"
+	}
+	if strings.TrimSpace(profile.ExecPath) != "" {
+		if _, err := os.Stat(profile.ExecPath); err != nil {
+			return nil, fmt.Errorf("browser executable not found for %s: %s", profile.AppName, profile.ExecPath)
+		}
+	}
+	if err := ensureProfileExists(profile.UserDataDir, profile.ProfileDirectory); err != nil {
+		return nil, err
+	}
+	copy := profile
+	return &copy, nil
+}
+
+func normalizeBrowserUserDataDir(userDataDir string) string {
 	resolved := strings.TrimSpace(userDataDir)
+	if resolved == "" {
+		return ""
+	}
+	if info, err := os.Stat(filepath.Join(resolved, "User Data")); err == nil && info.IsDir() {
+		if _, err := os.Stat(filepath.Join(resolved, "Local State")); err != nil {
+			return filepath.Join(resolved, "User Data")
+		}
+	}
+	return resolved
+}
+
+func inferProfileMetadataFromUserDataDir(userDataDir string) activeBrowserProfile {
+	resolved := normalizeBrowserUserDataDir(userDataDir)
 	for _, profile := range knownDarwinBrowsers {
-		if resolved == profile.UserDataDir {
+		if resolved == normalizeBrowserUserDataDir(profile.UserDataDir) {
 			return profile
 		}
 	}
 	base := filepath.Base(resolved)
+	if strings.EqualFold(base, "User Data") {
+		base = filepath.Base(filepath.Dir(resolved))
+	}
+	if strings.EqualFold(base, "Arc") {
+		return knownDarwinBrowsers["Arc"]
+	}
 	if strings.EqualFold(base, "net.imput.helium") {
 		return knownDarwinBrowsers["Helium"]
 	}
@@ -363,11 +439,14 @@ func prepareActiveBrowserSnapshot(profile *activeBrowserProfile) (*browserProfil
 	}, cleanup, nil
 }
 
-func launchBrowserWithRemoteDebug(profile *browserProfile) (string, func(), error) {
+func launchBrowserWithRemoteDebug(profile *browserProfile, opts Options) (string, func(), error) {
 	if profile == nil {
 		return "", nil, errors.New("missing browser profile")
 	}
-	const remoteDebugPort = "9222"
+	remoteDebugPort, err := pickFreeLocalhostPort()
+	if err != nil {
+		return "", nil, fmt.Errorf("could not allocate remote debug port: %w", err)
+	}
 	debugBase := "http://127.0.0.1:" + remoteDebugPort
 	args := []string{
 		"--remote-debugging-port=" + remoteDebugPort,
@@ -378,6 +457,7 @@ func launchBrowserWithRemoteDebug(profile *browserProfile) (string, func(), erro
 		"--new-window",
 		"about:blank",
 	}
+	loginDebugf(opts, "launching browser executable=%s remote_debug_port=%s snapshot_user_data=%s profile=%s", profile.ExecPath, remoteDebugPort, profile.SnapshotUserData, profile.ProfileDirectory)
 	cmd := exec.Command(profile.ExecPath, args...)
 	if err := cmd.Start(); err != nil {
 		return "", nil, fmt.Errorf("could not start browser with remote debugging: %w", err)
@@ -396,6 +476,19 @@ func launchBrowserWithRemoteDebug(profile *browserProfile) (string, func(), erro
 		}
 	}
 	return debugBase, cleanup, nil
+}
+
+func pickFreeLocalhostPort() (string, error) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return "", err
+	}
+	defer ln.Close()
+	tcpAddr, ok := ln.Addr().(*net.TCPAddr)
+	if !ok || tcpAddr == nil || tcpAddr.Port <= 0 {
+		return "", errors.New("could not determine TCP port")
+	}
+	return strconv.Itoa(tcpAddr.Port), nil
 }
 
 func waitForRemoteDebugVersion(ctx context.Context, debugBase string, timeout time.Duration) (*remoteDebugVersion, error) {
@@ -419,16 +512,16 @@ func waitForRemoteDebugVersion(ctx context.Context, debugBase string, timeout ti
 		time.Sleep(250 * time.Millisecond)
 	}
 	if lastErr == nil {
-		lastErr = fmt.Errorf("timed out waiting for Chromium remote debugging on %s", debugBase)
+		lastErr = fmt.Errorf("timed out waiting for browser remote debugging on %s", debugBase)
 	}
 	return nil, lastErr
 }
 
-func cookieHeaderAndMapFromChromiumProfile(profile *activeBrowserProfile, domain string) (string, map[string]string, error) {
+func cookieHeaderAndMapFromBrowserProfile(profile *activeBrowserProfile, domain string) (string, map[string]string, error) {
 	if profile == nil {
 		return "", nil, errors.New("missing browser profile")
 	}
-	cookies, err := readChromiumCookies(profile, domain)
+	cookies, err := readBrowserCookies(profile, domain)
 	if err != nil {
 		return "", nil, err
 	}
@@ -440,7 +533,7 @@ func cookieHeaderAndMapFromChromiumProfile(profile *activeBrowserProfile, domain
 	for _, ck := range cookies {
 		value := ck.Value
 		if value == "" && ck.EncryptedValueHex != "" {
-			value, err = decryptChromiumCookieValue(profile, ck.EncryptedValueHex)
+			value, err = decryptBrowserCookieValue(profile, ck.EncryptedValueHex)
 			if err != nil || value == "" {
 				continue
 			}
@@ -452,12 +545,12 @@ func cookieHeaderAndMapFromChromiumProfile(profile *activeBrowserProfile, domain
 	return strings.Join(parts, "; "), cookieMap, nil
 }
 
-func cookieHeaderFromChromiumProfile(profile *activeBrowserProfile, domain string) (string, error) {
-	header, _, err := cookieHeaderAndMapFromChromiumProfile(profile, domain)
+func cookieHeaderFromBrowserProfile(profile *activeBrowserProfile, domain string) (string, error) {
+	header, _, err := cookieHeaderAndMapFromBrowserProfile(profile, domain)
 	return header, err
 }
 
-func readChromiumCookies(profile *activeBrowserProfile, domain string) ([]chromiumCookie, error) {
+func readBrowserCookies(profile *activeBrowserProfile, domain string) ([]browserCookie, error) {
 	cookieDB := filepath.Join(profile.UserDataDir, profile.ProfileDirectory, "Network", "Cookies")
 	if _, err := os.Stat(cookieDB); err != nil {
 		cookieDB = filepath.Join(profile.UserDataDir, profile.ProfileDirectory, "Cookies")
@@ -481,7 +574,7 @@ func readChromiumCookies(profile *activeBrowserProfile, domain string) ([]chromi
 		return nil, fmt.Errorf("sqlite3 query failed: %w", err)
 	}
 	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
-	cookies := make([]chromiumCookie, 0, len(lines))
+	cookies := make([]browserCookie, 0, len(lines))
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" {
@@ -491,7 +584,7 @@ func readChromiumCookies(profile *activeBrowserProfile, domain string) ([]chromi
 		for len(parts) < 5 {
 			parts = append(parts, "")
 		}
-		cookies = append(cookies, chromiumCookie{
+		cookies = append(cookies, browserCookie{
 			HostKey:           parts[0],
 			Name:              parts[1],
 			Value:             parts[2],
@@ -502,7 +595,7 @@ func readChromiumCookies(profile *activeBrowserProfile, domain string) ([]chromi
 	return cookies, nil
 }
 
-func decryptChromiumCookieValue(profile *activeBrowserProfile, encryptedHex string) (string, error) {
+func decryptBrowserCookieValue(profile *activeBrowserProfile, encryptedHex string) (string, error) {
 	encryptedHex = strings.TrimSpace(encryptedHex)
 	if encryptedHex == "" {
 		return "", nil
@@ -515,16 +608,16 @@ func decryptChromiumCookieValue(profile *activeBrowserProfile, encryptedHex stri
 		return "", nil
 	}
 	if bytes.HasPrefix(encrypted, []byte("v10")) || bytes.HasPrefix(encrypted, []byte("v11")) {
-		passphrase, err := chromiumSafeStoragePassword(profile)
+		passphrase, err := browserSafeStoragePassword(profile)
 		if err != nil {
 			return "", err
 		}
-		return decryptChromiumV10(encrypted[3:], passphrase)
+		return decryptBrowserCookieValueV10(encrypted[3:], passphrase)
 	}
 	return string(encrypted), nil
 }
 
-func chromiumSafeStoragePassword(profile *activeBrowserProfile) (string, error) {
+func browserSafeStoragePassword(profile *activeBrowserProfile) (string, error) {
 	service := strings.TrimSpace(profile.KeychainService)
 	if service == "" {
 		service = strings.TrimSpace(profile.AppName) + " Safe Storage"
@@ -543,7 +636,7 @@ func chromiumSafeStoragePassword(profile *activeBrowserProfile) (string, error) 
 	return "", fmt.Errorf("could not read %q from macOS Keychain", service)
 }
 
-func decryptChromiumV10(ciphertext []byte, passphrase string) (string, error) {
+func decryptBrowserCookieValueV10(ciphertext []byte, passphrase string) (string, error) {
 	key := pbkdf2.Key([]byte(passphrase), []byte("saltysalt"), 1003, 16, sha1.New)
 	block, err := aes.NewCipher(key)
 	if err != nil {

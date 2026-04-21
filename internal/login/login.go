@@ -1,6 +1,6 @@
 // Package login implements interactive browser-based session capture using
-// chromedp. It reuses a snapshot of the user's current Chrome/Chromium profile
-// so existing logged-in browser sessions can be imported for both Frisco and Delio.
+// chromedp. It reuses a snapshot of the user's current browser profile so
+// existing logged-in browser sessions can be imported for both Frisco and Delio.
 package login
 
 import (
@@ -25,23 +25,27 @@ import (
 
 // Options configure browser-based session capture.
 type Options struct {
-	Provider         string
-	LoginURL         string
-	TimeoutSec       int
-	UserDataDir      string
-	ProfileDirectory string
+	Provider             string
+	LoginURL             string
+	TimeoutSec           int
+	UserDataDir          string
+	ProfileDirectory     string
+	Debug                bool
+	KeepBrowserOnFailure bool
 }
 
 // Result holds captured authentication data from browser login.
 type Result struct {
-	Saved             bool
-	BaseURL           string
-	UserID            any
-	TokenSaved        bool
-	RefreshTokenSaved bool
-	CookieSaved       bool
-	Provider          string
-	ProfileDirectory  string
+	Saved              bool
+	BaseURL            string
+	UserID             any
+	TokenSaved         bool
+	RefreshTokenSaved  bool
+	CookieSaved        bool
+	Provider           string
+	ProfileDirectory   string
+	BrowserApp         string
+	BrowserUserDataDir string
 }
 
 type authCapture struct {
@@ -58,16 +62,41 @@ type browserProfile struct {
 	ProfileDirectory string
 }
 
-type chromeLocalState struct {
+type browserLocalState struct {
 	Profile struct {
 		LastUsed string `json:"last_used"`
 	} `json:"profile"`
 }
 
+func (opts Options) debugEnabled() bool {
+	return opts.Debug || envBool("MARTMART_LOGIN_DEBUG")
+}
+
+func (opts Options) keepBrowserOnFailureEnabled() bool {
+	return opts.KeepBrowserOnFailure || envBool("MARTMART_LOGIN_KEEP_BROWSER_ON_FAILURE") || envBool("MARTMART_LOGIN_KEEP_BROWSER")
+}
+
+func loginDebugf(opts Options, format string, args ...any) {
+	if !opts.debugEnabled() {
+		return
+	}
+	_, _ = fmt.Fprintf(os.Stderr, "[martmart login] "+format+"\n", args...)
+}
+
+func envBool(key string) bool {
+	value := strings.ToLower(strings.TrimSpace(os.Getenv(key)))
+	switch value {
+	case "1", "true", "yes", "y", "on":
+		return true
+	default:
+		return false
+	}
+}
+
 // Run captures a provider session.
-// On macOS this uses the default browser app via a temporary Chromium remote-
-// debugging session against a copied profile snapshot, without reading cookies
-// directly from the browser database.
+// On macOS this uses the default browser app via a temporary remote-debugging
+// session against a copied profile snapshot, without reading cookies directly
+// from the browser database.
 func Run(ctx context.Context, opts Options) (*Result, error) {
 	provider := session.NormalizeProvider(opts.Provider)
 	if provider == "" {
@@ -361,7 +390,7 @@ func isDelioAuthCookieName(name string) bool {
 }
 
 func prepareBrowserProfile(userDataDir, profileDir string) (*browserProfile, func(), error) {
-	execPath, err := findChromeExecutable()
+	execPath, err := findBrowserExecutable()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -396,26 +425,26 @@ func prepareBrowserProfile(userDataDir, profileDir string) (*browserProfile, fun
 	}, cleanup, nil
 }
 
-func findChromeExecutable() (string, error) {
-	for _, p := range ChromeCandidates() {
+func findBrowserExecutable() (string, error) {
+	for _, p := range BrowserCandidates() {
 		if resolved, err := exec.LookPath(p); err == nil {
 			return resolved, nil
 		}
 	}
 	return "", fmt.Errorf(
-		"Chrome/Chromium not found. Install from: https://www.google.com/chrome/\nChecked: %s",
-		strings.Join(ChromeCandidates(), ", "),
+		"supported browser executable not found. Checked: %s",
+		strings.Join(BrowserCandidates(), ", "),
 	)
 }
 
-// CheckChromeInstalled verifies that a Chrome/Chromium browser is available.
-func CheckChromeInstalled() error {
-	_, err := findChromeExecutable()
+// CheckBrowserInstalled verifies that a supported browser executable is available.
+func CheckBrowserInstalled() error {
+	_, err := findBrowserExecutable()
 	return err
 }
 
-// ChromeCandidates returns platform-specific Chrome/Chromium executable paths.
-func ChromeCandidates() []string {
+// BrowserCandidates returns platform-specific browser executable paths.
+func BrowserCandidates() []string {
 	switch runtime.GOOS {
 	case "darwin":
 		return []string{
@@ -449,15 +478,15 @@ func resolveUserDataDir(explicit string) (string, error) {
 		}
 		return "", fmt.Errorf("browser user data dir not found: %s", explicit)
 	}
-	for _, candidate := range chromeUserDataDirCandidates() {
+	for _, candidate := range browserUserDataDirCandidates() {
 		if info, err := os.Stat(candidate); err == nil && info.IsDir() {
 			return candidate, nil
 		}
 	}
-	return "", fmt.Errorf("Chrome/Chromium user data dir not found. Checked: %s", strings.Join(chromeUserDataDirCandidates(), ", "))
+	return "", fmt.Errorf("browser user data dir not found. Checked: %s", strings.Join(browserUserDataDirCandidates(), ", "))
 }
 
-func chromeUserDataDirCandidates() []string {
+func browserUserDataDirCandidates() []string {
 	home, _ := os.UserHomeDir()
 	switch runtime.GOOS {
 	case "darwin":
@@ -486,7 +515,7 @@ func detectLastUsedProfile(userDataDir string) string {
 	if err != nil {
 		return ""
 	}
-	var state chromeLocalState
+	var state browserLocalState
 	if err := json.Unmarshal(data, &state); err != nil {
 		return ""
 	}

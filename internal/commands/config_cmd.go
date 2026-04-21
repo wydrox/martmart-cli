@@ -72,10 +72,8 @@ func runConfigShow() error {
 	}
 	rps, burst := httpclient.CurrentRateLimit()
 	return printJSON(map[string]any{
-		"config_file":       config.Path(),
-		"provider_fallback": cfg.DefaultProvider,
-		"default_provider":  cfg.DefaultProvider,
-		"saved_rate_limit":  map[string]any{"rps": cfg.RateLimitRPS, "burst": cfg.RateLimitBurst},
+		"config_file":      config.Path(),
+		"saved_rate_limit": map[string]any{"rps": cfg.RateLimitRPS, "burst": cfg.RateLimitBurst},
 		"openai": map[string]any{
 			"api_key_set":         cfg.OpenAIAPIKey != "",
 			"model":               cfg.OpenAIModel,
@@ -93,7 +91,6 @@ func runConfigShow() error {
 
 func newConfigSetCmd() *cobra.Command {
 	var (
-		defaultProvider          string
 		rateLimitRPS             float64
 		rateLimitBurst           int
 		openAIAPIKey             string
@@ -108,7 +105,7 @@ func newConfigSetCmd() *cobra.Command {
 
 	c := &cobra.Command{
 		Use:   "set",
-		Short: "Persist provider fallback, rate limits, and voice assistant settings.",
+		Short: "Persist rate limits and voice assistant settings.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			cfg, err := config.Load()
 			if err != nil {
@@ -116,14 +113,6 @@ func newConfigSetCmd() *cobra.Command {
 			}
 			changed := false
 
-			if cmd.Flags().Changed("default-provider") {
-				provider := session.NormalizeProvider(defaultProvider)
-				if err := session.ValidateProvider(provider); err != nil {
-					return err
-				}
-				cfg.DefaultProvider = provider
-				changed = true
-			}
 			if cmd.Flags().Changed("rate-limit-rps") {
 				if rateLimitRPS < 0 {
 					return fmt.Errorf("--rate-limit-rps must be >= 0")
@@ -199,7 +188,6 @@ func newConfigSetCmd() *cobra.Command {
 		},
 	}
 
-	c.Flags().StringVar(&defaultProvider, "default-provider", "", "Provider used when a command omits --provider: frisco or delio.")
 	c.Flags().Float64Var(&rateLimitRPS, "rate-limit-rps", 0, "Saved request rate in requests/second (0 = disabled).")
 	c.Flags().IntVar(&rateLimitBurst, "rate-limit-burst", 1, "Saved request burst size.")
 	c.Flags().StringVar(&openAIAPIKey, "openai-api-key", "", "OpenAI API key used by voice assistant.")

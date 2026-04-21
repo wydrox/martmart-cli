@@ -22,12 +22,10 @@ type mcpCPFriscoToolOut struct {
 	Data map[string]any `json:"data,omitempty" jsonschema:"Normalized payload envelope with api_response containing provider JSON"`
 }
 
-const mcpFallbackProvider = session.ProviderFrisco
-
 func mcpResolveProvider(provider string) (string, error) {
 	provider = session.NormalizeProvider(provider)
 	if provider == "" {
-		provider = mcpFallbackProvider
+		return "", errors.New("provider is required; ask the user whether to use frisco or delio")
 	}
 	if err := session.ValidateProvider(provider); err != nil {
 		return "", err
@@ -74,7 +72,7 @@ func registerCartAndProductsTools(server *mcp.Server) {
 
 // mcpCPCartShowIn is the input type for the cart_show tool.
 type mcpCPCartShowIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	UserID   string `json:"user_id,omitempty" jsonschema:"provider user id; falls back to session user_id"`
 }
 
@@ -93,7 +91,7 @@ func mcpCPCartShow(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartShowIn
 
 // mcpCPCartAddIn is the input type for the cart_add tool.
 type mcpCPCartAddIn struct {
-	Provider  string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider  string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	ProductID string `json:"product_id" jsonschema:"provider product id"`
 	Quantity  *int   `json:"quantity,omitempty" jsonschema:"defaults to 1 when omitted"`
 	UserID    string `json:"user_id,omitempty" jsonschema:"optional override of session user_id"`
@@ -129,7 +127,7 @@ func mcpCPCartAdd(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartAddIn) 
 
 // mcpCPCartRemoveIn is the input type for the cart_remove tool.
 type mcpCPCartRemoveIn struct {
-	Provider  string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider  string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	ProductID string `json:"product_id" jsonschema:"provider product id"`
 	UserID    string `json:"user_id,omitempty" jsonschema:"optional override of session user_id"`
 }
@@ -160,7 +158,7 @@ func mcpCPCartRemove(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartRemo
 
 // mcpCPProductsSearchIn is the input type for the products_search tool.
 type mcpCPProductsSearchIn struct {
-	Provider       string  `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider       string  `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	Search         string  `json:"search" jsonschema:"search phrase (purpose=Listing)"`
 	CategoryID     string  `json:"category_id,omitempty" jsonschema:"optional categoryId to narrow results"`
 	PageIndex      *int    `json:"page_index,omitempty" jsonschema:"1-based page index; default 1"`
@@ -212,7 +210,7 @@ func mcpCPProductsSearch(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProd
 
 // mcpCPProductsByIDsIn is the input type for the products_by_ids tool.
 type mcpCPProductsByIDsIn struct {
-	Provider   string   `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider   string   `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	ProductIDs []string `json:"product_ids" jsonschema:"list of provider product ids"`
 	UserID     string   `json:"user_id,omitempty" jsonschema:"optional override of session user_id"`
 }
@@ -239,7 +237,7 @@ func mcpCPProductsByIDs(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProdu
 
 // mcpCPProductsNutritionIn is the input type for the products_nutrition tool.
 type mcpCPProductsNutritionIn struct {
-	Provider  string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Provider  string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
 	ProductID string `json:"product_id" jsonschema:"provider product id"`
 	Raw       bool   `json:"raw,omitempty" jsonschema:"if true, return full API JSON; default false"`
 }
@@ -285,7 +283,7 @@ func mcpCPProductsNutrition(_ context.Context, _ *mcp.CallToolRequest, in mcpCPP
 
 var errNotAuthenticated = errors.New(
 	"not authenticated — no session found; " +
-		"call session_login to open a browser and log in interactively, " +
+		"call session_status to inspect saved sessions, then session_login to open a browser and log in interactively, " +
 		"or use session_from_curl with a cURL copied from DevTools",
 )
 

@@ -74,7 +74,7 @@ func NewRootCmd() *cobra.Command {
 	root.PersistentFlags().String(
 		"provider",
 		"",
-		"Provider for this command invocation: frisco or delio. Falls back to config when omitted.",
+		"Provider for this command invocation: frisco or delio.",
 	)
 	root.PersistentFlags().Float64Var(
 		&rateLimitRPS,

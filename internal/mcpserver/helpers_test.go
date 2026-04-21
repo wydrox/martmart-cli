@@ -286,18 +286,52 @@ func TestNew_RegistersTools(t *testing.T) {
 	}
 }
 
-func TestMCPResolveProvider_DefaultAndExplicit(t *testing.T) {
-	if got, err := mcpResolveProvider(""); err != nil || got != session.ProviderFrisco {
-		t.Fatalf("mcpResolveProvider(\"\") = %q, %v", got, err)
-	}
+func TestMCPResolveProvider_Explicit(t *testing.T) {
 	if got, err := mcpResolveProvider("Delio"); err != nil || got != session.ProviderDelio {
 		t.Fatalf("mcpResolveProvider(\"Delio\") = %q, %v", got, err)
+	}
+}
+
+func TestMCPResolveProvider_RequiresExplicitProvider(t *testing.T) {
+	if _, err := mcpResolveProvider(""); err == nil {
+		t.Fatal("expected error when provider is omitted")
 	}
 }
 
 func TestMCPResolveProvider_Invalid(t *testing.T) {
 	if _, err := mcpResolveProvider("nope"); err == nil {
 		t.Fatal("expected validation error for unsupported provider")
+	}
+}
+
+func TestSessionStatusEntry(t *testing.T) {
+	s := &session.Session{
+		BaseURL:      session.DefaultBaseURL,
+		Headers:      map[string]string{"Authorization": "Bearer abc", "Cookie": "a=b"},
+		Token:        "abc",
+		UserID:       "123",
+		RefreshToken: "rt",
+	}
+	got := sessionStatusEntry(session.ProviderFrisco, s, "/tmp/frisco-session.json")
+	if got["provider"] != session.ProviderFrisco {
+		t.Fatalf("provider = %v", got["provider"])
+	}
+	if got["session_saved"] != true || got["authenticated"] != true {
+		t.Fatalf("expected saved and authenticated, got %#v", got)
+	}
+	if got["authorization_saved"] != true || got["cookie_saved"] != true || got["token_saved"] != true || got["refresh_token_saved"] != true {
+		t.Fatalf("expected all auth artifacts marked as saved, got %#v", got)
+	}
+	authMechanisms, ok := got["auth_mechanisms"].([]string)
+	if !ok {
+		t.Fatalf("auth_mechanisms type = %T", got["auth_mechanisms"])
+	}
+	if len(authMechanisms) != 3 {
+		t.Fatalf("expected 3 auth mechanisms, got %v", authMechanisms)
+	}
+	headerKeys, ok := got["header_keys"].([]string)
+	if !ok || len(headerKeys) != 2 {
+		t.Fatalf("expected 2 header keys, got %T %v", got["header_keys"], got["header_keys"])
 	}
 }
 

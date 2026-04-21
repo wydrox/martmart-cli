@@ -78,13 +78,13 @@ Zasady używania narzędzi:
 - nie zakładaj z góry jednego sklepu albo providera,
 - gdy trzeba wykonać realne działania zakupowe, najpierw sprawdź jakie providery i narzędzia są dostępne w aktualnej sesji MCP,
 - wybieraj providera per request na podstawie intencji użytkownika, dostępności narzędzi i kontekstu rozmowy,
-- jeśli użytkownik nie wskazał sklepu, możesz krótko zapytać o preferowany sklep albo sam dobrać provider po sprawdzeniu dostępnych opcji i jasno to zakomunikować,
+- jeśli użytkownik nie wskazał sklepu, zapytaj krótko czy chodzi o Frisco czy Delio; nie wybieraj providera sam,
 - jeśli narzędzia wspierają parametr providera, przekazuj go jawnie w wywołaniu zamiast polegać na globalnym domyśle,
 - przed wywołaniem narzędzia lub serii narzędzi powiedz krótko co sprawdzasz,
 - po wyniku narzędzia podaj 1-2 bardzo krótkie zdania podsumowania i jeśli potrzeba zadaj pytanie decyzyjne,
 - gdy pokazujesz opcje, ogranicz się do 2-3 najlepszych,
 - gdy wynik wymaga wyboru użytkownika, nie podejmuj decyzji sam: zapytaj wprost, np. „nie ma orzeszków ziemnych, chcesz zamienić na włoskie?”
-- jeśli narzędzie zwróci błąd autoryzacji, 401 albo Unauthorized, nie powtarzaj w kółko tego samego wywołania; powiedz jasno, że potrzebne jest logowanie i zapytaj użytkownika, czy uruchomić logowanie
+- jeśli narzędzie zwróci błąd autoryzacji, 401 albo Unauthorized, nie powtarzaj w kółko tego samego wywołania; najpierw sprawdź session_status jeśli jest dostępne, potem powiedz jasno, że może być potrzebne logowanie i zapytaj użytkownika, czy uruchomić logowanie
 - nie mów, że coś sprawdziłeś, znalazłeś albo porównałeś, jeśli naprawdę nie użyłeś do tego narzędzia
 
 Priorytety zakupowe:
@@ -210,7 +210,7 @@ def summarize_products_search_output(raw: object) -> str:
     if status is not None:
         return (
             f"BŁĄD AUTORYZACJI narzędzia products_search: HTTP {status} {reason or ''}. "
-            "Sesja sklepu może być nieważna. Zapytaj użytkownika, czy uruchomić logowanie przez session_login."
+            "Sesja sklepu może być nieważna. Jeśli masz narzędzie session_status, sprawdź je najpierw, a potem zapytaj użytkownika, czy uruchomić logowanie przez session_login."
         ).strip()
 
     products, root = extract_products(payload)
@@ -333,6 +333,25 @@ def summarize_session_output(raw: object, action: str) -> str:
     return " ".join(parts)
 
 
+def summarize_session_status_output(raw: object) -> str:
+    payload = parse_json_value(raw)
+    if not isinstance(payload, dict):
+        return "session_status: brak czytelnej odpowiedzi."
+    authenticated = payload.get("authenticated_providers")
+    saved = payload.get("saved_providers")
+    parts = ["session_status:"]
+    if isinstance(saved, list):
+        parts.append("saved=" + (", ".join(str(x) for x in saved) if saved else "brak"))
+    if isinstance(authenticated, list):
+        parts.append("authenticated=" + (", ".join(str(x) for x in authenticated) if authenticated else "brak"))
+    providers = payload.get("providers")
+    if isinstance(providers, list) and len(providers) == 1 and isinstance(providers[0], dict):
+        provider = providers[0].get("provider")
+        if provider:
+            parts.append(f"provider={provider}")
+    return " ".join(parts)
+
+
 def build_tool_output_filters() -> dict[str, callable]:
     return {
         "products_search": summarize_products_search_output,
@@ -341,6 +360,7 @@ def build_tool_output_filters() -> dict[str, callable]:
         "cart_add": lambda raw: summarize_cart_output(raw, "cart_add"),
         "cart_remove": lambda raw: summarize_cart_output(raw, "cart_remove"),
         "reservation_slots": summarize_reservation_slots_output,
+        "session_status": summarize_session_status_output,
         "session_login": lambda raw: summarize_session_output(raw, "session_login"),
         "session_refresh_token": lambda raw: summarize_session_output(raw, "session_refresh_token"),
     }
@@ -742,7 +762,7 @@ async def run_agent(args: argparse.Namespace) -> bool:
                 observer._print_log(f"zarejestrowano MCP tools ({total_tools}): {tool_names}")
                 provider_tool_hint = [
                     name
-                    for name in ["providers_list", "providers_available", "provider_list", "session_list"]
+                    for name in ["providers_list", "providers_available", "provider_list", "session_list", "session_status"]
                     if name in discovered_tool_names
                 ]
                 if provider_tool_hint:

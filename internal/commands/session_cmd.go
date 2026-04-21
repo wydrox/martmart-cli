@@ -269,6 +269,8 @@ func newSessionLoginCmd() *cobra.Command {
 	var timeoutSec int
 	var userDataDir string
 	var profileDirectory string
+	var debugLogin bool
+	var keepOpenOnFailure bool
 
 	c := &cobra.Command{
 		Use:   "login",
@@ -287,31 +289,37 @@ func newSessionLoginCmd() *cobra.Command {
 			}
 
 			result, err := login.Run(context.Background(), login.Options{
-				Provider:         provider,
-				LoginURL:         loginURL,
-				TimeoutSec:       timeoutSec,
-				UserDataDir:      userDataDir,
-				ProfileDirectory: profileDirectory,
+				Provider:             provider,
+				LoginURL:             loginURL,
+				TimeoutSec:           timeoutSec,
+				UserDataDir:          userDataDir,
+				ProfileDirectory:     profileDirectory,
+				Debug:                debugLogin,
+				KeepBrowserOnFailure: keepOpenOnFailure,
 			})
 			if err != nil {
 				return err
 			}
 			return printJSON(map[string]any{
-				"saved":               result.Saved,
-				"provider":            result.Provider,
-				"profile_directory":   result.ProfileDirectory,
-				"base_url":            result.BaseURL,
-				"user_id":             result.UserID,
-				"token_saved":         result.TokenSaved,
-				"refresh_token_saved": result.RefreshTokenSaved,
-				"cookie_saved":        result.CookieSaved,
+				"saved":                 result.Saved,
+				"provider":              result.Provider,
+				"browser_app":           result.BrowserApp,
+				"browser_user_data_dir": result.BrowserUserDataDir,
+				"profile_directory":     result.ProfileDirectory,
+				"base_url":              result.BaseURL,
+				"user_id":               result.UserID,
+				"token_saved":           result.TokenSaved,
+				"refresh_token_saved":   result.RefreshTokenSaved,
+				"cookie_saved":          result.CookieSaved,
 			})
 		},
 	}
 
 	c.Flags().StringVar(&loginURL, "login-url", "", "Optional start URL (default depends on provider).")
 	c.Flags().IntVar(&timeoutSec, "timeout", 180, "Maximum wait time for session detection (seconds).")
-	c.Flags().StringVar(&userDataDir, "user-data-dir", "", "Optional Chrome/Chromium user data dir to reuse.")
-	c.Flags().StringVar(&profileDirectory, "profile-directory", "", "Optional Chrome profile directory name, e.g. Default or Profile 1.")
+	c.Flags().StringVar(&userDataDir, "user-data-dir", "", "Optional browser user data dir to reuse.")
+	c.Flags().StringVar(&profileDirectory, "profile-directory", "", "Optional browser profile directory name, e.g. Default or Profile 1.")
+	c.Flags().BoolVar(&debugLogin, "debug", false, "Enable verbose session-login diagnostics.")
+	c.Flags().BoolVar(&keepOpenOnFailure, "keep-open-on-failure", false, "Keep the spawned browser window/profile open on login failure for manual inspection.")
 	return c
 }
