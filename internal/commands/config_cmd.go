@@ -58,7 +58,7 @@ func isInteractive(r io.Reader) bool {
 func newConfigShowCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "show",
-		Short: "Show saved config and currently active provider/rate limit.",
+		Short: "Show saved config and rate limits.",
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return runConfigShow()
 		},
@@ -85,7 +85,6 @@ func runConfigShow() error {
 			"input_device":        cfg.OpenAIInputDevice,
 			"output_device":       cfg.OpenAIOutputDevice,
 		},
-		"active_provider":     session.CurrentProvider(),
 		"active_rate_limit":   map[string]any{"rps": rps, "burst": burst},
 		"supported_providers": session.SupportedProviders(),
 	})

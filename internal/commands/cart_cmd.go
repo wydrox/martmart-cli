@@ -22,13 +22,13 @@ func newCartCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cart",
 		Short: "Cart operations.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			if providerIs(session.ProviderDelio) {
-				return fmt.Errorf("interactive cart TUI is available only for Frisco; use 'cart show', 'cart add', or 'cart remove'")
-			}
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
+			}
+			if provider == session.ProviderDelio {
+				return fmt.Errorf("interactive cart TUI is available only for Frisco; use 'cart show', 'cart add', or 'cart remove'")
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {
@@ -49,12 +49,12 @@ func newCartShowCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "show",
 		Short: "Fetch cart.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
-			if providerIs(session.ProviderDelio) {
+			if provider == session.ProviderDelio {
 				result, err := delio.CurrentCart(s)
 				if err != nil {
 					return err
@@ -364,11 +364,11 @@ func newCartAddCmd() *cobra.Command {
 				return fmt.Errorf("one of --product-id or --search is required")
 			}
 
-			s, err := session.Load()
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
-			if providerIs(session.ProviderDelio) {
+			if provider == session.ProviderDelio {
 				coords, err := delioCoordsFromFlags(cmd, lat, long)
 				if err != nil {
 					return err
@@ -526,12 +526,12 @@ func newCartRemoveCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "remove",
 		Short: "Remove product from cart (quantity=0).",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
-			if providerIs(session.ProviderDelio) {
+			if provider == session.ProviderDelio {
 				current, err := delio.CurrentCart(s)
 				if err != nil {
 					return err

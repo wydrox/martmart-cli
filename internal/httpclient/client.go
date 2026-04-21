@@ -92,7 +92,7 @@ func requestJSONWithAutoRefresh(
 	}
 	baseURL := s.BaseURL
 	if baseURL == "" {
-		baseURL = session.DefaultBaseURLForProvider(session.CurrentProvider())
+		baseURL = session.DefaultBaseURLForProvider(session.ProviderFrisco)
 	}
 	fullURL, err := makeURL(baseURL, pathOrURL)
 	if err != nil {
@@ -307,7 +307,7 @@ func refreshAccessToken(s *session.Session, client *http.Client) (bool, error) {
 	if newRefresh, ok := m["refresh_token"].(string); ok && strings.TrimSpace(newRefresh) != "" {
 		s.RefreshToken = newRefresh
 	}
-	if err := session.Save(s); err != nil {
+	if err := session.SaveProvider(session.ProviderForBaseURL(s.BaseURL), s); err != nil {
 		return false, err
 	}
 	return true, nil

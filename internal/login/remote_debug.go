@@ -57,9 +57,6 @@ var errNoRemoteDebugEndpoint = errors.New("no Chromium remote debugging endpoint
 func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, error) {
 	provider := session.NormalizeProvider(opts.Provider)
 	if provider == "" {
-		provider = session.CurrentProvider()
-	}
-	if provider == "" {
 		provider = session.ProviderFrisco
 	}
 	if err := session.ValidateProvider(provider); err != nil {

@@ -37,8 +37,8 @@ func newAccountProfileCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "profile",
 		Short: "Fetch user profile.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -122,8 +122,8 @@ func newAccountAddressesListCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "list",
 		Short: "Address list.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -200,8 +200,8 @@ func newAccountAddressesAddCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "add",
 		Short: "Add address (JSON).",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -245,8 +245,8 @@ func newAccountAddressesDeleteCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "delete",
 		Short: "Delete address by UUID.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -282,8 +282,8 @@ func newAccountConsentsShowCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "show",
 		Short: "Show current consents.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -311,8 +311,8 @@ func newAccountConsentsToggleCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "toggle",
 		Short: "Toggle a single consent key.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -386,8 +386,8 @@ func newAccountConsentsUpdateCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "update",
 		Short: "Update consents using JSON payload.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -425,8 +425,8 @@ func newAccountVouchersCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "vouchers",
 		Short: "Fetch vouchers.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -452,8 +452,8 @@ func newAccountPaymentsCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "payments",
 		Short: "Fetch payment methods.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -530,8 +530,8 @@ func newAccountMembershipCardsCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "cards",
 		Short: "Fetch membership cards.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -572,8 +572,8 @@ func newAccountMembershipPointsShowCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "show",
 		Short: "Show points summary (balance, earned, spent).",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -655,8 +655,8 @@ func newAccountMembershipPointsHistoryCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "history",
 		Short: "Show points history (paginated).",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}

@@ -9,7 +9,6 @@ import (
 
 	"github.com/wydrox/martmart-cli/internal/config"
 	"github.com/wydrox/martmart-cli/internal/httpclient"
-	"github.com/wydrox/martmart-cli/internal/session"
 )
 
 // Execute runs the root command (for main).
@@ -20,7 +19,6 @@ func Execute() error {
 // NewRootCmd builds the full CLI command tree.
 func NewRootCmd() *cobra.Command {
 	format := outputFormat
-	provider := ""
 	rateLimitRPS := 0.0
 	rateLimitBurst := 1
 	root := &cobra.Command{
@@ -42,17 +40,6 @@ func NewRootCmd() *cobra.Command {
 
 			cfg, err := config.Load()
 			if err != nil {
-				return err
-			}
-			effectiveProvider := strings.TrimSpace(provider)
-			if effectiveProvider == "" {
-				effectiveProvider = cfg.DefaultProvider
-			}
-			effectiveProvider = session.NormalizeProvider(effectiveProvider)
-			if effectiveProvider == "" {
-				effectiveProvider = session.ProviderFrisco
-			}
-			if err := session.SetCurrentProvider(effectiveProvider); err != nil {
 				return err
 			}
 
@@ -80,8 +67,7 @@ func NewRootCmd() *cobra.Command {
 		"table",
 		"Output format: table or json.",
 	)
-	root.PersistentFlags().StringVar(
-		&provider,
+	root.PersistentFlags().String(
 		"provider",
 		"",
 		"Backend provider: frisco or delio (default comes from config).",

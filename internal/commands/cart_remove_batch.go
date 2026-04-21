@@ -36,9 +36,12 @@ func newCartRemoveBatchCmd() *cobra.Command {
 				return errors.New("no valid product IDs provided")
 			}
 
-			s, err := session.Load()
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
+			}
+			if provider == session.ProviderDelio {
+				return fmt.Errorf("cart remove-batch is not implemented for Delio")
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {

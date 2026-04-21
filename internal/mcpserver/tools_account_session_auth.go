@@ -582,7 +582,7 @@ func toolAccountMembershipPoints(_ context.Context, _ *mcp.CallToolRequest, in a
 type sessionShowIn struct{}
 
 func toolSessionShow(_ context.Context, _ *mcp.CallToolRequest, _ sessionShowIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, err := session.Load()
+	s, err := session.LoadProvider(mcpDefaultProvider)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -602,12 +602,12 @@ func toolSessionFromCurl(_ context.Context, _ *mcp.CallToolRequest, in sessionFr
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
-	s, err := session.Load()
+	s, err := session.LoadProvider(mcpDefaultProvider)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
-	session.ApplyFromCurl(s, cd)
-	if err := session.Save(s); err != nil {
+	session.ApplyFromCurlForProvider(s, cd, mcpDefaultProvider)
+	if err := session.SaveProvider(mcpDefaultProvider, s); err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
 	return mcpCPWrapFriscoResult(map[string]any{
@@ -625,7 +625,7 @@ type authRefreshTokenIn struct {
 }
 
 func toolAuthRefreshToken(_ context.Context, _ *mcp.CallToolRequest, in authRefreshTokenIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, err := session.Load()
+	s, err := session.LoadProvider(mcpDefaultProvider)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -659,7 +659,7 @@ func toolAuthRefreshToken(_ context.Context, _ *mcp.CallToolRequest, in authRefr
 		if nr, ok := mcpASAStringField(m["refresh_token"]); ok && nr != "" {
 			s.RefreshToken = nr
 		}
-		if err := session.Save(s); err != nil {
+		if err := session.SaveProvider(mcpDefaultProvider, s); err != nil {
 			return nil, mcpCPFriscoToolOut{}, err
 		}
 		return mcpCPWrapFriscoResult(map[string]any{
@@ -677,17 +677,24 @@ func toolAuthRefreshToken(_ context.Context, _ *mcp.CallToolRequest, in authRefr
 	})
 }
 
+const defaultSessionLoginTimeoutSec = 180
+
 // sessionLoginIn is the input type for the session_login tool.
 type sessionLoginIn struct {
 	TimeoutSec *int `json:"timeout_sec,omitempty" jsonschema:"Login timeout in seconds; default 180"`
 }
 
-func toolSessionLogin(ctx context.Context, _ *mcp.CallToolRequest, in sessionLoginIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	timeout := 10
+func sessionLoginTimeoutSec(in sessionLoginIn) int {
+	timeout := defaultSessionLoginTimeoutSec
 	if in.TimeoutSec != nil && *in.TimeoutSec > 0 {
 		timeout = *in.TimeoutSec
 	}
-	result, err := login.Run(ctx, login.Options{Provider: session.CurrentProvider(), TimeoutSec: timeout})
+	return timeout
+}
+
+func toolSessionLogin(ctx context.Context, _ *mcp.CallToolRequest, in sessionLoginIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
+	timeout := sessionLoginTimeoutSec(in)
+	result, err := login.Run(ctx, login.Options{Provider: mcpDefaultProvider, TimeoutSec: timeout})
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}

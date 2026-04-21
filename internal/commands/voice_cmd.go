@@ -15,7 +15,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/wydrox/martmart-cli/internal/config"
-	"github.com/wydrox/martmart-cli/internal/session"
 )
 
 //go:embed voice_assets/*
@@ -178,7 +177,10 @@ func newVoiceRunCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			provider := session.CurrentProvider()
+			provider, err := selectedProvider(cmd)
+			if err != nil {
+				return err
+			}
 			mcpArgs := []string{"--provider", provider, "mcp"}
 
 			args := []string{

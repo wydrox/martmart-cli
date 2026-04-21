@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
+	"strings"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 
@@ -19,9 +22,9 @@ import (
 func newSessionCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "session",
-		Short: "Manage session (token, headers, user_id).",
+		Short: "Manage provider sessions (token, headers, user_id).",
 	}
-	cmd.AddCommand(newSessionFromCurlCmd(), newSessionShowCmd(), newSessionVerifyCmd(), newSessionLoginCmd(), newSessionRefreshTokenCmd())
+	cmd.AddCommand(newSessionFromCurlCmd(), newSessionListCmd(), newSessionShowCmd(), newSessionVerifyCmd(), newSessionLoginCmd(), newSessionRefreshTokenCmd())
 	return cmd
 }
 
@@ -35,12 +38,12 @@ func newSessionFromCurlCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			s, err := session.Load()
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
-			session.ApplyFromCurl(s, cd)
-			if err := session.Save(s); err != nil {
+			session.ApplyFromCurlForProvider(s, cd, provider)
+			if err := session.SaveProvider(provider, s); err != nil {
 				return err
 			}
 			_, _ = cmd.OutOrStdout().Write([]byte("Session saved from curl.\n"))
@@ -57,12 +60,85 @@ func newSessionFromCurlCmd() *cobra.Command {
 	return c
 }
 
+type sessionListEntry struct {
+	Provider          string `json:"provider"`
+	Saved             bool   `json:"saved"`
+	AuthPresent       bool   `json:"auth_present"`
+	BaseURL           string `json:"base_url"`
+	UserID            string `json:"user_id"`
+	TokenSaved        bool   `json:"token_saved"`
+	RefreshTokenSaved bool   `json:"refresh_token_saved"`
+	CookieSaved       bool   `json:"cookie_saved"`
+	SessionFile       string `json:"session_file,omitempty"`
+}
+
+func newSessionListCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "list",
+		Short: "List sessions for all providers.",
+		RunE: func(_ *cobra.Command, _ []string) error {
+			entries, err := collectSessionListEntries()
+			if err != nil {
+				return err
+			}
+			if strings.EqualFold(outputFormat, "json") {
+				return printJSON(entries)
+			}
+			return printSessionListTable(entries)
+		},
+	}
+}
+
+func collectSessionListEntries() ([]sessionListEntry, error) {
+	providers := session.SupportedProviders()
+	entries := make([]sessionListEntry, 0, len(providers))
+	for _, provider := range providers {
+		s, path, err := session.LoadProviderWithPath(provider)
+		if err != nil {
+			return nil, err
+		}
+		entries = append(entries, sessionListEntry{
+			Provider:          provider,
+			Saved:             path != "",
+			AuthPresent:       session.IsAuthenticated(s),
+			BaseURL:           s.BaseURL,
+			UserID:            session.UserIDString(s),
+			TokenSaved:        session.TokenString(s) != "",
+			RefreshTokenSaved: session.RefreshTokenString(s) != "",
+			CookieSaved:       session.HeaderValue(s, "Cookie") != "",
+			SessionFile:       path,
+		})
+	}
+	return entries, nil
+}
+
+func printSessionListTable(entries []sessionListEntry) error {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	_, _ = fmt.Fprintln(w, "provider\tsaved\tauth_present\tbase_url\tuser_id\ttoken_saved\trefresh_token_saved\tcookie_saved\tsession_file")
+	for _, entry := range entries {
+		_, _ = fmt.Fprintf(
+			w,
+			"%s\t%t\t%t\t%s\t%s\t%t\t%t\t%t\t%s\n",
+			entry.Provider,
+			entry.Saved,
+			entry.AuthPresent,
+			cellValue(entry.BaseURL),
+			cellValue(entry.UserID),
+			entry.TokenSaved,
+			entry.RefreshTokenSaved,
+			entry.CookieSaved,
+			cellValue(entry.SessionFile),
+		)
+	}
+	return w.Flush()
+}
+
 func newSessionShowCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "show",
-		Short: "Show current session (sensitive values redacted).",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		Short: "Show the selected provider session (sensitive values redacted).",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -75,13 +151,13 @@ func newSessionVerifyCmd() *cobra.Command {
 	var userID string
 	c := &cobra.Command{
 		Use:   "verify",
-		Short: "Verify session has token and user_id; GET cart must succeed.",
+		Short: "Verify the selected provider session; GET cart must succeed.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			s, err := session.Load()
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
-			if providerIs(session.ProviderDelio) {
+			if provider == session.ProviderDelio {
 				if session.HeaderValue(s, "Cookie") == "" {
 					return errors.New("no Cookie header in Delio session. Use 'session from-curl' with a copied Delio API request")
 				}
@@ -145,13 +221,13 @@ func newSessionRefreshTokenCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "refresh-token",
 		Short: "Refresh access token via refresh token.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			if providerIs(session.ProviderDelio) {
-				return errors.New("session refresh-token is not implemented for Delio; import fresh cookies with 'session from-curl'")
-			}
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
+			}
+			if provider == session.ProviderDelio {
+				return errors.New("session refresh-token is not implemented for Delio; import fresh cookies with 'session from-curl'")
 			}
 			rt := refresh
 			if rt == "" {
@@ -185,7 +261,7 @@ func newSessionRefreshTokenCmd() *cobra.Command {
 				if nr, ok := stringField(m["refresh_token"]); ok && nr != "" {
 					s.RefreshToken = nr
 				}
-				if err := session.Save(s); err != nil {
+				if err := session.SaveProvider(provider, s); err != nil {
 					return err
 				}
 				saved = true
@@ -212,7 +288,11 @@ func newSessionLoginCmd() *cobra.Command {
 		Use:   "login",
 		Short: "Open the provider website in your browser and save the detected session.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			if providerIs(session.ProviderDelio) {
+			provider, err := selectedProvider(cmd)
+			if err != nil {
+				return err
+			}
+			if provider == session.ProviderDelio {
 				_, _ = fmt.Fprintln(cmd.OutOrStdout(),
 					"Opening Delio in your default browser app with temporary remote debugging and importing the detected session.")
 			} else {
@@ -221,7 +301,7 @@ func newSessionLoginCmd() *cobra.Command {
 			}
 
 			result, err := login.Run(context.Background(), login.Options{
-				Provider:         session.CurrentProvider(),
+				Provider:         provider,
 				LoginURL:         loginURL,
 				TimeoutSec:       timeoutSec,
 				UserDataDir:      userDataDir,

@@ -37,11 +37,11 @@ func newProductsSearchCmd() *cobra.Command {
 		Use:   "search",
 		Short: "Search products.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			s, err := session.Load()
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
-			if providerIs(session.ProviderDelio) {
+			if provider == session.ProviderDelio {
 				coords, err := delioCoordsFromFlags(cmd, lat, long)
 				if err != nil {
 					return err
@@ -105,13 +105,13 @@ func newProductsByIDsCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "by-ids",
 		Short: "Fetch products by productIds.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			if providerIs(session.ProviderDelio) {
-				return fmt.Errorf("products by-ids is not implemented for Delio; use 'products get --product-id <sku>' or --slug")
-			}
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
+			}
+			if provider == session.ProviderDelio {
+				return fmt.Errorf("products by-ids is not implemented for Delio; use 'products get --product-id <sku>' or --slug")
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {
@@ -141,13 +141,13 @@ func newProductsNutritionCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "nutrition",
 		Short: "Fetch product nutrition values (if available).",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			if providerIs(session.ProviderDelio) {
-				return fmt.Errorf("products nutrition is not implemented for Delio yet; use 'products get --product-id <sku> --format json'")
-			}
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
+			}
+			if provider == session.ProviderDelio {
+				return fmt.Errorf("products nutrition is not implemented for Delio yet; use 'products get --product-id <sku> --format json'")
 			}
 			path := fmt.Sprintf("/app/content/api/v1/products/get/%s", productID)
 			result, err := httpclient.RequestJSON(s, "GET", path, httpclient.RequestOpts{})
@@ -343,13 +343,13 @@ func newProductsPickCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "pick",
 		Short: "Search for a product and return the best match based on name, price/kg and pack size.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			if providerIs(session.ProviderDelio) {
-				return fmt.Errorf("products pick is not implemented for Delio yet; use 'products search' or 'products get'")
-			}
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
+			}
+			if provider == session.ProviderDelio {
+				return fmt.Errorf("products pick is not implemented for Delio yet; use 'products search' or 'products get'")
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {

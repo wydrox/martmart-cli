@@ -145,7 +145,18 @@ var fromCurlHeaderAllow = map[string]struct{}{
 }
 
 // ApplyFromCurl updates a session with data extracted from a parsed curl command.
+// It preserves the historical default-provider behaviour (Frisco).
 func ApplyFromCurl(s *Session, c *CurlData) {
+	ApplyFromCurlForProvider(s, c, ProviderFrisco)
+}
+
+// ApplyFromCurlForProvider updates a session with data extracted from a parsed
+// curl command, using the provided backend provider to decide how to trust the
+// target host and how to preserve provider-specific fields.
+func ApplyFromCurlForProvider(s *Session, c *CurlData, provider string) {
+	if s == nil || c == nil {
+		return
+	}
 	if s.Headers == nil {
 		s.Headers = map[string]string{}
 	}
@@ -173,7 +184,7 @@ func ApplyFromCurl(s *Session, c *CurlData) {
 		s.UserID = uid
 	}
 	if u, err := url.Parse(c.URL); err == nil && u.Scheme != "" && u.Host != "" {
-		if isTrustedHostForProvider(CurrentProvider(), u.Hostname()) {
+		if isTrustedHostForProvider(provider, u.Hostname()) {
 			s.BaseURL = u.Scheme + "://" + u.Host
 		}
 	}

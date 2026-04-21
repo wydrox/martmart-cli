@@ -71,9 +71,6 @@ type chromeLocalState struct {
 func Run(ctx context.Context, opts Options) (*Result, error) {
 	provider := session.NormalizeProvider(opts.Provider)
 	if provider == "" {
-		provider = session.CurrentProvider()
-	}
-	if provider == "" {
 		provider = session.ProviderFrisco
 	}
 	if err := session.ValidateProvider(provider); err != nil {

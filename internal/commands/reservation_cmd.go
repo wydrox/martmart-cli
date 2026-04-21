@@ -38,8 +38,8 @@ func newReservationDeliveryOptionsCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "delivery-options",
 		Short: "Delivery/payment options by postcode.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -65,8 +65,8 @@ func newReservationCalendarCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "calendar",
 		Short: "Available delivery windows for address.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -282,11 +282,11 @@ func newReservationSlotsCmd() *cobra.Command {
 		Use:   "slots",
 		Short: "Get available delivery slots for upcoming days (including today).",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			s, err := session.Load()
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
-			if providerIs(session.ProviderDelio) {
+			if provider == session.ProviderDelio {
 				coords, err := delioCoordsFromFlags(cmd, lat, long)
 				if err != nil {
 					return err
@@ -376,8 +376,8 @@ func newReservationReserveCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "reserve",
 		Short: "Reserve slot by date and times (e.g. 06:00-07:00).",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -491,8 +491,8 @@ func newReservationPlanCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "plan",
 		Short: "Plan cart reservation from JSON payload.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -552,8 +552,8 @@ func newReservationCancelCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "cancel",
 		Short: "Cancel active cart reservation.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}

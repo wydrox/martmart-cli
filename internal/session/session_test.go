@@ -928,6 +928,52 @@ func TestLoad_FileNotExist(t *testing.T) {
 	}
 }
 
+func TestLoadProviderWithPath_ReturnsSourcePath(t *testing.T) {
+	dir := t.TempDir()
+	setTempSession(t, dir)
+
+	want := &Session{
+		BaseURL:      DefaultBaseURL,
+		Token:        "tok_abc",
+		RefreshToken: "ref_xyz",
+		UserID:       "42",
+		Headers:      map[string]string{"Accept": "application/json"},
+	}
+	if err := Save(want); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	got, path, err := LoadProviderWithPath(ProviderFrisco)
+	if err != nil {
+		t.Fatalf("LoadProviderWithPath: %v", err)
+	}
+	if path != sessionFile {
+		t.Fatalf("path: got %q, want %q", path, sessionFile)
+	}
+	if TokenString(got) != "tok_abc" {
+		t.Fatalf("TokenString: got %q, want tok_abc", TokenString(got))
+	}
+}
+
+func TestLoadProviderWithPath_MissingReturnsEmptyPath(t *testing.T) {
+	dir := t.TempDir()
+	setTempSession(t, dir)
+
+	got, path, err := LoadProviderWithPath(ProviderDelio)
+	if err != nil {
+		t.Fatalf("LoadProviderWithPath: %v", err)
+	}
+	if got == nil {
+		t.Fatal("expected non-nil default session")
+	}
+	if path != "" {
+		t.Fatalf("path: got %q, want empty", path)
+	}
+	if got.BaseURL != DefaultDelioBaseURL {
+		t.Fatalf("BaseURL: got %q, want %q", got.BaseURL, DefaultDelioBaseURL)
+	}
+}
+
 func TestLoad_InvalidJSON(t *testing.T) {
 	dir := t.TempDir()
 	setTempSession(t, dir)

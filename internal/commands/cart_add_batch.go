@@ -29,9 +29,12 @@ func newCartAddBatchCmd() *cobra.Command {
 		Short: "Add many products from a JSON file (search for IDs first).",
 		Long:  "JSON file: array or {\"items\":[...]}. product_id/productId, quantity/qty (default 1). Duplicates in file: quantities summed. Loads current cart (GET), applies batch quantities on top, then one PUT with full cart so nothing is wiped.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			s, err := session.Load()
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
+			}
+			if provider == session.ProviderDelio {
+				return fmt.Errorf("cart add-batch is not implemented for Delio")
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {

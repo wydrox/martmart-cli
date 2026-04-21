@@ -225,7 +225,7 @@ func mcpCPProductsNutrition(_ context.Context, _ *mcp.CallToolRequest, in mcpCPP
 	if strings.TrimSpace(in.ProductID) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("product_id is required")
 	}
-	s, err := session.Load()
+	s, err := session.LoadProvider(mcpDefaultProvider)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -263,9 +263,9 @@ var errNotAuthenticated = errors.New(
 )
 
 // loadSessionAuth loads the session and verifies it has authentication credentials.
-// Tools that don't require auth (e.g. products_search, session_from_curl) should use session.Load() directly.
+// Tools that don't require auth (e.g. products_search, session_from_curl) should use session.LoadProvider(mcpDefaultProvider) directly.
 func loadSessionAuth(explicitUserID string) (*session.Session, string, error) {
-	s, err := session.Load()
+	s, err := session.LoadProvider(mcpDefaultProvider)
 	if err != nil {
 		return nil, "", err
 	}

@@ -186,6 +186,8 @@ martmart --provider delio reservation slots
 
 ### Switch provider per command
 
+Provider is resolved on each invocation: explicit `--provider` wins, otherwise MartMart falls back to the saved default provider.
+
 ```bash
 martmart --provider frisco cart show
 martmart --provider delio cart show
@@ -229,6 +231,7 @@ martmart products search --search <phrase>
 martmart products get --product-id <id>
 martmart reservation slots --days 2
 martmart session login
+martmart session list
 martmart session verify
 martmart mcp
 ```
@@ -405,7 +408,7 @@ Example safe MCP workflows:
 1. **Session bootstrap**
    - run `session login`
    - run `session verify`
-   - confirm the active provider
+   - choose the provider for that request
 2. **Product discovery**
    - search products
    - inspect a specific product
@@ -428,6 +431,7 @@ Session/config files are stored under `~/.martmart-cli/`.
 - Frisco session: `~/.martmart-cli/frisco-session.json`
 - Delio session: `~/.martmart-cli/delio-session.json`
 - Shared config: `~/.martmart-cli/config.json`
+- Use `martmart session list` to inspect all stored provider sessions at once.
 
 Legacy compatibility:
 - if a file is missing in `~/.martmart-cli/`, MartMart will also try older Frisco session locations such as `~/.martmart-cli/session.json` and `~/.frisco-cli/session.json`

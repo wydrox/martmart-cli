@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -29,7 +30,6 @@ var (
 	sessionDir       string
 	legacySessionDir string
 	sessionFile      string
-	currentProvider  = ProviderFrisco
 )
 
 func init() {
@@ -49,7 +49,7 @@ type Session struct {
 }
 
 func defaultSession() *Session {
-	return defaultSessionForProvider(currentProvider)
+	return defaultSessionForProvider(ProviderFrisco)
 }
 
 func defaultSessionForProvider(provider string) *Session {
@@ -88,24 +88,6 @@ func ValidateProvider(provider string) error {
 	}
 }
 
-// CurrentProvider returns the process-wide active provider.
-func CurrentProvider() string {
-	return currentProvider
-}
-
-// SetCurrentProvider switches the process-wide active provider.
-func SetCurrentProvider(provider string) error {
-	provider = NormalizeProvider(provider)
-	if provider == "" {
-		provider = ProviderFrisco
-	}
-	if err := ValidateProvider(provider); err != nil {
-		return err
-	}
-	currentProvider = provider
-	return nil
-}
-
 // DefaultBaseURLForProvider returns the default base URL for the given provider.
 func DefaultBaseURLForProvider(provider string) string {
 	switch NormalizeProvider(provider) {
@@ -114,6 +96,20 @@ func DefaultBaseURLForProvider(provider string) string {
 	default:
 		return DefaultBaseURL
 	}
+}
+
+// ProviderForBaseURL guesses the provider from a session base URL.
+func ProviderForBaseURL(baseURL string) string {
+	if u, err := url.Parse(strings.TrimSpace(baseURL)); err == nil {
+		host := strings.ToLower(strings.TrimSpace(u.Hostname()))
+		switch {
+		case host == "delio.com.pl" || strings.HasSuffix(host, ".delio.com.pl"):
+			return ProviderDelio
+		case host == "frisco.pl" || strings.HasSuffix(host, ".frisco.pl"):
+			return ProviderFrisco
+		}
+	}
+	return ProviderFrisco
 }
 
 // SessionFilePath returns the provider-specific session file path.
@@ -163,14 +159,16 @@ func EnsureDir() error {
 	return os.MkdirAll(sessionDir, 0o700)
 }
 
-// LoadProvider reads the provider session file and returns a Session.
-func LoadProvider(provider string) (*Session, error) {
+// LoadProviderWithPath reads the provider session file and returns a Session plus
+// the path it was loaded from. The returned path is empty when no persisted
+// session exists and the default session is returned instead.
+func LoadProviderWithPath(provider string) (*Session, string, error) {
 	provider = NormalizeProvider(provider)
 	if provider == "" {
 		provider = ProviderFrisco
 	}
 	if err := ValidateProvider(provider); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	for _, path := range sessionLoadPaths(provider) {
@@ -179,11 +177,11 @@ func LoadProvider(provider string) (*Session, error) {
 			if os.IsNotExist(err) {
 				continue
 			}
-			return nil, err
+			return nil, "", err
 		}
 		var s Session
 		if err := json.Unmarshal(data, &s); err != nil {
-			return nil, err
+			return nil, path, err
 		}
 		if s.BaseURL == "" {
 			s.BaseURL = DefaultBaseURLForProvider(provider)
@@ -192,15 +190,21 @@ func LoadProvider(provider string) (*Session, error) {
 			s.Headers = map[string]string{}
 		}
 		s.Headers = NormalizeHeaders(s.Headers)
-		return &s, nil
+		return &s, path, nil
 	}
 
-	return defaultSessionForProvider(provider), nil
+	return defaultSessionForProvider(provider), "", nil
 }
 
-// Load reads the active provider's session file.
+// LoadProvider reads the provider session file and returns a Session.
+func LoadProvider(provider string) (*Session, error) {
+	s, _, err := LoadProviderWithPath(provider)
+	return s, err
+}
+
+// Load reads the default provider's session file.
 func Load() (*Session, error) {
-	return LoadProvider(currentProvider)
+	return LoadProvider(ProviderFrisco)
 }
 
 // SaveProvider persists s to the provider session file with 0600 permissions.
@@ -229,9 +233,10 @@ func SaveProvider(provider string, s *Session) error {
 	return os.WriteFile(SessionFilePath(provider), data, 0o600)
 }
 
-// Save persists s to the active provider's session file with 0600 permissions.
+// Save persists s to a provider-specific session file with 0600 permissions.
+// It infers the provider from the session base URL when possible.
 func Save(s *Session) error {
-	return SaveProvider(currentProvider, s)
+	return SaveProvider(ProviderForBaseURL(s.BaseURL), s)
 }
 
 // IsAuthenticated reports whether the session has a token, Authorization header,

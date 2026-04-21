@@ -347,7 +347,7 @@ func orToolReservationDeliveryOptions(_ context.Context, _ *mcp.CallToolRequest,
 	if strings.TrimSpace(in.Postcode) == "" {
 		return nil, orReservationDeliveryOptionsOut{}, fmt.Errorf("postcode is required")
 	}
-	s, err := session.Load()
+	s, err := session.LoadProvider(mcpDefaultProvider)
 	if err != nil {
 		return nil, orReservationDeliveryOptionsOut{}, err
 	}

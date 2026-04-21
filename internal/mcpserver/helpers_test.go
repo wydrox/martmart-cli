@@ -280,9 +280,9 @@ func TestMcpCPWrapFriscoResult(t *testing.T) {
 }
 
 func TestNew_RegistersTools(t *testing.T) {
-	srv := New()
+	srv := New("")
 	if srv == nil {
-		t.Fatal("expected non-nil mcp.Server from New()")
+		t.Fatal("expected non-nil mcp.Server from New(\"\")")
 	}
 }
 

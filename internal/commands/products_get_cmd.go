@@ -27,11 +27,11 @@ func newProductsGetCmd() *cobra.Command {
 			if strings.TrimSpace(productID) == "" && strings.TrimSpace(slug) == "" {
 				return fmt.Errorf("one of --product-id or --slug is required")
 			}
-			s, err := session.Load()
+			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
-			if providerIs(session.ProviderDelio) {
+			if provider == session.ProviderDelio {
 				coords, err := delioCoordsFromFlags(cmd, lat, long)
 				if err != nil {
 					return err

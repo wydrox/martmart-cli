@@ -241,8 +241,8 @@ func newOrdersListCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "list",
 		Short: "Order list.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -400,8 +400,8 @@ func newOrdersGetCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "get",
 		Short: "Single order details.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -462,8 +462,8 @@ func newOrdersDeliveryCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "delivery",
 		Short: "Delivery details for order.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -490,8 +490,8 @@ func newOrdersPaymentsCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "payments",
 		Short: "Payments for order.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}
@@ -518,8 +518,8 @@ func newOrdersProductsCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "products",
 		Short: "List products in an order.",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			s, err := session.Load()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, s, err := loadSessionForRequest(cmd)
 			if err != nil {
 				return err
 			}

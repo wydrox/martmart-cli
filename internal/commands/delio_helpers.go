@@ -16,14 +16,6 @@ import (
 	"github.com/wydrox/martmart-cli/internal/shared"
 )
 
-func providerIs(name string) bool {
-	return strings.EqualFold(session.CurrentProvider(), name)
-}
-
-func providerUnsupported(commandName string) error {
-	return fmt.Errorf("%s is not implemented for provider %q", commandName, session.CurrentProvider())
-}
-
 func delioCoordsFromFlags(cmd *cobra.Command, lat, long float64) (*delio.Coordinates, error) {
 	latChanged := cmd.Flags().Changed("lat")
 	longChanged := cmd.Flags().Changed("long")
