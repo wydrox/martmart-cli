@@ -280,9 +280,24 @@ func TestMcpCPWrapFriscoResult(t *testing.T) {
 }
 
 func TestNew_RegistersTools(t *testing.T) {
-	srv := New("")
+	srv := New()
 	if srv == nil {
-		t.Fatal("expected non-nil mcp.Server from New(\"\")")
+		t.Fatal("expected non-nil mcp.Server from New()")
+	}
+}
+
+func TestMCPResolveProvider_DefaultAndExplicit(t *testing.T) {
+	if got, err := mcpResolveProvider(""); err != nil || got != session.ProviderFrisco {
+		t.Fatalf("mcpResolveProvider(\"\") = %q, %v", got, err)
+	}
+	if got, err := mcpResolveProvider("Delio"); err != nil || got != session.ProviderDelio {
+		t.Fatalf("mcpResolveProvider(\"Delio\") = %q, %v", got, err)
+	}
+}
+
+func TestMCPResolveProvider_Invalid(t *testing.T) {
+	if _, err := mcpResolveProvider("nope"); err == nil {
+		t.Fatal("expected validation error for unsupported provider")
 	}
 }
 

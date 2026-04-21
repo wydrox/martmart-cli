@@ -635,12 +635,12 @@ func toolProvidersList(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*
 			return nil, mcpCPFriscoToolOut{}, err
 		}
 		items = append(items, map[string]any{
-			"provider":          provider,
-			"base_url":          s.BaseURL,
-			"session_file":      sourcePath,
-			"session_saved":     sourcePath != "",
-			"authenticated":     session.IsAuthenticated(s),
-			"default_base_url":  session.DefaultBaseURLForProvider(provider),
+			"provider":         provider,
+			"base_url":         s.BaseURL,
+			"session_file":     sourcePath,
+			"session_saved":    sourcePath != "",
+			"authenticated":    session.IsAuthenticated(s),
+			"default_base_url": session.DefaultBaseURLForProvider(provider),
 		})
 	}
 	return mcpCPWrapFriscoResult(map[string]any{
