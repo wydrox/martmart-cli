@@ -549,3 +549,16 @@ func ExtractMakePaymentResult(payload any) (map[string]any, error) {
 	}
 	return result, nil
 }
+
+// ExtractMakePaymentAdyenResponse returns makePayment.adyenResponse.
+func ExtractMakePaymentAdyenResponse(payload any) (any, error) {
+	result, err := ExtractMakePaymentResult(payload)
+	if err != nil {
+		return nil, err
+	}
+	response, ok := result["adyenResponse"]
+	if !ok || response == nil {
+		return nil, errors.New("missing makePayment.adyenResponse in Delio response")
+	}
+	return response, nil
+}

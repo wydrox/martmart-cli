@@ -16,12 +16,7 @@ type checkoutCLIClient interface {
 
 var checkoutLoadSession = loadSessionForRequest
 var newCheckoutClient = func(provider string) (checkoutCLIClient, error) {
-	switch session.NormalizeProvider(provider) {
-	case session.ProviderFrisco:
-		return checkoutcore.NewFriscoClient(), nil
-	default:
-		return nil, &checkoutcore.UnsupportedProviderError{Provider: provider, Supported: []string{session.ProviderFrisco}}
-	}
+	return checkoutcore.NewClient(provider), nil
 }
 
 func newCheckoutCmd() *cobra.Command {

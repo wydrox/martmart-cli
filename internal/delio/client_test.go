@@ -125,12 +125,15 @@ func TestBuildCheckoutHelpers(t *testing.T) {
 		t.Fatalf("unexpected slot action: %#v", deliverySlot)
 	}
 
-	config := BuildMakePaymentConfig(map[string]any{"type": "scheme", "storedPaymentMethodId": "pm_1"}, " https://delio.com.pl/checkout/payment ", false)
+	config := BuildMakePaymentConfig(map[string]any{"type": "scheme", "storedPaymentMethodId": "pm_1"}, " https://delio.com.pl/checkout/payment ", true)
 	if config["paymentChannel"] != "Web" {
 		t.Fatalf("paymentChannel=%v want Web", config["paymentChannel"])
 	}
 	if config["returnUrl"] != "https://delio.com.pl/checkout/payment" {
 		t.Fatalf("returnUrl=%v want trimmed url", config["returnUrl"])
+	}
+	if config["storePaymentMethod"] != true {
+		t.Fatalf("storePaymentMethod=%v want true", config["storePaymentMethod"])
 	}
 	paymentMethod, ok := config["paymentMethod"].(map[string]any)
 	if !ok {
@@ -142,17 +145,51 @@ func TestBuildCheckoutHelpers(t *testing.T) {
 	}
 }
 
+func TestPaymentWrapperValidation(t *testing.T) {
+	tests := []struct {
+		name string
+		call func() error
+		want string
+	}{
+		{name: "create payment missing cart", call: func() error { _, err := CreatePayment(nil, " "); return err }, want: "missing cartId"},
+		{name: "payment methods missing cart", call: func() error { _, err := PaymentMethods(nil, "", "pay_1"); return err }, want: "missing cartId"},
+		{name: "payment methods missing payment", call: func() error { _, err := PaymentMethods(nil, "cart_1", " "); return err }, want: "missing paymentId"},
+		{name: "make payment missing cart", call: func() error { _, err := MakePayment(nil, "", "pay_1", map[string]any{"paymentChannel": "Web"}); return err }, want: "missing cartId"},
+		{name: "make payment missing payment", call: func() error { _, err := MakePayment(nil, "cart_1", "", map[string]any{"paymentChannel": "Web"}); return err }, want: "missing paymentId"},
+		{name: "make payment missing config", call: func() error { _, err := MakePayment(nil, "cart_1", "pay_1", nil); return err }, want: "missing paymentConfig"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.call(); err == nil || err.Error() != tt.want {
+				t.Fatalf("err=%v want %q", err, tt.want)
+			}
+		})
+	}
+}
+
 func TestExtractMakePaymentResult(t *testing.T) {
-	result, err := ExtractMakePaymentResult(map[string]any{
+	payload := map[string]any{
 		"data": map[string]any{
 			"makePayment": map[string]any{"adyenResponse": map[string]any{"resultCode": "Authorised"}},
 		},
-	})
+	}
+
+	result, err := ExtractMakePaymentResult(payload)
 	if err != nil {
 		t.Fatalf("ExtractMakePaymentResult: %v", err)
 	}
 	adyenResponse, ok := result["adyenResponse"].(map[string]any)
 	if !ok || adyenResponse["resultCode"] != "Authorised" {
 		t.Fatalf("adyenResponse=%#v want resultCode Authorised", result["adyenResponse"])
+	}
+
+	response, err := ExtractMakePaymentAdyenResponse(payload)
+	if err != nil {
+		t.Fatalf("ExtractMakePaymentAdyenResponse: %v", err)
+	}
+	responseMap, ok := response.(map[string]any)
+	if !ok || responseMap["resultCode"] != "Authorised" {
+		t.Fatalf("response=%#v want resultCode Authorised", response)
 	}
 }
