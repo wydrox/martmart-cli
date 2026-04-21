@@ -83,6 +83,8 @@ func loginDebugf(opts Options, format string, args ...any) {
 	_, _ = fmt.Fprintf(os.Stderr, "[martmart login] "+format+"\n", args...)
 }
 
+var loginSuccessOpenGracePeriod = 5 * time.Second
+
 func envBool(key string) bool {
 	value := strings.ToLower(strings.TrimSpace(os.Getenv(key)))
 	switch value {
@@ -90,6 +92,24 @@ func envBool(key string) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func remainingLoginPageVisibleDelay(openedAt time.Time) time.Duration {
+	if loginSuccessOpenGracePeriod <= 0 || openedAt.IsZero() {
+		return 0
+	}
+	remaining := time.Until(openedAt.Add(loginSuccessOpenGracePeriod))
+	if remaining < 0 {
+		return 0
+	}
+	return remaining
+}
+
+func keepLoginPageOpenBriefly(opts Options, openedAt time.Time) {
+	if remaining := remainingLoginPageVisibleDelay(openedAt); remaining > 0 {
+		loginDebugf(opts, "keeping login page open for %s before cleanup", remaining.Round(100*time.Millisecond))
+		time.Sleep(remaining)
 	}
 }
 
@@ -201,6 +221,7 @@ func runWithSnapshotBrowser(ctx context.Context, opts Options, provider string) 
 	); err != nil {
 		return nil, fmt.Errorf("could not start login browser: %w", err)
 	}
+	openedAt := time.Now()
 
 	deadline := time.Now().Add(time.Duration(timeoutSec) * time.Second)
 	var accessDetectedAt time.Time
@@ -280,6 +301,7 @@ func runWithSnapshotBrowser(ctx context.Context, opts Options, provider string) 
 		return nil, err
 	}
 
+	keepLoginPageOpenBriefly(opts, openedAt)
 	return &Result{
 		Saved:             true,
 		BaseURL:           s.BaseURL,

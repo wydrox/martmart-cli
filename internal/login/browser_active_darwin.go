@@ -115,6 +115,7 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 		return nil, err
 	}
 	loginDebugf(opts, "opened login page in spawned browser")
+	openedAt := time.Now()
 
 	deadline := time.Now().Add(time.Duration(timeoutSec) * time.Second)
 	var lastErr error
@@ -151,6 +152,7 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 					result.BrowserApp = profile.AppName
 					result.BrowserUserDataDir = profile.UserDataDir
 				}
+				keepLoginPageOpenBriefly(opts, openedAt)
 				return result, saveErr
 			}
 			if err != nil {
@@ -171,6 +173,7 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 					result.BrowserApp = profile.AppName
 					result.BrowserUserDataDir = profile.UserDataDir
 				}
+				keepLoginPageOpenBriefly(opts, openedAt)
 				return result, saveErr
 			}
 			if err != nil {

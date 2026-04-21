@@ -19,6 +19,21 @@ import (
 
 // session login defaults to a provider-specific start URL when --login-url is not set.
 
+var (
+	sessionLoginRun      = login.Run
+	sessionLoginTryReuse = tryReuseExistingSession
+)
+
+type reusedSessionResult struct {
+	Provider          string
+	SessionFile       string
+	BaseURL           string
+	UserID            string
+	TokenSaved        bool
+	RefreshTokenSaved bool
+	CookieSaved       bool
+}
+
 func newSessionCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "session",
@@ -143,29 +158,12 @@ func newSessionVerifyCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if err := verifyLoadedSession(provider, s, userID); err != nil {
+				return err
+			}
 			if provider == session.ProviderDelio {
-				if session.HeaderValue(s, "Cookie") == "" {
-					return errors.New("no Cookie header in Delio session. Use 'session from-curl' with a copied Delio API request")
-				}
-				if _, err := delio.CurrentCart(s); err != nil {
-					return err
-				}
 				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Session OK: Delio currentCart responded successfully.")
 				return nil
-			}
-			if session.TokenString(s) == "" {
-				return errors.New(
-					"no token in session. Use 'session from-curl' or 'session login'",
-				)
-			}
-			uid, err := session.RequireUserID(s, userID)
-			if err != nil {
-				return err
-			}
-			path := fmt.Sprintf("/app/commerce/api/v1/users/%s/cart", uid)
-			_, err = httpclient.RequestJSON(s, "GET", path, httpclient.RequestOpts{})
-			if err != nil {
-				return err
 			}
 			_, _ = fmt.Fprintln(
 				cmd.OutOrStdout(),
@@ -176,6 +174,69 @@ func newSessionVerifyCmd() *cobra.Command {
 	}
 	c.Flags().StringVar(&userID, "user-id", "", "")
 	return c
+}
+
+func verifyLoadedSession(provider string, s *session.Session, userID string) error {
+	if provider == session.ProviderDelio {
+		if session.HeaderValue(s, "Cookie") == "" {
+			return errors.New("no Cookie header in Delio session. Use 'session from-curl' with a copied Delio API request")
+		}
+		_, err := delio.CurrentCart(s)
+		return err
+	}
+	if session.TokenString(s) == "" {
+		return errors.New("no token in session. Use 'session from-curl' or 'session login'")
+	}
+	uid, err := session.RequireUserID(s, userID)
+	if err != nil {
+		return err
+	}
+	path := fmt.Sprintf("/app/commerce/api/v1/users/%s/cart", uid)
+	_, err = httpclient.RequestJSON(s, "GET", path, httpclient.RequestOpts{})
+	return err
+}
+
+func tryReuseExistingSession(provider string) (*reusedSessionResult, error) {
+	s, path, err := session.LoadProviderWithPath(provider)
+	if err != nil {
+		return nil, err
+	}
+	if path == "" || !session.IsAuthenticated(s) {
+		return nil, nil
+	}
+	if err := verifyLoadedSession(provider, s, ""); err != nil {
+		if shouldRetrySessionLoginInBrowser(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("existing %s session found at %s but verification failed: %w", provider, path, err)
+	}
+	return &reusedSessionResult{
+		Provider:          provider,
+		SessionFile:       path,
+		BaseURL:           s.BaseURL,
+		UserID:            session.UserIDString(s),
+		TokenSaved:        session.TokenString(s) != "",
+		RefreshTokenSaved: session.RefreshTokenString(s) != "",
+		CookieSaved:       session.HeaderValue(s, "Cookie") != "",
+	}, nil
+}
+
+func shouldRetrySessionLoginInBrowser(err error) bool {
+	if err == nil {
+		return false
+	}
+	if details, ok := httpclient.ParseError(err); ok {
+		if details.Status == 429 || details.Status >= 500 {
+			return false
+		}
+		if details.Status >= 400 && details.Status < 500 {
+			return true
+		}
+	}
+	msg := strings.ToLower(strings.TrimSpace(err.Error()))
+	return strings.Contains(msg, "no token in session") ||
+		strings.Contains(msg, "no cookie header") ||
+		strings.Contains(msg, "missing user_id")
 }
 
 // tokenSaved reports whether the session contains a non-empty access token.
@@ -271,6 +332,7 @@ func newSessionLoginCmd() *cobra.Command {
 	var profileDirectory string
 	var debugLogin bool
 	var keepOpenOnFailure bool
+	var forceLogin bool
 
 	c := &cobra.Command{
 		Use:   "login",
@@ -280,6 +342,26 @@ func newSessionLoginCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if !forceLogin {
+				reused, err := sessionLoginTryReuse(provider)
+				if err != nil {
+					return err
+				}
+				if reused != nil {
+					_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Existing %s session OK: using %s. Pass --force to re-login in a browser.\n", provider, reused.SessionFile)
+					return printJSON(map[string]any{
+						"saved":                   true,
+						"provider":                reused.Provider,
+						"reused_existing_session": true,
+						"session_file":            reused.SessionFile,
+						"base_url":                reused.BaseURL,
+						"user_id":                 reused.UserID,
+						"token_saved":             reused.TokenSaved,
+						"refresh_token_saved":     reused.RefreshTokenSaved,
+						"cookie_saved":            reused.CookieSaved,
+					})
+				}
+			}
 			if provider == session.ProviderDelio {
 				_, _ = fmt.Fprintln(cmd.OutOrStdout(),
 					"Opening Delio in your default browser app with temporary remote debugging and importing the detected session.")
@@ -288,7 +370,7 @@ func newSessionLoginCmd() *cobra.Command {
 					"Opening Frisco in your default browser app with temporary remote debugging and importing the detected session.")
 			}
 
-			result, err := login.Run(context.Background(), login.Options{
+			result, err := sessionLoginRun(context.Background(), login.Options{
 				Provider:             provider,
 				LoginURL:             loginURL,
 				TimeoutSec:           timeoutSec,
@@ -321,5 +403,6 @@ func newSessionLoginCmd() *cobra.Command {
 	c.Flags().StringVar(&profileDirectory, "profile-directory", "", "Optional browser profile directory name, e.g. Default or Profile 1.")
 	c.Flags().BoolVar(&debugLogin, "debug", false, "Enable verbose session-login diagnostics.")
 	c.Flags().BoolVar(&keepOpenOnFailure, "keep-open-on-failure", false, "Keep the spawned browser window/profile open on login failure for manual inspection.")
+	c.Flags().BoolVar(&forceLogin, "force", false, "Always open the browser login flow even if a saved session already verifies successfully.")
 	return c
 }
