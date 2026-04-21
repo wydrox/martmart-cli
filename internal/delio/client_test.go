@@ -34,3 +34,114 @@ func TestExtractUpdatedCart(t *testing.T) {
 		}
 	})
 }
+
+func TestExtractPaymentSettings(t *testing.T) {
+	payload := map[string]any{
+		"data": map[string]any{
+			"paymentSettings": map[string]any{"adyenClientKey": "test_key"},
+		},
+	}
+
+	settings, err := ExtractPaymentSettings(payload)
+	if err != nil {
+		t.Fatalf("ExtractPaymentSettings: %v", err)
+	}
+	if got := settings["adyenClientKey"]; got != "test_key" {
+		t.Fatalf("adyenClientKey=%v want test_key", got)
+	}
+
+	key, err := ExtractAdyenClientKey(payload)
+	if err != nil {
+		t.Fatalf("ExtractAdyenClientKey: %v", err)
+	}
+	if key != "test_key" {
+		t.Fatalf("key=%q want test_key", key)
+	}
+}
+
+func TestExtractPaymentID(t *testing.T) {
+	t.Run("nested createPayment payload", func(t *testing.T) {
+		paymentID, err := ExtractPaymentID(map[string]any{
+			"data": map[string]any{
+				"createPayment": map[string]any{"paymentId": "pay_123"},
+			},
+		})
+		if err != nil {
+			t.Fatalf("ExtractPaymentID: %v", err)
+		}
+		if paymentID != "pay_123" {
+			t.Fatalf("paymentID=%q want pay_123", paymentID)
+		}
+	})
+
+	t.Run("top-level paymentId fallback", func(t *testing.T) {
+		paymentID, err := ExtractPaymentID(map[string]any{
+			"data": map[string]any{"paymentId": "pay_456"},
+		})
+		if err != nil {
+			t.Fatalf("ExtractPaymentID: %v", err)
+		}
+		if paymentID != "pay_456" {
+			t.Fatalf("paymentID=%q want pay_456", paymentID)
+		}
+	})
+}
+
+func TestExtractPaymentMethods(t *testing.T) {
+	payload := map[string]any{
+		"data": map[string]any{
+			"getPaymentMethods": map[string]any{"adyenResponse": "{\"paymentMethods\":[]}"},
+		},
+	}
+
+	methods, err := ExtractPaymentMethods(payload)
+	if err != nil {
+		t.Fatalf("ExtractPaymentMethods: %v", err)
+	}
+	if got := methods["adyenResponse"]; got != "{\"paymentMethods\":[]}" {
+		t.Fatalf("adyenResponse=%v want JSON payload", got)
+	}
+
+	response, err := ExtractAdyenResponse(payload)
+	if err != nil {
+		t.Fatalf("ExtractAdyenResponse: %v", err)
+	}
+	if response != "{\"paymentMethods\":[]}" {
+		t.Fatalf("response=%q want JSON payload", response)
+	}
+}
+
+func TestBuildCheckoutHelpers(t *testing.T) {
+	action := BuildSetDeliveryScheduleSlotAction(" 2026-04-21T08:00:00Z ", "2026-04-21T10:00:00Z ")
+	setSlot, ok := action["SetDeliveryScheduleSlot"].(map[string]any)
+	if !ok {
+		t.Fatalf("SetDeliveryScheduleSlot action missing: %#v", action)
+	}
+	if setSlot["dateFrom"] != "2026-04-21T08:00:00Z" || setSlot["dateTo"] != "2026-04-21T10:00:00Z" {
+		t.Fatalf("unexpected slot action: %#v", setSlot)
+	}
+
+	config := BuildMakePaymentConfig()
+	if config["paymentChannel"] != "Web" {
+		t.Fatalf("paymentChannel=%v want Web", config["paymentChannel"])
+	}
+
+	method := BuildAdyenPaymentMethod("  {\"stateData\":true}  ")
+	if method["adyenPayload"] != "{\"stateData\":true}" {
+		t.Fatalf("adyenPayload=%v want trimmed payload", method["adyenPayload"])
+	}
+}
+
+func TestExtractMakePaymentResult(t *testing.T) {
+	result, err := ExtractMakePaymentResult(map[string]any{
+		"data": map[string]any{
+			"makePayment": map[string]any{"status": "Authorised", "redirectUrl": "https://example.test/3ds"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("ExtractMakePaymentResult: %v", err)
+	}
+	if result["status"] != "Authorised" {
+		t.Fatalf("status=%v want Authorised", result["status"])
+	}
+}
