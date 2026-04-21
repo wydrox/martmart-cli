@@ -3,10 +3,13 @@ package commands
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/spf13/cobra"
 
 	"github.com/wydrox/martmart-cli/internal/httpclient"
 	"github.com/wydrox/martmart-cli/internal/session"
@@ -50,7 +53,7 @@ func TestCheckoutFinalizeRequiresConfirm(t *testing.T) {
 		checkoutGetShippingAddr = origAddr
 	}()
 
-	checkoutLoadSession = func(_ any, supported ...string) (string, *session.Session, error) {
+	checkoutLoadSession = func(_ *cobra.Command, supported ...string) (string, *session.Session, error) {
 		if len(supported) != 1 || supported[0] != session.ProviderFrisco {
 			t.Fatalf("supported = %v", supported)
 		}
@@ -121,7 +124,7 @@ func TestCheckoutPreviewJSONOutputShape(t *testing.T) {
 		checkoutGetShippingAddr = origAddr
 	}()
 
-	checkoutLoadSession = func(_ any, _ ...string) (string, *session.Session, error) {
+	checkoutLoadSession = func(_ *cobra.Command, _ ...string) (string, *session.Session, error) {
 		return session.ProviderFrisco, &session.Session{BaseURL: session.DefaultBaseURL, UserID: "u-1"}, nil
 	}
 	checkoutGetShippingAddr = func(_ *session.Session, userID string) (map[string]any, error) {
@@ -175,7 +178,7 @@ func TestCheckoutFinalizeConfirmReadback(t *testing.T) {
 		checkoutGetShippingAddr = origAddr
 	}()
 
-	checkoutLoadSession = func(_ any, _ ...string) (string, *session.Session, error) {
+	checkoutLoadSession = func(_ *cobra.Command, _ ...string) (string, *session.Session, error) {
 		return session.ProviderFrisco, &session.Session{BaseURL: session.DefaultBaseURL, UserID: "u-1"}, nil
 	}
 	checkoutGetShippingAddr = func(_ *session.Session, userID string) (map[string]any, error) {

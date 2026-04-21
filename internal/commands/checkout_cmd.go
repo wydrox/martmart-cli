@@ -18,9 +18,9 @@ const (
 )
 
 var (
-	checkoutLoadSession       = loadSessionForSupportedProviders
-	checkoutRequestJSON       = httpclient.RequestJSON
-	checkoutGetShippingAddr   = getShippingAddressFromAccount
+	checkoutLoadSession     = loadSessionForSupportedProviders
+	checkoutRequestJSON     = httpclient.RequestJSON
+	checkoutGetShippingAddr = getShippingAddressFromAccount
 )
 
 func newCheckoutCmd() *cobra.Command {
@@ -88,9 +88,9 @@ func newCheckoutFinalizeCmd() *cobra.Command {
 				preview, previewErr := buildCheckoutPreview(s, uid, payload)
 				if previewErr != nil {
 					preview = map[string]any{
-						"mode":      "finalize",
-						"userId":    uid,
-						"payload":   payload,
+						"mode":       "finalize",
+						"userId":     uid,
+						"payload":    payload,
 						"previewErr": previewErr.Error(),
 					}
 				}
@@ -147,11 +147,11 @@ func buildCheckoutPreview(s *session.Session, userID string, payload map[string]
 	shippingAddress, _ := checkoutGetShippingAddr(s, userID)
 
 	preview := map[string]any{
-		"mode":     "preview",
-		"provider": session.ProviderFrisco,
-		"userId":   userID,
-		"payload":  payload,
-		"cart":     cart,
+		"mode":        "preview",
+		"provider":    session.ProviderFrisco,
+		"userId":      userID,
+		"payload":     payload,
+		"cart":        cart,
 		"cartSummary": summarizeCheckoutCart(cart),
 	}
 	if reservation != nil {
