@@ -160,6 +160,12 @@ martmart session verify
 martmart --provider delio session verify
 ```
 
+Inspect stored sessions across providers when needed:
+
+```bash
+martmart session list
+```
+
 ### 3) Start using it
 
 #### Frisco examples
@@ -231,7 +237,7 @@ martmart products search --search <phrase>
 martmart products get --product-id <id>
 martmart reservation slots --days 2
 martmart session login
-martmart session list
+martmart session list   # inspect stored sessions across providers
 martmart session verify
 martmart mcp
 ```
@@ -431,7 +437,7 @@ Session/config files are stored under `~/.martmart-cli/`.
 - Frisco session: `~/.martmart-cli/frisco-session.json`
 - Delio session: `~/.martmart-cli/delio-session.json`
 - Shared config: `~/.martmart-cli/config.json`
-- Use `martmart session list` to inspect all stored provider sessions at once.
+- Use `martmart session list` to inspect stored sessions across all providers at once.
 
 Legacy compatibility:
 - if a file is missing in `~/.martmart-cli/`, MartMart will also try older Frisco session locations such as `~/.martmart-cli/session.json` and `~/.frisco-cli/session.json`

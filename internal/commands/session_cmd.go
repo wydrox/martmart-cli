@@ -22,9 +22,9 @@ import (
 func newSessionCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "session",
-		Short: "Manage provider sessions (token, headers, user_id).",
+		Short: "Manage provider sessions (tokens, headers, user_id).",
 	}
-	cmd.AddCommand(newSessionFromCurlCmd(), newSessionListCmd(), newSessionShowCmd(), newSessionVerifyCmd(), newSessionLoginCmd(), newSessionRefreshTokenCmd())
+	cmd.AddCommand(newSessionFromCurlCmd(), newSessionListCmd(), newSessionVerifyCmd(), newSessionLoginCmd(), newSessionRefreshTokenCmd())
 	return cmd
 }
 
@@ -133,25 +133,11 @@ func printSessionListTable(entries []sessionListEntry) error {
 	return w.Flush()
 }
 
-func newSessionShowCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "show",
-		Short: "Show the selected provider session (sensitive values redacted).",
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
-			if err != nil {
-				return err
-			}
-			return printJSON(session.RedactedCopy(s))
-		},
-	}
-}
-
 func newSessionVerifyCmd() *cobra.Command {
 	var userID string
 	c := &cobra.Command{
 		Use:   "verify",
-		Short: "Verify the selected provider session; GET cart must succeed.",
+		Short: "Verify the provider session for this request; GET cart must succeed.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {

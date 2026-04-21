@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -59,5 +60,22 @@ func TestPrintSessionListTable(t *testing.T) {
 		if !strings.Contains(out, want) {
 			t.Errorf("expected output to contain %q, got: %q", want, out)
 		}
+	}
+}
+
+func TestNewSessionCmdSubcommands(t *testing.T) {
+	cmd := newSessionCmd()
+	names := make([]string, 0, len(cmd.Commands()))
+	for _, subcmd := range cmd.Commands() {
+		names = append(names, subcmd.Name())
+	}
+
+	for _, want := range []string{"from-curl", "list", "verify", "login", "refresh-token"} {
+		if !slices.Contains(names, want) {
+			t.Fatalf("expected session command to include %q, got %v", want, names)
+		}
+	}
+	if slices.Contains(names, "show") {
+		t.Fatalf("expected session command to omit %q, got %v", "show", names)
 	}
 }
