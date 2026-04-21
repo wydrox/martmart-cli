@@ -125,6 +125,9 @@ func Run(ctx context.Context, opts Options) (*Result, error) {
 	if err := session.ValidateProvider(provider); err != nil {
 		return nil, err
 	}
+	if provider == session.ProviderUpMenu {
+		return nil, fmt.Errorf("browser login is not supported for %s; import a fresh authenticated request with 'session from-curl'", session.ProviderDisplayName(provider))
+	}
 
 	if runtime.GOOS == "darwin" {
 		return runWithExistingBrowser(ctx, opts)
