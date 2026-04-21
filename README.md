@@ -79,11 +79,11 @@ martmart mcp
 | Reservation reserve/cancel | ✅ | ❌ |
 | Account / orders | ✅ | MVP / partial |
 | MCP support | ✅ | partial, shared CLI path |
-| Checkout / payment finalization | ❌ (see Frisco research flow below) | ❌ |
+| Checkout / payment finalization | ⚠️ experimental: Frisco-only preview + guarded finalize (`--confirm`) | ❌ |
 
 ## Safety and scope
 
-MartMart is intentionally focused on **non-finalizing** shopping workflows.
+MartMart stays **safe by default** and avoids implicit purchases.
 
 Implemented scope today:
 - log in
@@ -91,15 +91,17 @@ Implemented scope today:
 - manage cart contents
 - inspect delivery slots
 - inspect account/order data where supported
+- preview Frisco checkout
+- run **guarded** Frisco finalization only with explicit `checkout finalize --confirm`
 
-Not implemented:
-- final checkout
-- payment confirmation
-- placing final orders
+Still not implemented / not supported:
+- Delio checkout finalization
+- automatic background finalization from MCP or agent loops
+- redirect / 3DS completion inside the CLI after the external handoff step
 
-That keeps the tool useful while reducing the risk of accidental purchases.
+That keeps the tool useful while still requiring an explicit opt-in before any final order submission.
 
-Checkout work is currently limited to **Frisco research/documentation**. The released CLI still treats finalization as out of scope until the final browser/API step is confirmed from live captures.
+Frisco checkout support is implemented as an **experimental guarded flow**. The remaining gap is live confirmation of the exact browser/API contract from full-session captures, especially for redirect / 3DS and negative cases.
 
 ## Installation
 
@@ -340,9 +342,9 @@ martmart --provider frisco cart add-batch --file list.json
 Template:
 - [examples/cart-add-batch.example.json](examples/cart-add-batch.example.json)
 
-## Frisco checkout research flow (documented, not fully enabled)
+## Frisco checkout flow (experimental, guarded)
 
-MartMart now documents the **intended Frisco-only checkout flow** even though the final order-confirmation step is **not yet enabled in the released CLI**.
+MartMart now includes an **experimental Frisco-only checkout flow** with preview and explicit guarded finalization.
 
 Target flow:
 
@@ -355,11 +357,11 @@ Target flow:
 
 Current limitations:
 
-- **Frisco only** for checkout research; Delio remains out of scope
+- **Frisco only** for checkout; Delio remains out of scope
 - finalization must never happen implicitly from MCP or agent loops
-- any future finalize command must require explicit `--confirm`
-- redirect / 3DS is expected to be **partial support** at first: detect it, surface the URL / metadata, and let the user finish externally
-- the exact finalization endpoint and success/error contract are still awaiting confirmation from real request/response captures
+- the finalize command requires explicit `--confirm`
+- redirect / 3DS is currently **handoff-only**: the CLI detects it, returns structured action data, and lets the user finish externally
+- the exact live finalization contract still benefits from confirmation from real request/response captures
 
 Example payloads/responses captured as repo fixtures:
 
@@ -371,9 +373,9 @@ Example payloads/responses captured as repo fixtures:
 
 These examples are **redacted / provisional**. They are meant to document the expected contract shape and failure modes for implementation work, not to claim that the final browser-confirmed endpoint is already fully verified.
 
-### Missing evidence before checkout finalization can be treated as implemented
+### Remaining evidence to harden live checkout finalization
 
-To move from research docs to a confirmed implementation, the repo still needs live browser/API evidence for the final Frisco step:
+To move from an experimental implementation to a confirmed production-grade flow, the repo still needs live browser/API evidence for the final Frisco step:
 
 1. **Checkout preview request + response**
    - full request path/method
@@ -486,14 +488,14 @@ Example safe MCP workflows:
 4. **Delivery planning**
    - fetch available slots
    - compare providers if needed
-   - keep checkout/finalization out of scope unless the user explicitly asks for Frisco checkout research
-5. **Checkout preview research (Frisco only, non-finalizing by default)**
+   - keep automatic checkout/finalization out of scope unless the user explicitly asks for guarded Frisco checkout
+5. **Checkout preview / guarded finalize (Frisco only)**
    - reserve/confirm the intended delivery context first
-   - prepare a preview request
+   - run `checkout preview`
    - inspect totals, warnings, payment state, and whether redirect / 3DS might be required
-   - never call finalize unless the user explicitly confirms
+   - call `checkout finalize --confirm` only with explicit user approval
 
-These flows are intentionally designed around **non-finalizing** actions by default.
+These flows are intentionally designed around **non-finalizing by default** behavior.
 
 ## Local data layout
 
@@ -525,8 +527,8 @@ Near-term improvements:
 - stronger MCP/provider parity beyond the Frisco-first surface
 - better provider-aware account/order coverage
 - improved browser/profile discovery for login
-- confirm the final Frisco checkout endpoint and success/error contract from live captures
-- add guarded Frisco finalize support with explicit `--confirm`
+- confirm and harden the live Frisco checkout endpoint and success/error contract from full-session captures
+- add richer redirect / 3DS continuation support after the external handoff step
 - better docs and examples for automation flows
 
 ## Development
