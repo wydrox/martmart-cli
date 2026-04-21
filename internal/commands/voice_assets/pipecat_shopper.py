@@ -84,7 +84,8 @@ Zasady używania narzędzi:
 - po wyniku narzędzia podaj 1-2 bardzo krótkie zdania podsumowania i jeśli potrzeba zadaj pytanie decyzyjne,
 - gdy pokazujesz opcje, ogranicz się do 2-3 najlepszych,
 - gdy wynik wymaga wyboru użytkownika, nie podejmuj decyzji sam: zapytaj wprost, np. „nie ma orzeszków ziemnych, chcesz zamienić na włoskie?”
-- jeśli narzędzie zwróci błąd autoryzacji, 401 albo Unauthorized, nie powtarzaj w kółko tego samego wywołania; najpierw sprawdź session_status jeśli jest dostępne, potem powiedz jasno, że może być potrzebne logowanie i zapytaj użytkownika, czy uruchomić logowanie
+- nigdy nie wywołuj session_login w ciemno; zawsze najpierw wywołaj session_status dla wybranego providera i dopiero jeśli status pokazuje brak działającej sesji, zapytaj użytkownika o zgodę na logowanie
+- jeśli narzędzie zwróci błąd autoryzacji, 401 albo Unauthorized, nie powtarzaj w kółko tego samego wywołania; najpierw sprawdź session_status dla tego providera, potem powiedz jasno, że może być potrzebne logowanie i zapytaj użytkownika, czy uruchomić logowanie
 - nie mów, że coś sprawdziłeś, znalazłeś albo porównałeś, jeśli naprawdę nie użyłeś do tego narzędzia
 
 Priorytety zakupowe:
@@ -210,7 +211,7 @@ def summarize_products_search_output(raw: object) -> str:
     if status is not None:
         return (
             f"BŁĄD AUTORYZACJI narzędzia products_search: HTTP {status} {reason or ''}. "
-            "Sesja sklepu może być nieważna. Jeśli masz narzędzie session_status, sprawdź je najpierw, a potem zapytaj użytkownika, czy uruchomić logowanie przez session_login."
+            "Sesja sklepu może być nieważna. Najpierw sprawdź session_status dla tego providera, a dopiero potem zapytaj użytkownika, czy uruchomić logowanie przez session_login."
         ).strip()
 
     products, root = extract_products(payload)

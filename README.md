@@ -402,7 +402,7 @@ martmart mcp
 
 Example prompts you can give an MCP-capable assistant:
 
-- "Log me in to Frisco and verify the session."
+- "Check session_status for Frisco. If it is not authenticated, ask me and then log me in."
 - "Use Delio, search for oat milk, and show the top 5 results as JSON."
 - "Show my Frisco cart and summarize total quantity by item."
 - "Add 1 carton of milk to my Delio cart and then show the updated cart."
@@ -412,9 +412,10 @@ Example prompts you can give an MCP-capable assistant:
 Example safe MCP workflows:
 
 1. **Session bootstrap**
-   - run `session login`
-   - run `session verify`
    - choose the provider for that request
+   - run `session_status`
+   - only if needed and with user confirmation, run `session_login`
+   - then run `session verify`
 2. **Product discovery**
    - search products
    - inspect a specific product

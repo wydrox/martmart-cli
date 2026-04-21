@@ -7,12 +7,21 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"github.com/wydrox/martmart-cli/internal/httpclient"
 	"github.com/wydrox/martmart-cli/internal/login"
 	"github.com/wydrox/martmart-cli/internal/session"
+)
+
+const sessionStatusLoginWindow = 5 * time.Minute
+
+var (
+	sessionStatusCheckMu       sync.Mutex
+	sessionStatusCheckedByProv = map[string]time.Time{}
 )
 
 // registerAccountSessionAuthTools registers all account, session, and auth MCP tools.
@@ -74,7 +83,7 @@ func registerAccountSessionAuthTools(server *mcp.Server) {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "session_login",
-		Description: "Opens the provider page in the user's default browser app with temporary remote debugging, captures auth session data automatically, and saves the session. Prefer session_status first so you do not open login unnecessarily.",
+		Description: "Opens the provider page in the user's default browser app with temporary remote debugging, captures auth session data automatically, and saves the session. Requires a recent session_status check for the same provider so agents do not open login unnecessarily.",
 	}, toolSessionLogin)
 
 	mcp.AddTool(server, &mcp.Tool{
@@ -598,32 +607,43 @@ type sessionStatusIn struct {
 }
 
 func toolSessionStatus(_ context.Context, _ *mcp.CallToolRequest, in sessionStatusIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	payload, err := sessionStatusPayload(strings.TrimSpace(in.Provider))
+	targetProviders, err := sessionStatusProviders(strings.TrimSpace(in.Provider))
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
+	payload, err := sessionStatusPayload(targetProviders)
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
+	}
+	markSessionStatusChecked(targetProviders...)
 	return mcpCPWrapFriscoResult(payload)
 }
 
 func toolProvidersList(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	payload, err := sessionStatusPayload("")
+	targetProviders, err := sessionStatusProviders("")
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
+	}
+	payload, err := sessionStatusPayload(targetProviders)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
 	return mcpCPWrapFriscoResult(payload)
 }
 
-func sessionStatusPayload(requestedProvider string) (map[string]any, error) {
-	providers := mcpAvailableProviders()
-	targetProviders := providers
-	if strings.TrimSpace(requestedProvider) != "" {
-		provider, err := mcpResolveProvider(requestedProvider)
-		if err != nil {
-			return nil, err
-		}
-		targetProviders = []string{provider}
+func sessionStatusProviders(requestedProvider string) ([]string, error) {
+	if strings.TrimSpace(requestedProvider) == "" {
+		return mcpAvailableProviders(), nil
 	}
+	provider, err := mcpResolveProvider(requestedProvider)
+	if err != nil {
+		return nil, err
+	}
+	return []string{provider}, nil
+}
 
+func sessionStatusPayload(targetProviders []string) (map[string]any, error) {
+	providers := mcpAvailableProviders()
 	items := make([]map[string]any, 0, len(targetProviders))
 	savedProviders := make([]string, 0, len(targetProviders))
 	authenticatedProviders := make([]string, 0, len(targetProviders))
@@ -648,10 +668,47 @@ func sessionStatusPayload(requestedProvider string) (map[string]any, error) {
 		"saved_providers":         savedProviders,
 		"authenticated_providers": authenticatedProviders,
 	}
-	if strings.TrimSpace(requestedProvider) != "" {
+	if len(targetProviders) == 1 {
 		payload["requested_provider"] = targetProviders[0]
 	}
 	return payload, nil
+}
+
+func markSessionStatusChecked(providers ...string) {
+	now := time.Now()
+	sessionStatusCheckMu.Lock()
+	defer sessionStatusCheckMu.Unlock()
+	for _, provider := range providers {
+		provider = session.NormalizeProvider(provider)
+		if provider == "" {
+			continue
+		}
+		sessionStatusCheckedByProv[provider] = now
+	}
+}
+
+func resetSessionStatusChecks() {
+	sessionStatusCheckMu.Lock()
+	defer sessionStatusCheckMu.Unlock()
+	sessionStatusCheckedByProv = map[string]time.Time{}
+}
+
+func recentSessionStatusCheck(provider string, now time.Time) bool {
+	provider = session.NormalizeProvider(provider)
+	sessionStatusCheckMu.Lock()
+	defer sessionStatusCheckMu.Unlock()
+	checkedAt, ok := sessionStatusCheckedByProv[provider]
+	if !ok {
+		return false
+	}
+	return now.Sub(checkedAt) <= sessionStatusLoginWindow
+}
+
+func requireRecentSessionStatus(provider string, now time.Time) error {
+	if recentSessionStatusCheck(provider, now) {
+		return nil
+	}
+	return fmt.Errorf("call session_status for provider %q immediately before session_login", session.NormalizeProvider(provider))
 }
 
 func sessionStatusEntry(provider string, s *session.Session, sourcePath string) map[string]any {
@@ -807,6 +864,9 @@ func sessionLoginTimeoutSec(in sessionLoginIn) int {
 func toolSessionLogin(ctx context.Context, _ *mcp.CallToolRequest, in sessionLoginIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
 	provider, err := mcpResolveProvider(in.Provider)
 	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
+	}
+	if err := requireRecentSessionStatus(provider, time.Now()); err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
 	timeout := sessionLoginTimeoutSec(in)

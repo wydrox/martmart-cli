@@ -3,6 +3,7 @@ package mcpserver
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/wydrox/martmart-cli/internal/session"
@@ -332,6 +333,25 @@ func TestSessionStatusEntry(t *testing.T) {
 	headerKeys, ok := got["header_keys"].([]string)
 	if !ok || len(headerKeys) != 2 {
 		t.Fatalf("expected 2 header keys, got %T %v", got["header_keys"], got["header_keys"])
+	}
+}
+
+func TestSessionLoginRequiresRecentSessionStatus(t *testing.T) {
+	resetSessionStatusChecks()
+	if err := requireRecentSessionStatus(session.ProviderFrisco, time.Now()); err == nil {
+		t.Fatal("expected missing session_status check to block session_login")
+	}
+	markSessionStatusChecked(session.ProviderFrisco)
+	if err := requireRecentSessionStatus(session.ProviderFrisco, time.Now()); err != nil {
+		t.Fatalf("expected recent session_status check to allow session_login, got %v", err)
+	}
+}
+
+func TestSessionLoginRequiresFreshSessionStatus(t *testing.T) {
+	resetSessionStatusChecks()
+	markSessionStatusChecked(session.ProviderFrisco)
+	if recentSessionStatusCheck(session.ProviderFrisco, time.Now().Add(sessionStatusLoginWindow+time.Second)) {
+		t.Fatal("expected old session_status check to expire")
 	}
 }
 
