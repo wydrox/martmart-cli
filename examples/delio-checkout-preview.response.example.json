@@ -1,26 +1,51 @@
 {
-  "_note": "Redacted / provisional Delio checkout preview response example. This fixture documents an observed/expected contract shape only; MartMart does not yet expose Delio checkout commands.",
+  "_note": "Redacted / provisional Delio checkout preview reference assembled from GraphQL responses already modeled in internal/delio. No user-facing Delio checkout CLI command exists yet.",
   "data": {
-    "checkoutPreview": {
-      "cartId": "cart_delio_123",
-      "currency": "PLN",
-      "totals": {
-        "subtotal": 142.11,
-        "deliveryFee": 12.99,
-        "discountTotal": 8.5,
-        "grandTotal": 146.6
+    "currentCart": {
+      "id": "cart_delio_123",
+      "deliveryScheduleSlot": {
+        "dateFrom": "2026-04-22T18:00:00+02:00",
+        "dateTo": "2026-04-22T20:00:00+02:00"
       },
-      "delivery": {
-        "startsAt": "2026-04-22T18:00:00+02:00",
-        "endsAt": "2026-04-22T20:00:00+02:00",
-        "method": "courier"
+      "shippingMethod": {
+        "key": "courier",
+        "name": "Kurier Delio",
+        "type": "delivery",
+        "price": {
+          "value": {
+            "centAmount": 1299,
+            "currencyCode": "PLN"
+          }
+        }
       },
-      "payment": {
-        "provider": "adyen",
-        "method": "scheme",
-        "status": "ready"
+      "paymentInfo": {
+        "payments": [
+          {
+            "id": "pay_123"
+          }
+        ]
       },
-      "issues": []
+      "totalPrice": {
+        "centAmount": 14660,
+        "currencyCode": "PLN"
+      },
+      "lineItems": [
+        {
+          "id": "line_1",
+          "quantity": 1,
+          "product": {
+            "sku": "A0000860",
+            "name": "Mleko 3.2% 1L"
+          },
+          "totalPrice": {
+            "centAmount": 489,
+            "currencyCode": "PLN"
+          }
+        }
+      ]
+    },
+    "paymentSettings": {
+      "adyenClientKey": "test_DELIO_CLIENT_KEY"
     }
   }
 }

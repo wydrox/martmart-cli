@@ -1,17 +1,11 @@
 {
-  "_note": "Redacted / provisional Delio checkout finalize success response example. This is a contract-reference fixture only; Delio checkout is not yet implemented as a MartMart CLI command.",
+  "_note": "Redacted / provisional Delio makePayment success response reference. This matches the GraphQL fields parsed by ExtractMakePaymentResult and ExtractMakePaymentAdyenResponse; Delio checkout is not yet exposed as a MartMart CLI command.",
   "data": {
-    "placeOrder": {
-      "orderId": "delio_order_123456",
-      "status": "placed",
-      "payment": {
-        "provider": "adyen",
-        "status": "authorised",
-        "requiresAction": false
-      },
-      "summary": {
-        "total": 146.6,
-        "currency": "PLN"
+    "makePayment": {
+      "adyenResponse": {
+        "resultCode": "Authorised",
+        "merchantReference": "cart_delio_123",
+        "pspReference": "8836176556841234"
       }
     }
   }

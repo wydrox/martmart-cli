@@ -1,5 +1,5 @@
 {
-  "_note": "Redacted / provisional Delio finalize response when Adyen requires additional shopper action. This fixture is for documentation and future mapping work only; it is not current MartMart CLI output.",
+  "_note": "Legacy alias for the Delio redirect / 3DS example. See delio-checkout-finalize.redirect-3ds.response.example.json for the current documented fixture. This is not current MartMart CLI output.",
   "data": {
     "placeOrder": {
       "orderId": null,
