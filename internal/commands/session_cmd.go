@@ -181,7 +181,11 @@ func verifyLoadedSession(provider string, s *session.Session, userID string) err
 		if session.HeaderValue(s, "Cookie") == "" {
 			return errors.New("no Cookie header in Delio session. Use 'session from-curl' with a copied Delio API request")
 		}
-		_, err := delio.CurrentCart(s)
+		payload, err := delio.CurrentCart(s)
+		if err != nil {
+			return err
+		}
+		_, err = delio.ExtractCurrentCart(payload)
 		return err
 	}
 	if session.TokenString(s) == "" {

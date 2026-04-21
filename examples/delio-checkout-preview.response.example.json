@@ -1,5 +1,5 @@
 {
-  "_note": "Redacted / provisional Delio checkout preview reference assembled from GraphQL responses already modeled in internal/delio. No user-facing Delio checkout CLI command exists yet.",
+  "_note": "Redacted / provisional Delio checkout preview reference assembled from GraphQL responses modeled in internal/delio and used by MartMart's experimental Delio checkout CLI flow.",
   "data": {
     "currentCart": {
       "id": "cart_delio_123",

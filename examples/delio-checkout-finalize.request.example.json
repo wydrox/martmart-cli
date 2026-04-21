@@ -1,5 +1,5 @@
 {
-  "_note": "Redacted / provisional Delio checkout finalize reference. These are the GraphQL steps already modeled in internal/delio, but there is no public Delio `checkout finalize` CLI command yet.",
+  "_note": "Redacted / provisional Delio checkout finalize reference. These are the GraphQL steps used by MartMart's experimental Delio `checkout finalize` flow.",
   "sequence": [
     {
       "operationName": "CreatePayment",

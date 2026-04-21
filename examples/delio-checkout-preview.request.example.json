@@ -1,5 +1,5 @@
 {
-  "_note": "Redacted / provisional Delio checkout preview-preparation reference. These request fragments mirror helper shapes already present in internal/delio for cart updates and payment settings lookup. Delio checkout is not yet exposed as a user-facing MartMart CLI command.",
+  "_note": "Redacted / provisional Delio checkout preview-preparation reference. These request fragments mirror the Delio checkout flow used by MartMart's experimental CLI support.",
   "sequence": [
     {
       "operationName": "UpdateCurrentCart",

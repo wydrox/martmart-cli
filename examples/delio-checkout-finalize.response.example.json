@@ -1,5 +1,5 @@
 {
-  "_note": "Redacted / provisional Delio makePayment success response reference. This matches the GraphQL fields parsed by ExtractMakePaymentResult and ExtractMakePaymentAdyenResponse; Delio checkout is not yet exposed as a MartMart CLI command.",
+  "_note": "Redacted / provisional Delio makePayment success response reference. This matches the GraphQL fields parsed by ExtractMakePaymentResult and ExtractMakePaymentAdyenResponse in MartMart's experimental Delio checkout flow.",
   "data": {
     "makePayment": {
       "adyenResponse": {

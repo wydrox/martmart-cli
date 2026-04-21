@@ -1,5 +1,5 @@
 {
-  "_note": "Redacted / provisional Delio makePayment response when Adyen requires additional shopper action. This matches the makePayment.adyenResponse branch already parsed by internal/delio helpers. It is documentation for future checkout wiring, not current MartMart CLI output.",
+  "_note": "Redacted / provisional Delio makePayment response when Adyen requires additional shopper action. This matches the makePayment.adyenResponse branch parsed by MartMart's experimental Delio checkout flow and surfaced as structured action data.",
   "data": {
     "makePayment": {
       "adyenResponse": {

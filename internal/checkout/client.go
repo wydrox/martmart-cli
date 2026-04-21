@@ -8,9 +8,6 @@ type Client interface {
 	Finalize(s *session.Session, opts FinalizeOptions) (*FinalizeResult, error)
 }
 
-// newDelioClient is wired by Delio checkout support when available.
-var newDelioClient func() Client
-
 // NewClient returns a provider-aware checkout client.
 //
 // Unknown or empty providers fall back to the existing Frisco implementation so
@@ -19,10 +16,7 @@ var newDelioClient func() Client
 func NewClient(provider string) Client {
 	switch session.NormalizeProvider(provider) {
 	case session.ProviderDelio:
-		if newDelioClient != nil {
-			return newDelioClient()
-		}
-		return NewFriscoClient()
+		return NewDelioClient()
 	default:
 		return NewFriscoClient()
 	}

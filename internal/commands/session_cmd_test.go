@@ -2,7 +2,10 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"slices"
 	"strings"
 	"testing"
@@ -186,5 +189,25 @@ func TestShouldRetrySessionLoginInBrowser(t *testing.T) {
 	}
 	if shouldRetrySessionLoginInBrowser(&httpclient.ErrorDetails{Status: 503}) {
 		t.Fatal("5xx should not trigger browser login retry")
+	}
+}
+
+func TestVerifyLoadedSession_DelioRejectsGraphQLErrors(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(map[string]any{
+			"errors": []any{map[string]any{"message": "Unauthorized", "extensions": map[string]any{"code": "UNAUTHENTICATED"}}},
+		}); err != nil {
+			t.Fatalf("encode: %v", err)
+		}
+	}))
+	defer server.Close()
+
+	err := verifyLoadedSession(session.ProviderDelio, &session.Session{
+		BaseURL: server.URL,
+		Headers: map[string]string{"Cookie": "idToken=abc; refreshToken=def"},
+	}, "")
+	if err == nil || !strings.Contains(err.Error(), "Unauthorized") {
+		t.Fatalf("verifyLoadedSession error = %v, want GraphQL Unauthorized", err)
 	}
 }
