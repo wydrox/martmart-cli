@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// UnsupportedProviderError reports that checkout finalization is Frisco-only for now.
+// UnsupportedProviderError reports that the selected provider is not supported by the requested checkout flow.
 type UnsupportedProviderError struct {
 	Provider  string
 	Supported []string

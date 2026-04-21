@@ -2,6 +2,7 @@ package checkout
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -37,15 +38,15 @@ func (c *DelioClient) Preview(s *session.Session, opts PreviewOptions) (*Checkou
 
 	raw := map[string]any{"currentCart": currentCartPayload}
 	preview := &CheckoutPreview{
-		Provider: provider,
-		UserID:   uid,
-		CartID:   delioCartID(cart),
-		ItemCount: delioCartItemCount(cart),
-		Total:    delioCartTotal(cart),
+		Provider:    provider,
+		UserID:      uid,
+		CartID:      delioCartID(cart),
+		ItemCount:   delioCartItemCount(cart),
+		Total:       delioCartTotal(cart),
 		Reservation: delioCartReservation(cart),
-		Payment:  nil,
-		Issues:   nil,
-		Raw:      raw,
+		Payment:     nil,
+		Issues:      nil,
+		Raw:         raw,
 	}
 
 	billingAddress := delioBillingAddress(cart)
@@ -116,10 +117,10 @@ func (c *DelioClient) Finalize(s *session.Session, opts FinalizeOptions) (*Final
 	}
 
 	result := &FinalizeResult{
-		Provider: provider,
-		UserID:   uid,
-		Preview:  preview,
-		Status:   FinalizeStatusPending,
+		Provider:    provider,
+		UserID:      uid,
+		Preview:     preview,
+		Status:      FinalizeStatusPending,
 		APIResponse: map[string]any{},
 	}
 	if !preview.ReadyToFinalize {
@@ -165,7 +166,7 @@ func (c *DelioClient) Finalize(s *session.Session, opts FinalizeOptions) (*Final
 		return nil, &MalformedResponseError{Operation: "MakePayment", Message: err.Error()}
 	}
 
-	result.OrderID = firstNonEmpty(delioString(makePaymentResult, "orderId"), delioString(makePaymentPayload, "orderId"))
+	result.OrderID = firstNonEmpty(delioString(makePaymentResult, "orderId"), delioString(delioMapFromAny(makePaymentPayload), "orderId"))
 	result.Action = detectDelioPaymentAction(makePaymentResult)
 	if result.Action == nil {
 		result.Action = detectDelioPaymentAction(delioMapFromAny(result.APIResponse["makePayment"]))
@@ -419,7 +420,11 @@ func delioString(m map[string]any, key string) string {
 	if m == nil {
 		return ""
 	}
-	return strings.TrimSpace(strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(strings.TrimSpace(toString(m[key]))), "<nil>"), "<nil>")))
+	v, ok := m[key]
+	if !ok || v == nil {
+		return ""
+	}
+	return strings.TrimSpace(fmt.Sprint(v))
 }
 
 func delioNumber(v any) (float64, bool) {
@@ -436,27 +441,5 @@ func delioNumber(v any) (float64, bool) {
 		return float64(n), true
 	default:
 		return 0, false
-	}
-}
-
-func toString(v any) string {
-	if v == nil {
-		return ""
-	}
-	switch t := v.(type) {
-	case string:
-		return t
-	default:
-		b, _ := json.Marshal(t)
-		if string(b) == "null" || string(b) == "\"\"" {
-			return ""
-		}
-		if len(b) > 0 && b[0] == '"' {
-			var s string
-			if err := json.Unmarshal(b, &s); err == nil {
-				return s
-			}
-		}
-		return strings.TrimSpace(string(b))
 	}
 }
