@@ -19,11 +19,15 @@ const (
 	ProviderFrisco = "frisco"
 	// ProviderDelio identifies the Delio backend.
 	ProviderDelio = "delio"
+	// ProviderUpMenu identifies the UpMenu backend.
+	ProviderUpMenu = "upmenu"
 
 	// DefaultBaseURL is the base URL for the Frisco API.
 	DefaultBaseURL = "https://www.frisco.pl"
 	// DefaultDelioBaseURL is the base URL for the Delio API.
 	DefaultDelioBaseURL = "https://delio.com.pl"
+	// DefaultUpMenuBaseURL is the default base URL for UpMenu sessions.
+	DefaultUpMenuBaseURL = "https://www.upmenu.com"
 )
 
 var (
@@ -68,9 +72,26 @@ func StorageDir() string {
 
 // SupportedProviders returns the sorted list of supported backend providers.
 func SupportedProviders() []string {
-	providers := []string{ProviderFrisco, ProviderDelio}
+	providers := []string{ProviderFrisco, ProviderDelio, ProviderUpMenu}
 	sort.Strings(providers)
 	return providers
+}
+
+// SupportedProvidersFlagHelp returns a flag/help-friendly provider list.
+func SupportedProvidersFlagHelp() string {
+	return strings.Join(SupportedProviders(), " or ")
+}
+
+// ProviderDisplayName returns a human-friendly provider name.
+func ProviderDisplayName(provider string) string {
+	switch NormalizeProvider(provider) {
+	case ProviderDelio:
+		return "Delio"
+	case ProviderUpMenu:
+		return "UpMenu"
+	default:
+		return "Frisco"
+	}
 }
 
 // NormalizeProvider lowercases and trims provider names.
@@ -81,7 +102,7 @@ func NormalizeProvider(provider string) string {
 // ValidateProvider validates a provider identifier.
 func ValidateProvider(provider string) error {
 	switch NormalizeProvider(provider) {
-	case ProviderFrisco, ProviderDelio:
+	case ProviderFrisco, ProviderDelio, ProviderUpMenu:
 		return nil
 	default:
 		return fmt.Errorf("unsupported provider %q (use one of: %s)", provider, strings.Join(SupportedProviders(), ", "))
@@ -93,6 +114,8 @@ func DefaultBaseURLForProvider(provider string) string {
 	switch NormalizeProvider(provider) {
 	case ProviderDelio:
 		return DefaultDelioBaseURL
+	case ProviderUpMenu:
+		return DefaultUpMenuBaseURL
 	default:
 		return DefaultBaseURL
 	}
@@ -105,6 +128,8 @@ func ProviderForURL(rawURL string) string {
 		switch {
 		case host == "delio.com.pl" || strings.HasSuffix(host, ".delio.com.pl"):
 			return ProviderDelio
+		case host == "upmenu.com" || strings.HasSuffix(host, ".upmenu.com"):
+			return ProviderUpMenu
 		case host == "frisco.pl" || strings.HasSuffix(host, ".frisco.pl"):
 			return ProviderFrisco
 		}
@@ -132,10 +157,14 @@ func ProviderForSession(s *Session, fallbackProvider string) string {
 			return ProviderFrisco
 		}
 	}
-	if fallbackProvider == ProviderDelio {
+	switch fallbackProvider {
+	case ProviderDelio:
 		return ProviderDelio
+	case ProviderUpMenu:
+		return ProviderUpMenu
+	default:
+		return ProviderFrisco
 	}
-	return ProviderFrisco
 }
 
 // SessionFilePath returns the provider-specific session file path.
@@ -143,6 +172,8 @@ func SessionFilePath(provider string) string {
 	switch NormalizeProvider(provider) {
 	case ProviderDelio:
 		return filepath.Join(sessionDir, "delio-session.json")
+	case ProviderUpMenu:
+		return filepath.Join(sessionDir, "upmenu-session.json")
 	default:
 		if strings.TrimSpace(sessionFile) != "" {
 			return sessionFile
@@ -172,6 +203,8 @@ func sessionLoadPaths(provider string) []string {
 	switch provider {
 	case ProviderDelio:
 		paths = appendUniquePath(paths, filepath.Join(legacySessionDir, "delio-session.json"))
+	case ProviderUpMenu:
+		// UpMenu support is new; there is no legacy session filename.
 	default:
 		paths = appendUniquePath(paths, filepath.Join(sessionDir, "session.json"))
 		paths = appendUniquePath(paths, filepath.Join(legacySessionDir, "frisco-session.json"))
@@ -401,11 +434,12 @@ func providerFromHeaders(headers map[string]string) string {
 				return ProviderFrisco
 			}
 		case "origin", "referer":
-			if ProviderForURL(v) == ProviderDelio {
-				return ProviderDelio
+			if provider := ProviderForURL(v); provider == ProviderDelio || provider == ProviderUpMenu {
+				return provider
 			}
 		}
 	}
+	seenUpMenuCookie := false
 	for _, part := range strings.Split(cookie, ";") {
 		trimmed := strings.TrimSpace(part)
 		idx := strings.IndexByte(trimmed, '=')
@@ -416,10 +450,18 @@ func providerFromHeaders(headers map[string]string) string {
 		switch name {
 		case "authtoken", "idtoken", "refreshtoken":
 			return ProviderDelio
+		case "xsrf-token", "laravel_session":
+			seenUpMenuCookie = true
 		}
 		if strings.Contains(name, "rtoken") || strings.Contains(name, "sessionid") || strings.Contains(name, "userid") {
 			return ProviderFrisco
 		}
+		if strings.Contains(name, "upmenu") {
+			seenUpMenuCookie = true
+		}
+	}
+	if seenUpMenuCookie {
+		return ProviderUpMenu
 	}
 	return ""
 }

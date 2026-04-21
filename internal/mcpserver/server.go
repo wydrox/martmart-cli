@@ -14,6 +14,7 @@ func New() *mcp.Server {
 		Version: serverVersion,
 	}, nil)
 
+	registerUpMenuTools(server)
 	registerCartAndProductsTools(server)
 	registerOrdersAndReservationTools(server)
 	registerAccountSessionAuthTools(server)

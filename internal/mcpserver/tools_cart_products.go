@@ -27,10 +27,27 @@ func mcpResolveProvider(provider string) (string, error) {
 	if provider == "" {
 		return "", errors.New("provider is required; ask the user whether to use frisco or delio")
 	}
+	if isUpMenuProviderAlias(provider) {
+		return "", errUpMenuLegacyUnsupported
+	}
 	if err := session.ValidateProvider(provider); err != nil {
 		return "", err
 	}
 	return provider, nil
+}
+
+var errUpMenuLegacyUnsupported = errors.New(
+	`provider "upmenu" is not supported by the legacy Frisco/Delio MCP tools; ` +
+		`use upmenu_restaurant_info, upmenu_menu_show, upmenu_cart_show, or upmenu_cart_add instead`,
+)
+
+func isUpMenuProviderAlias(provider string) bool {
+	switch strings.NewReplacer("-", "", "_", "", " ", "").Replace(strings.ToLower(strings.TrimSpace(provider))) {
+	case "upmenu", "dobrabula", "dobrabuła":
+		return true
+	default:
+		return false
+	}
 }
 
 func mcpAvailableProviders() []string {

@@ -184,11 +184,32 @@ func TestShouldRetrySessionLoginInBrowser(t *testing.T) {
 	if !shouldRetrySessionLoginInBrowser(errors.New("no token in session. Use 'session from-curl' or 'session login'")) {
 		t.Fatal("missing token should trigger browser login retry")
 	}
+	if !shouldRetrySessionLoginInBrowser(errors.New("no auth headers in UpMenu session. Use 'session from-curl' with a copied authenticated UpMenu request")) {
+		t.Fatal("missing UpMenu auth should trigger browser login retry path")
+	}
 	if shouldRetrySessionLoginInBrowser(&httpclient.ErrorDetails{Status: 429}) {
 		t.Fatal("429 should not trigger browser login retry")
 	}
 	if shouldRetrySessionLoginInBrowser(&httpclient.ErrorDetails{Status: 503}) {
 		t.Fatal("5xx should not trigger browser login retry")
+	}
+}
+
+func TestSessionLogin_UpMenuUnsupported(t *testing.T) {
+	root := NewRootCmd()
+	root.SetArgs([]string{"--provider", session.ProviderUpMenu, "session", "login"})
+	err := root.Execute()
+	if err == nil || !strings.Contains(err.Error(), "not implemented for UpMenu") {
+		t.Fatalf("Execute error = %v, want UpMenu unsupported login", err)
+	}
+}
+
+func TestSessionRefreshToken_UpMenuUnsupported(t *testing.T) {
+	root := NewRootCmd()
+	root.SetArgs([]string{"--provider", session.ProviderUpMenu, "session", "refresh-token"})
+	err := root.Execute()
+	if err == nil || !strings.Contains(err.Error(), "not implemented for UpMenu") {
+		t.Fatalf("Execute error = %v, want UpMenu unsupported refresh-token", err)
 	}
 }
 
@@ -209,5 +230,34 @@ func TestVerifyLoadedSession_DelioRejectsGraphQLErrors(t *testing.T) {
 	}, "")
 	if err == nil || !strings.Contains(err.Error(), "Unauthorized") {
 		t.Fatalf("verifyLoadedSession error = %v, want GraphQL Unauthorized", err)
+	}
+}
+
+func TestVerifyLoadedSession_UpMenuRequiresAuthHeaders(t *testing.T) {
+	err := verifyLoadedSession(session.ProviderUpMenu, &session.Session{BaseURL: "https://example.com"}, "")
+	if err == nil || !strings.Contains(err.Error(), "no auth headers in UpMenu session") {
+		t.Fatalf("verifyLoadedSession error = %v, want missing UpMenu auth message", err)
+	}
+}
+
+func TestVerifyLoadedSession_UpMenuChecksBaseURL(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			t.Fatalf("path = %q, want /", r.URL.Path)
+		}
+		if got := r.Header.Get("Cookie"); got == "" {
+			t.Fatal("expected Cookie header on UpMenu verify request")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	err := verifyLoadedSession(session.ProviderUpMenu, &session.Session{
+		BaseURL: server.URL,
+		Headers: map[string]string{"Cookie": "XSRF-TOKEN=a; laravel_session=b"},
+	}, "")
+	if err != nil {
+		t.Fatalf("verifyLoadedSession error = %v, want nil", err)
 	}
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/wydrox/martmart-cli/internal/config"
 	"github.com/wydrox/martmart-cli/internal/httpclient"
+	"github.com/wydrox/martmart-cli/internal/session"
 )
 
 // Execute runs the root command (for main).
@@ -74,7 +75,7 @@ func NewRootCmd() *cobra.Command {
 	root.PersistentFlags().String(
 		"provider",
 		"",
-		"Provider for this command invocation: frisco or delio.",
+		fmt.Sprintf("Provider for this command invocation: %s.", session.SupportedProvidersFlagHelp()),
 	)
 	root.PersistentFlags().Float64Var(
 		&rateLimitRPS,

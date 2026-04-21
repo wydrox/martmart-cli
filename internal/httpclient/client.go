@@ -164,7 +164,7 @@ func requestJSONWithAutoRefresh(
 	if tok := session.TokenString(s); tok != "" && !headerKeyPresent(headers, "authorization") {
 		headers["Authorization"] = "Bearer " + tok
 	}
-	if !headerKeyPresent(headers, "X-Frisco-VisitorId") {
+	if provider == session.ProviderFrisco && !headerKeyPresent(headers, "X-Frisco-VisitorId") {
 		headers["X-Frisco-VisitorId"] = generateVisitorID()
 	}
 	for k, v := range opts.ExtraHeaders {
@@ -309,6 +309,10 @@ func isTokenEndpoint(fullURL string) bool {
 // refreshAccessToken attempts to obtain a new access token using the session's
 // refresh token and updates the session in place on success.
 func refreshAccessToken(s *session.Session, client *http.Client) (bool, error) {
+	provider := session.ProviderForSession(s, session.ProviderFrisco)
+	if provider != session.ProviderFrisco {
+		return false, fmt.Errorf("automatic token refresh is not supported for %s", session.ProviderDisplayName(provider))
+	}
 	rt := session.RefreshTokenString(s)
 	if rt == "" {
 		return false, errors.New("missing refresh token")

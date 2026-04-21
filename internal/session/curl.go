@@ -206,6 +206,10 @@ func isTrustedHostForProvider(provider, host string) bool {
 			return true
 		}
 		return strings.HasSuffix(h, ".delio.com.pl")
+	case ProviderUpMenu:
+		// UpMenu storefronts can live on restaurant-specific domains, so when the
+		// user explicitly selected --provider upmenu we trust the captured host.
+		return true
 	default:
 		if h == "frisco.pl" {
 			return true

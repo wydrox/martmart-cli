@@ -523,6 +523,23 @@ func TestApplyFromCurl_BaseURLMalformedURLUnchanged(t *testing.T) {
 	}
 }
 
+func TestApplyFromCurlForProvider_UpMenuTrustsExplicitCustomHost(t *testing.T) {
+	s := &Session{BaseURL: DefaultUpMenuBaseURL, Headers: map[string]string{}}
+	ApplyFromCurlForProvider(s, &CurlData{
+		Method: "GET",
+		URL:    "https://pizza.example.test/api/account",
+		Headers: map[string]string{
+			"Cookie": "XSRF-TOKEN=a; laravel_session=b",
+		},
+	}, ProviderUpMenu)
+	if s.BaseURL != "https://pizza.example.test" {
+		t.Fatalf("base_url: got %q, want https://pizza.example.test", s.BaseURL)
+	}
+	if s.Headers["Cookie"] == "" {
+		t.Fatal("expected Cookie header to be preserved")
+	}
+}
+
 func TestIsTrustedFriscoHost(t *testing.T) {
 	tests := []struct {
 		host string
@@ -823,6 +840,26 @@ func TestProviderForSession_FallsBackToExplicitProvider(t *testing.T) {
 	}
 }
 
+func TestSupportedProviders_IncludesUpMenu(t *testing.T) {
+	providers := SupportedProviders()
+	if got, want := strings.Join(providers, ","), "delio,frisco,upmenu"; got != want {
+		t.Fatalf("SupportedProviders = %q, want %q", got, want)
+	}
+}
+
+func TestProviderForURL_InfersUpMenu(t *testing.T) {
+	if got := ProviderForURL("https://www.upmenu.com/admin/login"); got != ProviderUpMenu {
+		t.Fatalf("ProviderForURL = %q, want %q", got, ProviderUpMenu)
+	}
+}
+
+func TestProviderForSession_InfersUpMenuFromLaravelCookies(t *testing.T) {
+	s := &Session{Headers: map[string]string{"Cookie": "XSRF-TOKEN=a; laravel_session=b"}}
+	if got := ProviderForSession(s, ""); got != ProviderUpMenu {
+		t.Fatalf("ProviderForSession = %q, want %q", got, ProviderUpMenu)
+	}
+}
+
 // ============================================================================
 // UserIDString / RequireUserID
 // ============================================================================
@@ -1003,6 +1040,22 @@ func TestLoadProviderWithPath_MissingReturnsEmptyPath(t *testing.T) {
 	}
 }
 
+func TestLoadProviderWithPath_UpMenuMissingReturnsDefault(t *testing.T) {
+	dir := t.TempDir()
+	setTempSession(t, dir)
+
+	got, path, err := LoadProviderWithPath(ProviderUpMenu)
+	if err != nil {
+		t.Fatalf("LoadProviderWithPath: %v", err)
+	}
+	if path != "" {
+		t.Fatalf("path: got %q, want empty", path)
+	}
+	if got.BaseURL != DefaultUpMenuBaseURL {
+		t.Fatalf("BaseURL: got %q, want %q", got.BaseURL, DefaultUpMenuBaseURL)
+	}
+}
+
 func TestLoad_InvalidJSON(t *testing.T) {
 	dir := t.TempDir()
 	setTempSession(t, dir)
@@ -1052,6 +1105,19 @@ func TestSave_InfersDelioSessionFileWithoutBaseURL(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(dir, "frisco-session.json")); !os.IsNotExist(err) {
 		t.Fatalf("expected frisco-session.json to remain absent, got err=%v", err)
+	}
+}
+
+func TestSave_InfersUpMenuSessionFileWithoutBaseURL(t *testing.T) {
+	dir := t.TempDir()
+	setTempSession(t, dir)
+
+	s := &Session{Headers: map[string]string{"Cookie": "XSRF-TOKEN=a; laravel_session=b"}}
+	if err := Save(s); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "upmenu-session.json")); err != nil {
+		t.Fatalf("expected upmenu-session.json to be written: %v", err)
 	}
 }
 

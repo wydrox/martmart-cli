@@ -48,11 +48,12 @@ This repo is a good fit if you are looking for:
 - a provider-aware shopping automation CLI in Go
 
 MCP-oriented capabilities today:
-- session login / verify tools
-- product search and product details
+- session login / verify tools for Frisco and Delio
+- product search and product details for grocery providers
 - cart inspection and cart mutations
 - delivery slot lookup
 - Frisco account and order tools where supported
+- public UpMenu/Dobra Buła MVP tools: `upmenu_restaurant_info`, `upmenu_menu_show`, `upmenu_cart_show`, `upmenu_cart_add`
 
 Start the MCP server:
 
@@ -79,6 +80,8 @@ martmart mcp
 | Reservation reserve/cancel | ✅ | ❌ |
 | Account / orders | ✅ | MVP / partial |
 | MCP support | ✅ | partial, shared CLI path |
+
+UpMenu/Dobra Buła is currently exposed as an **MCP-only MVP surface** rather than a full `--provider` CLI provider. Use the dedicated UpMenu MCP tools above instead of Frisco/Delio session or product/cart tools.
 | Checkout / payment finalization | ⚠️ experimental: preview + guarded finalize (`--confirm`) | ⚠️ experimental: preview + guarded finalize (`--confirm`, Adyen-backed) |
 
 ## Safety and scope

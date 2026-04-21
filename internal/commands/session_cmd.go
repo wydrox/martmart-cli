@@ -152,7 +152,7 @@ func newSessionVerifyCmd() *cobra.Command {
 	var userID string
 	c := &cobra.Command{
 		Use:   "verify",
-		Short: "Verify the provider session for this request; GET cart must succeed.",
+		Short: "Verify the provider session for this request.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			provider, s, err := loadSessionForRequest(cmd)
 			if err != nil {
@@ -161,14 +161,14 @@ func newSessionVerifyCmd() *cobra.Command {
 			if err := verifyLoadedSession(provider, s, userID); err != nil {
 				return err
 			}
-			if provider == session.ProviderDelio {
+			switch provider {
+			case session.ProviderDelio:
 				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Session OK: Delio currentCart responded successfully.")
-				return nil
+			case session.ProviderUpMenu:
+				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Session OK: UpMenu session request responded successfully.")
+			default:
+				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Session OK: cart API responded successfully.")
 			}
-			_, _ = fmt.Fprintln(
-				cmd.OutOrStdout(),
-				"Session OK: cart API responded successfully.",
-			)
 			return nil
 		},
 	}
@@ -177,7 +177,8 @@ func newSessionVerifyCmd() *cobra.Command {
 }
 
 func verifyLoadedSession(provider string, s *session.Session, userID string) error {
-	if provider == session.ProviderDelio {
+	switch provider {
+	case session.ProviderDelio:
 		if session.HeaderValue(s, "Cookie") == "" {
 			return errors.New("no Cookie header in Delio session. Use 'session from-curl' with a copied Delio API request")
 		}
@@ -187,17 +188,24 @@ func verifyLoadedSession(provider string, s *session.Session, userID string) err
 		}
 		_, err = delio.ExtractCurrentCart(payload)
 		return err
-	}
-	if session.TokenString(s) == "" {
-		return errors.New("no token in session. Use 'session from-curl' or 'session login'")
-	}
-	uid, err := session.RequireUserID(s, userID)
-	if err != nil {
+	case session.ProviderUpMenu:
+		if session.HeaderValue(s, "Cookie") == "" && session.HeaderValue(s, "Authorization") == "" {
+			return errors.New("no auth headers in UpMenu session. Use 'session from-curl' with a copied authenticated UpMenu request")
+		}
+		_, err := httpclient.RequestJSON(s, "GET", "/", httpclient.RequestOpts{})
+		return err
+	default:
+		if session.TokenString(s) == "" {
+			return errors.New("no token in session. Use 'session from-curl' or 'session login'")
+		}
+		uid, err := session.RequireUserID(s, userID)
+		if err != nil {
+			return err
+		}
+		path := fmt.Sprintf("/app/commerce/api/v1/users/%s/cart", uid)
+		_, err = httpclient.RequestJSON(s, "GET", path, httpclient.RequestOpts{})
 		return err
 	}
-	path := fmt.Sprintf("/app/commerce/api/v1/users/%s/cart", uid)
-	_, err = httpclient.RequestJSON(s, "GET", path, httpclient.RequestOpts{})
-	return err
 }
 
 func tryReuseExistingSession(provider string) (*reusedSessionResult, error) {
@@ -240,6 +248,7 @@ func shouldRetrySessionLoginInBrowser(err error) bool {
 	msg := strings.ToLower(strings.TrimSpace(err.Error()))
 	return strings.Contains(msg, "no token in session") ||
 		strings.Contains(msg, "no cookie header") ||
+		strings.Contains(msg, "no auth headers in upmenu session") ||
 		strings.Contains(msg, "missing user_id")
 }
 
@@ -277,8 +286,11 @@ func newSessionRefreshTokenCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if provider == session.ProviderDelio {
+			switch provider {
+			case session.ProviderDelio:
 				return errors.New("session refresh-token is not implemented for Delio; import fresh cookies with 'session from-curl'")
+			case session.ProviderUpMenu:
+				return errors.New("session refresh-token is not implemented for UpMenu; import a fresh authenticated request with 'session from-curl'")
 			}
 			rt := refresh
 			if rt == "" {
@@ -346,6 +358,9 @@ func newSessionLoginCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if provider == session.ProviderUpMenu {
+				return errors.New("session login is not implemented for UpMenu; import a fresh authenticated request with 'session from-curl'")
+			}
 			if !forceLogin {
 				reused, err := sessionLoginTryReuse(provider)
 				if err != nil {
@@ -366,13 +381,10 @@ func newSessionLoginCmd() *cobra.Command {
 					})
 				}
 			}
-			if provider == session.ProviderDelio {
-				_, _ = fmt.Fprintln(cmd.OutOrStdout(),
-					"Opening Delio in your default browser app with temporary remote debugging and importing the detected session.")
-			} else {
-				_, _ = fmt.Fprintln(cmd.OutOrStdout(),
-					"Opening Frisco in your default browser app with temporary remote debugging and importing the detected session.")
-			}
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(),
+				"Opening %s in your default browser app with temporary remote debugging and importing the detected session.\n",
+				session.ProviderDisplayName(provider),
+			)
 
 			result, err := sessionLoginRun(context.Background(), login.Options{
 				Provider:             provider,

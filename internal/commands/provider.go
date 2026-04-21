@@ -13,7 +13,7 @@ import (
 type resolvedProviderContextKey struct{}
 
 func providerRequiredError() error {
-	return fmt.Errorf("provider is required; pass --provider %s or --provider %s", session.ProviderFrisco, session.ProviderDelio)
+	return fmt.Errorf("provider is required; pass --provider %s", strings.Join(session.SupportedProviders(), " or --provider "))
 }
 
 func explicitProvider(cmd *cobra.Command) (string, bool, error) {
