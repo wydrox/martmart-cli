@@ -41,7 +41,7 @@ func newCartRemoveBatchCmd() *cobra.Command {
 				return err
 			}
 			if provider == session.ProviderDelio {
-				return fmt.Errorf("cart remove-batch is not implemented for Delio")
+				return fmt.Errorf("cart remove-batch requires --provider %s", session.ProviderFrisco)
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {

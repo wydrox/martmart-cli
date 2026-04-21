@@ -52,7 +52,7 @@ Twoja rola:
 - rozpoznajesz na co użytkownik ma ochotę, ile ma czasu, jaki ma budżet i co już ma w domu,
 - proponujesz 2-4 sensowne kierunki posiłku albo prosty przepis,
 - zamieniasz to na praktyczną listę zakupową,
-- wyszukujesz produkty w MartMart i pomagasz z koszykiem,
+- korzystasz z narzędzi MCP MartMart do wyszukiwania produktów, pracy z koszykiem, sesją i dostawą,
 - pytasz proaktywnie o marki, promocje, zamienniki i produkty komplementarne.
 
 Zasady prowadzenia rozmowy:
@@ -75,6 +75,11 @@ Zasady prowadzenia rozmowy:
 
 Zasady używania narzędzi:
 - jeśli pytanie dotyczy realnych produktów, cen, promocji, dostępności, koszyka albo dostawy, użyj narzędzi MartMart zamiast zgadywać,
+- nie zakładaj z góry jednego sklepu albo providera,
+- gdy trzeba wykonać realne działania zakupowe, najpierw sprawdź jakie providery i narzędzia są dostępne w aktualnej sesji MCP,
+- wybieraj providera per request na podstawie intencji użytkownika, dostępności narzędzi i kontekstu rozmowy,
+- jeśli użytkownik nie wskazał sklepu, możesz krótko zapytać o preferowany sklep albo sam dobrać provider po sprawdzeniu dostępnych opcji i jasno to zakomunikować,
+- jeśli narzędzia wspierają parametr providera, przekazuj go jawnie w wywołaniu zamiast polegać na globalnym domyśle,
 - przed wywołaniem narzędzia lub serii narzędzi powiedz krótko co sprawdzasz,
 - po wyniku narzędzia podaj 1-2 bardzo krótkie zdania podsumowania i jeśli potrzeba zadaj pytanie decyzyjne,
 - gdy pokazujesz opcje, ogranicz się do 2-3 najlepszych,
@@ -98,26 +103,8 @@ Bezpieczeństwo i scope:
 KICKOFF_PROMPT = """
 Rozpocznij rozmowę zakupową po polsku. Przywitaj się bardzo krótko i od razu przejdź do rzeczy.
 W pierwszej odpowiedzi zadaj najwyżej 2 krótkie pytania: o to, na co mam ochotę, i co już mam w domu.
-Wspomnij jednym krótkim zdaniem, że możesz też pomóc dobrać marki, promocje i zamienniki.
+Wspomnij jednym krótkim zdaniem, że możesz też pomóc dobrać sklep lub providera, marki, promocje i zamienniki.
 """.strip()
-
-ALLOWED_TOOLS = [
-    "session_login",
-    "session_show",
-    "session_from_curl",
-    "session_refresh_token",
-    "products_search",
-    "products_by_ids",
-    "products_nutrition",
-    "cart_show",
-    "cart_add",
-    "cart_remove",
-    "reservation_delivery_options",
-    "reservation_calendar",
-    "reservation_slots",
-    "reservation_plan",
-]
-
 
 def parse_json_value(value: object) -> object:
     if isinstance(value, (dict, list)):
@@ -358,6 +345,33 @@ def build_tool_output_filters() -> dict[str, callable]:
         "session_login": lambda raw: summarize_session_output(raw, "session_login"),
         "session_refresh_token": lambda raw: summarize_session_output(raw, "session_refresh_token"),
     }
+
+
+def build_registered_tool_output_filters(tools_schema: object) -> dict[str, callable]:
+    filters = build_tool_output_filters()
+    known_names: set[str] = set()
+
+    if hasattr(tools_schema, "standard_tools"):
+        for tool in list(getattr(tools_schema, "standard_tools", [])):
+            name = getattr(tool, "name", "")
+            if isinstance(name, str) and name.strip():
+                known_names.add(name.strip())
+        custom_tools = getattr(tools_schema, "custom_tools", {}) or {}
+        for entries in custom_tools.values():
+            for tool in entries:
+                name = getattr(tool, "name", "")
+                if isinstance(name, str) and name.strip():
+                    known_names.add(name.strip())
+    elif isinstance(tools_schema, (list, tuple)):
+        for tool in tools_schema:
+            if isinstance(tool, dict):
+                name = tool.get("name", "")
+            else:
+                name = getattr(tool, "name", "")
+            if isinstance(name, str) and name.strip():
+                known_names.add(name.strip())
+
+    return {name: fn for name, fn in filters.items() if name in known_names}
 
 
 @dataclass
@@ -649,7 +663,7 @@ async def run_agent(args: argparse.Namespace) -> bool:
                     model=args.transcription_model,
                     language=args.language,
                     prompt=(
-                        "Polish grocery shopping conversation, recipe ideas, food brands, Frisco, Delio, "
+                        "Polish grocery shopping conversation, recipe ideas, food brands, grocery providers, "
                         "product names, ingredients, promotions, substitutes, complementary items."
                     ),
                 ),
@@ -701,28 +715,41 @@ async def run_agent(args: argparse.Namespace) -> bool:
 
         async with MCPClient(
             server_params=mcp_server,
-            tools_filter=ALLOWED_TOOLS,
-            tools_output_filters=build_tool_output_filters(),
         ) as mcp:
             tools_schema = await mcp.get_tools_schema()
+            mcp.tools_output_filters = build_registered_tool_output_filters(tools_schema)
             await mcp.register_tools_schema(tools_schema, llm)
 
             if args.show_logs or args.debug:
+                discovered_tool_names: list[str] = []
                 if hasattr(tools_schema, "standard_tools"):
                     standard_tools = list(getattr(tools_schema, "standard_tools", []))
                     custom_tools = getattr(tools_schema, "custom_tools", {}) or {}
-                    tool_names = ", ".join(getattr(tool, "name", "?") for tool in standard_tools)
-                    custom_count = sum(len(v) for v in custom_tools.values())
-                    total_tools = len(standard_tools) + custom_count
+                    discovered_tool_names.extend(
+                        getattr(tool, "name", "?") for tool in standard_tools
+                    )
+                    for entries in custom_tools.values():
+                        discovered_tool_names.extend(getattr(tool, "name", "?") for tool in entries)
+                    total_tools = len(discovered_tool_names)
                 else:
                     standard_tools = list(tools_schema) if isinstance(tools_schema, (list, tuple)) else []
-                    tool_names = ", ".join(
+                    discovered_tool_names.extend(
                         tool.get("name", "?") if isinstance(tool, dict) else getattr(tool, "name", "?")
                         for tool in standard_tools
                     )
-                    total_tools = len(standard_tools)
+                    total_tools = len(discovered_tool_names)
 
+                tool_names = ", ".join(discovered_tool_names)
                 observer._print_log(f"zarejestrowano MCP tools ({total_tools}): {tool_names}")
+                provider_tool_hint = [
+                    name
+                    for name in ["providers_list", "providers_available", "provider_list", "session_list"]
+                    if name in discovered_tool_names
+                ]
+                if provider_tool_hint:
+                    observer._print_log(
+                        "narzędzia do wykrywania providerów dostępne: " + ", ".join(provider_tool_hint)
+                    )
 
             kickoff_context = LLMContext(
                 messages=[
@@ -753,8 +780,8 @@ async def run_agent(args: argparse.Namespace) -> bool:
 
             await task.queue_frame(LLMContextFrame(kickoff_context))
 
-            print("MartMart voice agent started.", flush=True)
-            print("Mów normalnie po polsku. Spacja przerywa agenta i oddaje głos Tobie. Ctrl+C kończy sesję.", flush=True)
+            print("MartMart voice agent started with MCP tool discovery.", flush=True)
+            print("Mów normalnie po polsku. Agent może sprawdzić dostępnych providerów i wybrać sklep per request. Spacja przerywa agenta i oddaje głos Tobie. Ctrl+C kończy sesję.", flush=True)
             print("", flush=True)
 
             runner = PipelineRunner(handle_sigint=True)
@@ -775,7 +802,7 @@ async def run_agent(args: argparse.Namespace) -> bool:
         await status_task
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="MartMart Pipecat voice shopping assistant")
+    parser = argparse.ArgumentParser(description="MartMart Pipecat voice shopping assistant with MCP provider discovery")
     parser.add_argument("--martmart-binary", required=True)
     parser.add_argument("--model", default="gpt-realtime")
     parser.add_argument("--voice", default="alloy")
@@ -822,10 +849,7 @@ def print_session_footer(reason: str, start_time: float | None = None) -> None:
 
 def validate_args(args: argparse.Namespace) -> None:
     if not args.mcp_args:
-        raise SystemExit("Missing MCP command arguments. Expected something like: --provider frisco mcp")
-
-    if args.mcp_args[0] == "--provider" and len(args.mcp_args) < 2:
-        raise SystemExit("Missing value for --provider. Use: --provider <frisco|delio>")
+        raise SystemExit("Missing MCP command arguments. Expected something like: mcp")
 
 def main() -> None:
     args = parse_args()

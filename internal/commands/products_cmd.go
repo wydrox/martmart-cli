@@ -111,7 +111,7 @@ func newProductsByIDsCmd() *cobra.Command {
 				return err
 			}
 			if provider == session.ProviderDelio {
-				return fmt.Errorf("products by-ids is not implemented for Delio; use 'products get --product-id <sku>' or --slug")
+				return fmt.Errorf("products by-ids requires --provider %s; for --provider %s use 'products get --product-id <sku>' or --slug", session.ProviderFrisco, session.ProviderDelio)
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {
@@ -147,7 +147,7 @@ func newProductsNutritionCmd() *cobra.Command {
 				return err
 			}
 			if provider == session.ProviderDelio {
-				return fmt.Errorf("products nutrition is not implemented for Delio yet; use 'products get --product-id <sku> --format json'")
+				return fmt.Errorf("products nutrition requires --provider %s; for --provider %s use 'products get --product-id <sku> --format json'", session.ProviderFrisco, session.ProviderDelio)
 			}
 			path := fmt.Sprintf("/app/content/api/v1/products/get/%s", productID)
 			result, err := httpclient.RequestJSON(s, "GET", path, httpclient.RequestOpts{})
@@ -349,7 +349,7 @@ func newProductsPickCmd() *cobra.Command {
 				return err
 			}
 			if provider == session.ProviderDelio {
-				return fmt.Errorf("products pick is not implemented for Delio yet; use 'products search' or 'products get'")
+				return fmt.Errorf("products pick requires --provider %s; for --provider %s use 'products search' or 'products get'", session.ProviderFrisco, session.ProviderDelio)
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {

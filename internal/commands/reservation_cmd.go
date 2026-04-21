@@ -39,7 +39,7 @@ func newReservationDeliveryOptionsCmd() *cobra.Command {
 		Use:   "delivery-options",
 		Short: "Delivery/payment options by postcode.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -66,7 +66,7 @@ func newReservationCalendarCmd() *cobra.Command {
 		Use:   "calendar",
 		Short: "Available delivery windows for address.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -377,7 +377,7 @@ func newReservationReserveCmd() *cobra.Command {
 		Use:   "reserve",
 		Short: "Reserve slot by date and times (e.g. 06:00-07:00).",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -492,7 +492,7 @@ func newReservationPlanCmd() *cobra.Command {
 		Use:   "plan",
 		Short: "Plan cart reservation from JSON payload.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}
@@ -553,7 +553,7 @@ func newReservationCancelCmd() *cobra.Command {
 		Use:   "cancel",
 		Short: "Cancel active cart reservation.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, s, err := loadSessionForRequest(cmd)
+			_, s, err := loadSessionForSupportedProviders(cmd, session.ProviderFrisco)
 			if err != nil {
 				return err
 			}

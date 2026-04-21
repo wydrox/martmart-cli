@@ -28,7 +28,7 @@ func newCartCmd() *cobra.Command {
 				return err
 			}
 			if provider == session.ProviderDelio {
-				return fmt.Errorf("interactive cart TUI is available only for Frisco; use 'cart show', 'cart add', or 'cart remove'")
+				return fmt.Errorf("interactive cart TUI requires --provider %s; for --provider %s use 'cart show', 'cart add', or 'cart remove'", session.ProviderFrisco, session.ProviderDelio)
 			}
 			uid, err := session.RequireUserID(s, userID)
 			if err != nil {

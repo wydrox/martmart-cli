@@ -72,9 +72,10 @@ func runConfigShow() error {
 	}
 	rps, burst := httpclient.CurrentRateLimit()
 	return printJSON(map[string]any{
-		"config_file":      config.Path(),
-		"default_provider": cfg.DefaultProvider,
-		"saved_rate_limit": map[string]any{"rps": cfg.RateLimitRPS, "burst": cfg.RateLimitBurst},
+		"config_file":       config.Path(),
+		"provider_fallback": cfg.DefaultProvider,
+		"default_provider":  cfg.DefaultProvider,
+		"saved_rate_limit":  map[string]any{"rps": cfg.RateLimitRPS, "burst": cfg.RateLimitBurst},
 		"openai": map[string]any{
 			"api_key_set":         cfg.OpenAIAPIKey != "",
 			"model":               cfg.OpenAIModel,
@@ -107,7 +108,7 @@ func newConfigSetCmd() *cobra.Command {
 
 	c := &cobra.Command{
 		Use:   "set",
-		Short: "Persist default provider/rate limits and voice assistant settings.",
+		Short: "Persist provider fallback, rate limits, and voice assistant settings.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			cfg, err := config.Load()
 			if err != nil {
@@ -198,7 +199,7 @@ func newConfigSetCmd() *cobra.Command {
 		},
 	}
 
-	c.Flags().StringVar(&defaultProvider, "default-provider", "", "Default provider: frisco or delio.")
+	c.Flags().StringVar(&defaultProvider, "default-provider", "", "Provider used when a command omits --provider: frisco or delio.")
 	c.Flags().Float64Var(&rateLimitRPS, "rate-limit-rps", 0, "Saved request rate in requests/second (0 = disabled).")
 	c.Flags().IntVar(&rateLimitBurst, "rate-limit-burst", 1, "Saved request burst size.")
 	c.Flags().StringVar(&openAIAPIKey, "openai-api-key", "", "OpenAI API key used by voice assistant.")

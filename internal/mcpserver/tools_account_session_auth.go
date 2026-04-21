@@ -90,16 +90,18 @@ func registerAccountSessionAuthTools(server *mcp.Server) {
 
 // accountAddressesListIn is the input type for the account_addresses_list tool.
 type accountAddressesListIn struct {
-	UserID string `json:"user_id,omitempty" jsonschema:"optional; defaults to session user_id"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	UserID   string `json:"user_id,omitempty" jsonschema:"optional; defaults to session user_id"`
 }
 
 // accountProfileIn is the input type for the account_profile tool.
 type accountProfileIn struct {
-	UserID string `json:"user_id,omitempty" jsonschema:"optional; defaults to session user_id"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	UserID   string `json:"user_id,omitempty" jsonschema:"optional; defaults to session user_id"`
 }
 
 func toolAccountProfile(_ context.Context, _ *mcp.CallToolRequest, in accountProfileIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -112,7 +114,7 @@ func toolAccountProfile(_ context.Context, _ *mcp.CallToolRequest, in accountPro
 }
 
 func toolAccountAddressesList(_ context.Context, _ *mcp.CallToolRequest, in accountAddressesListIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -126,15 +128,16 @@ func toolAccountAddressesList(_ context.Context, _ *mcp.CallToolRequest, in acco
 
 // accountAddressesAddIn is the input type for the account_addresses_add tool.
 type accountAddressesAddIn struct {
-	UserID  string         `json:"user_id,omitempty"`
-	Payload map[string]any `json:"payload"`
+	Provider string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	UserID   string         `json:"user_id,omitempty"`
+	Payload  map[string]any `json:"payload"`
 }
 
 func toolAccountAddressesAdd(_ context.Context, _ *mcp.CallToolRequest, in accountAddressesAddIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
 	if len(in.Payload) == 0 {
 		return nil, mcpCPFriscoToolOut{}, errors.New("payload is required")
 	}
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -152,6 +155,7 @@ func toolAccountAddressesAdd(_ context.Context, _ *mcp.CallToolRequest, in accou
 
 // accountAddressesUpdateIn is the input type for the account_addresses_update tool.
 type accountAddressesUpdateIn struct {
+	Provider  string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
 	UserID    string         `json:"user_id,omitempty"`
 	AddressID string         `json:"address_id"`
 	Payload   map[string]any `json:"payload"`
@@ -164,7 +168,7 @@ func toolAccountAddressesUpdate(_ context.Context, _ *mcp.CallToolRequest, in ac
 	if len(in.Payload) == 0 {
 		return nil, mcpCPFriscoToolOut{}, errors.New("payload is required")
 	}
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -182,6 +186,7 @@ func toolAccountAddressesUpdate(_ context.Context, _ *mcp.CallToolRequest, in ac
 
 // accountAddressesDeleteIn is the input type for the account_addresses_delete tool.
 type accountAddressesDeleteIn struct {
+	Provider  string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
 	UserID    string `json:"user_id,omitempty"`
 	AddressID string `json:"address_id"`
 }
@@ -190,7 +195,7 @@ func toolAccountAddressesDelete(_ context.Context, _ *mcp.CallToolRequest, in ac
 	if strings.TrimSpace(in.AddressID) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("address_id is required")
 	}
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -213,15 +218,16 @@ func wrapShippingAddressPayload(data map[string]any) map[string]any {
 
 // accountConsentsUpdateIn is the input type for the account_consents_update tool.
 type accountConsentsUpdateIn struct {
-	UserID  string         `json:"user_id,omitempty"`
-	Payload map[string]any `json:"payload"`
+	Provider string         `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	UserID   string         `json:"user_id,omitempty"`
+	Payload  map[string]any `json:"payload"`
 }
 
 func toolAccountConsentsUpdate(_ context.Context, _ *mcp.CallToolRequest, in accountConsentsUpdateIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
 	if len(in.Payload) == 0 {
 		return nil, mcpCPFriscoToolOut{}, errors.New("payload is required")
 	}
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -493,11 +499,12 @@ func mcpASAGetBoolAny(m map[string]any, keys ...string) (bool, bool) {
 
 // accountVouchersIn is the input type for the account_vouchers tool.
 type accountVouchersIn struct {
-	UserID string `json:"user_id,omitempty"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	UserID   string `json:"user_id,omitempty"`
 }
 
 func toolAccountVouchers(_ context.Context, _ *mcp.CallToolRequest, in accountVouchersIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -511,11 +518,12 @@ func toolAccountVouchers(_ context.Context, _ *mcp.CallToolRequest, in accountVo
 
 // accountPaymentsIn is the input type for the account_payments tool.
 type accountPaymentsIn struct {
-	UserID string `json:"user_id,omitempty"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	UserID   string `json:"user_id,omitempty"`
 }
 
 func toolAccountPayments(_ context.Context, _ *mcp.CallToolRequest, in accountPaymentsIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -529,11 +537,12 @@ func toolAccountPayments(_ context.Context, _ *mcp.CallToolRequest, in accountPa
 
 // accountMembershipCardsIn is the input type for the account_membership_cards tool.
 type accountMembershipCardsIn struct {
-	UserID string `json:"user_id,omitempty"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	UserID   string `json:"user_id,omitempty"`
 }
 
 func toolAccountMembershipCards(_ context.Context, _ *mcp.CallToolRequest, in accountMembershipCardsIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -547,13 +556,14 @@ func toolAccountMembershipCards(_ context.Context, _ *mcp.CallToolRequest, in ac
 
 // accountMembershipPointsIn is the input type for the account_membership_points tool.
 type accountMembershipPointsIn struct {
+	Provider  string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
 	UserID    string `json:"user_id,omitempty"`
 	PageIndex int    `json:"page_index,omitempty"`
 	PageSize  int    `json:"page_size,omitempty"`
 }
 
 func toolAccountMembershipPoints(_ context.Context, _ *mcp.CallToolRequest, in accountMembershipPointsIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, uid, err := loadSessionAuth(in.UserID)
+	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -579,7 +589,9 @@ func toolAccountMembershipPoints(_ context.Context, _ *mcp.CallToolRequest, in a
 }
 
 // sessionShowIn is the (empty) input type for the session_show tool.
-type sessionShowIn struct{}
+type sessionShowIn struct {
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; optional; when omitted returns all saved sessions"`
+}
 
 func toolSessionShow(_ context.Context, _ *mcp.CallToolRequest, _ sessionShowIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
 	s, err := session.LoadProvider(mcpDefaultProvider)
@@ -591,7 +603,8 @@ func toolSessionShow(_ context.Context, _ *mcp.CallToolRequest, _ sessionShowIn)
 
 // sessionFromCurlIn is the input type for the session_from_curl tool.
 type sessionFromCurlIn struct {
-	Curl string `json:"curl"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	Curl     string `json:"curl"`
 }
 
 func toolSessionFromCurl(_ context.Context, _ *mcp.CallToolRequest, in sessionFromCurlIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
@@ -621,6 +634,7 @@ func toolSessionFromCurl(_ context.Context, _ *mcp.CallToolRequest, in sessionFr
 
 // authRefreshTokenIn is the input type for the session_refresh_token tool.
 type authRefreshTokenIn struct {
+	Provider     string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
 	RefreshToken string `json:"refresh_token,omitempty" jsonschema:"optional; else session refresh_token"`
 }
 
@@ -681,7 +695,8 @@ const defaultSessionLoginTimeoutSec = 180
 
 // sessionLoginIn is the input type for the session_login tool.
 type sessionLoginIn struct {
-	TimeoutSec *int `json:"timeout_sec,omitempty" jsonschema:"Login timeout in seconds; default 180"`
+	Provider   string `json:"provider,omitempty" jsonschema:"provider id; one of delio, frisco; defaults to frisco"`
+	TimeoutSec *int   `json:"timeout_sec,omitempty" jsonschema:"Login timeout in seconds; default 180"`
 }
 
 func sessionLoginTimeoutSec(in sessionLoginIn) int {
