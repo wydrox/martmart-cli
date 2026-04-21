@@ -107,7 +107,7 @@ func TestExtractPaymentMethods(t *testing.T) {
 		t.Fatalf("ExtractAdyenResponse: %v", err)
 	}
 	if response != "{\"paymentMethods\":[]}" {
-		t.Fatalf("response=%q want JSON payload", response)
+		t.Fatalf("response=%v want JSON payload", response)
 	}
 }
 
@@ -117,31 +117,42 @@ func TestBuildCheckoutHelpers(t *testing.T) {
 	if !ok {
 		t.Fatalf("SetDeliveryScheduleSlot action missing: %#v", action)
 	}
-	if setSlot["dateFrom"] != "2026-04-21T08:00:00Z" || setSlot["dateTo"] != "2026-04-21T10:00:00Z" {
-		t.Fatalf("unexpected slot action: %#v", setSlot)
+	deliverySlot, ok := setSlot["deliveryScheduleSlot"].(map[string]any)
+	if !ok {
+		t.Fatalf("deliveryScheduleSlot missing: %#v", setSlot)
+	}
+	if deliverySlot["dateFrom"] != "2026-04-21T08:00:00Z" || deliverySlot["dateTo"] != "2026-04-21T10:00:00Z" {
+		t.Fatalf("unexpected slot action: %#v", deliverySlot)
 	}
 
-	config := BuildMakePaymentConfig()
+	config := BuildMakePaymentConfig(map[string]any{"type": "scheme", "storedPaymentMethodId": "pm_1"}, " https://delio.com.pl/checkout/payment ", false)
 	if config["paymentChannel"] != "Web" {
 		t.Fatalf("paymentChannel=%v want Web", config["paymentChannel"])
 	}
-
-	method := BuildAdyenPaymentMethod("  {\"stateData\":true}  ")
-	if method["adyenPayload"] != "{\"stateData\":true}" {
-		t.Fatalf("adyenPayload=%v want trimmed payload", method["adyenPayload"])
+	if config["returnUrl"] != "https://delio.com.pl/checkout/payment" {
+		t.Fatalf("returnUrl=%v want trimmed url", config["returnUrl"])
+	}
+	paymentMethod, ok := config["paymentMethod"].(map[string]any)
+	if !ok {
+		t.Fatalf("paymentMethod missing: %#v", config)
+	}
+	adyenPayload, ok := paymentMethod["adyenPayload"].(map[string]any)
+	if !ok || adyenPayload["storedPaymentMethodId"] != "pm_1" {
+		t.Fatalf("adyenPayload=%#v want stored method payload", paymentMethod["adyenPayload"])
 	}
 }
 
 func TestExtractMakePaymentResult(t *testing.T) {
 	result, err := ExtractMakePaymentResult(map[string]any{
 		"data": map[string]any{
-			"makePayment": map[string]any{"status": "Authorised", "redirectUrl": "https://example.test/3ds"},
+			"makePayment": map[string]any{"adyenResponse": map[string]any{"resultCode": "Authorised"}},
 		},
 	})
 	if err != nil {
 		t.Fatalf("ExtractMakePaymentResult: %v", err)
 	}
-	if result["status"] != "Authorised" {
-		t.Fatalf("status=%v want Authorised", result["status"])
+	adyenResponse, ok := result["adyenResponse"].(map[string]any)
+	if !ok || adyenResponse["resultCode"] != "Authorised" {
+		t.Fatalf("adyenResponse=%#v want resultCode Authorised", result["adyenResponse"])
 	}
 }

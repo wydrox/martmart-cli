@@ -523,21 +523,50 @@ const createPaymentMutation = `mutation CreatePayment($cartId: ID!) {
   }
 }`
 
-const paymentMethodsQuery = `query PaymentMethods($cartId: ID!, $paymentId: ID!) {
+const paymentMethodsQuery = `query PaymentMethods($cartId: String!, $paymentId: String!) {
   getPaymentMethods(cartId: $cartId, paymentId: $paymentId) {
     adyenResponse
     __typename
   }
 }`
 
-const makePaymentMutation = `mutation MakePayment($cartId: ID!, $paymentId: ID!, $paymentConfig: PaymentConfigInput!, $paymentMethod: PaymentMethodInput!) {
-  makePayment(cartId: $cartId, paymentId: $paymentId, paymentConfig: $paymentConfig, paymentMethod: $paymentMethod) {
-    action
-    orderCode
-    paymentStatus
-    redirectUrl
-    resultCode
-    status
+const makePaymentMutation = `mutation MakePayment($paymentId: String!, $cartId: String!, $paymentConfig: MakeAdyenPaymentArgs!) {
+  makePayment(paymentId: $paymentId, cartId: $cartId, paymentConfig: $paymentConfig) {
+    adyenResponse
+    __typename
+  }
+}`
+
+const customerDefaultBillingAddressQuery = `query CustomerDefaultBillingAddress {
+  customerDefaultBillingAddress {
+    billingAddress {
+      ... on CompanyBillingAddress {
+        streetName
+        streetNumber
+        postalCode
+        city
+        countryCode
+        apartment
+        vatId
+        email
+        company
+        __typename
+      }
+      ... on PersonalBillingAddress {
+        streetName
+        streetNumber
+        postalCode
+        city
+        countryCode
+        apartment
+        email
+        firstName
+        lastName
+        __typename
+      }
+      __typename
+    }
+    id
     __typename
   }
 }`

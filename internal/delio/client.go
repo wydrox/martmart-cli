@@ -345,6 +345,28 @@ func ExtractDeliveryScheduleSlots(payload any) ([]any, error) {
 	return slots, nil
 }
 
+// CustomerDefaultBillingAddress fetches the customer's current default billing address.
+func CustomerDefaultBillingAddress(s *session.Session) (any, error) {
+	return graphqlRequest(s, "/api/proxy/onebrand", map[string]any{
+		"operationName": "CustomerDefaultBillingAddress",
+		"variables":     map[string]any{},
+		"query":         customerDefaultBillingAddressQuery,
+	})
+}
+
+// ExtractCustomerDefaultBillingAddress returns data.customerDefaultBillingAddress.
+func ExtractCustomerDefaultBillingAddress(payload any) (map[string]any, error) {
+	data, err := unwrapGraphQL(payload)
+	if err != nil {
+		return nil, err
+	}
+	billing := mapField(data, "customerDefaultBillingAddress")
+	if billing == nil {
+		return nil, errors.New("missing customerDefaultBillingAddress in Delio response")
+	}
+	return billing, nil
+}
+
 // PaymentSettings fetches Delio checkout payment settings.
 func PaymentSettings(s *session.Session) (any, error) {
 	return graphqlRequest(s, "/api/proxy/delio", map[string]any{
@@ -444,14 +466,14 @@ func ExtractPaymentMethods(payload any) (map[string]any, error) {
 }
 
 // ExtractAdyenResponse returns getPaymentMethods.adyenResponse.
-func ExtractAdyenResponse(payload any) (string, error) {
+func ExtractAdyenResponse(payload any) (any, error) {
 	methods, err := ExtractPaymentMethods(payload)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	response := asString(methods["adyenResponse"])
-	if response == "" {
-		return "", errors.New("missing getPaymentMethods.adyenResponse in Delio response")
+	response, ok := methods["adyenResponse"]
+	if !ok || response == nil {
+		return nil, errors.New("missing getPaymentMethods.adyenResponse in Delio response")
 	}
 	return response, nil
 }
@@ -460,40 +482,56 @@ func ExtractAdyenResponse(payload any) (string, error) {
 func BuildSetDeliveryScheduleSlotAction(dateFrom, dateTo string) map[string]any {
 	return map[string]any{
 		"SetDeliveryScheduleSlot": map[string]any{
-			"dateFrom": strings.TrimSpace(dateFrom),
-			"dateTo":   strings.TrimSpace(dateTo),
+			"deliveryScheduleSlot": map[string]any{
+				"dateFrom": strings.TrimSpace(dateFrom),
+				"dateTo":   strings.TrimSpace(dateTo),
+			},
 		},
 	}
 }
 
-// BuildMakePaymentConfig returns the captured checkout paymentConfig payload.
-func BuildMakePaymentConfig() map[string]any {
-	return map[string]any{"paymentChannel": "Web"}
+// BuildSetPersonalBillingAddressAction builds an UpdateCurrentCart action for a personal billing address.
+func BuildSetPersonalBillingAddressAction(addr map[string]any) map[string]any {
+	return map[string]any{"SetPersonalBillingAddress": map[string]any{"personalBillingAddress": addr}}
 }
 
-// BuildAdyenPaymentMethod returns the captured checkout paymentMethod payload.
-func BuildAdyenPaymentMethod(adyenPayload string) map[string]any {
-	return map[string]any{"adyenPayload": strings.TrimSpace(adyenPayload)}
+// BuildSetCompanyBillingAddressAction builds an UpdateCurrentCart action for a company billing address.
+func BuildSetCompanyBillingAddressAction(addr map[string]any) map[string]any {
+	return map[string]any{"SetCompanyBillingAddress": map[string]any{"companyBillingAddress": addr}}
+}
+
+// BuildMakePaymentConfig returns the captured checkout paymentConfig payload.
+func BuildMakePaymentConfig(paymentMethod map[string]any, returnURL string, storePaymentMethod bool) map[string]any {
+	cfg := map[string]any{
+		"paymentChannel": "Web",
+		"paymentMethod":  map[string]any{"adyenPayload": paymentMethod},
+	}
+	if strings.TrimSpace(returnURL) != "" {
+		cfg["returnUrl"] = strings.TrimSpace(returnURL)
+	}
+	if storePaymentMethod {
+		cfg["storePaymentMethod"] = true
+	}
+	return cfg
 }
 
 // MakePayment submits the checkout payment using the captured Delio contract.
-func MakePayment(s *session.Session, cartID, paymentID, adyenPayload string) (any, error) {
+func MakePayment(s *session.Session, cartID, paymentID string, paymentConfig map[string]any) (any, error) {
 	if strings.TrimSpace(cartID) == "" {
 		return nil, errors.New("missing cartId")
 	}
 	if strings.TrimSpace(paymentID) == "" {
 		return nil, errors.New("missing paymentId")
 	}
-	if strings.TrimSpace(adyenPayload) == "" {
-		return nil, errors.New("missing adyenPayload")
+	if len(paymentConfig) == 0 {
+		return nil, errors.New("missing paymentConfig")
 	}
 	return graphqlRequest(s, "/api/proxy/delio", map[string]any{
 		"operationName": "MakePayment",
 		"variables": map[string]any{
 			"cartId":        strings.TrimSpace(cartID),
 			"paymentId":     strings.TrimSpace(paymentID),
-			"paymentConfig": BuildMakePaymentConfig(),
-			"paymentMethod": BuildAdyenPaymentMethod(adyenPayload),
+			"paymentConfig": paymentConfig,
 		},
 		"query": makePaymentMutation,
 	})
