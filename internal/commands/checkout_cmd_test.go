@@ -3,17 +3,28 @@ package commands
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"os"
-	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
 
-	"github.com/wydrox/martmart-cli/internal/httpclient"
+	checkoutcore "github.com/wydrox/martmart-cli/internal/checkout"
 	"github.com/wydrox/martmart-cli/internal/session"
 )
+
+type fakeCheckoutClient struct {
+	previewFn  func(*session.Session, checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error)
+	finalizeFn func(*session.Session, checkoutcore.FinalizeOptions) (*checkoutcore.FinalizeResult, error)
+}
+
+func (f *fakeCheckoutClient) Preview(s *session.Session, opts checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+	return f.previewFn(s, opts)
+}
+
+func (f *fakeCheckoutClient) Finalize(s *session.Session, opts checkoutcore.FinalizeOptions) (*checkoutcore.FinalizeResult, error) {
+	return f.finalizeFn(s, opts)
+}
 
 func TestNewCheckoutCmdSubcommands(t *testing.T) {
 	cmd := newCheckoutCmd()
@@ -45,12 +56,10 @@ func TestRootIncludesCheckoutCommand(t *testing.T) {
 
 func TestCheckoutFinalizeRequiresConfirm(t *testing.T) {
 	origLoad := checkoutLoadSession
-	origReq := checkoutRequestJSON
-	origAddr := checkoutGetShippingAddr
+	origClient := newCheckoutClient
 	defer func() {
 		checkoutLoadSession = origLoad
-		checkoutRequestJSON = origReq
-		checkoutGetShippingAddr = origAddr
+		newCheckoutClient = origClient
 	}()
 
 	checkoutLoadSession = func(_ *cobra.Command, supported ...string) (string, *session.Session, error) {
@@ -59,29 +68,31 @@ func TestCheckoutFinalizeRequiresConfirm(t *testing.T) {
 		}
 		return session.ProviderFrisco, &session.Session{BaseURL: session.DefaultBaseURL, UserID: "u-1"}, nil
 	}
-	checkoutGetShippingAddr = func(_ *session.Session, userID string) (map[string]any, error) {
-		return map[string]any{"city": "Warsaw", "recipient": "Test"}, nil
+	preview := &checkoutcore.CheckoutPreview{
+		Provider:        session.ProviderFrisco,
+		UserID:          "u-1",
+		CartID:          "cart-1",
+		ItemCount:       2,
+		ReadyToFinalize: true,
 	}
-	checkoutRequestJSON = func(_ *session.Session, method, path string, opts httpclient.RequestOpts) (any, error) {
-		switch {
-		case method == "GET" && strings.HasSuffix(path, "/cart"):
-			return map[string]any{"products": []any{map[string]any{"productId": "P1", "quantity": float64(2)}}, "total": 12.34}, nil
-		case method == "GET" && strings.HasSuffix(path, "/cart/reservation"):
-			return map[string]any{"startsAt": "2026-04-21T10:00:00Z", "endsAt": "2026-04-21T12:00:00Z"}, nil
-		case method == "GET" && strings.HasSuffix(path, "/payments"):
-			return map[string]any{"items": []any{map[string]any{"channel": "card"}}}, nil
-		case method == "POST" && strings.Contains(path, "/cart/checkout/preview"):
-			return map[string]any{"ready": true, "warnings": []any{}}, nil
-		default:
-			t.Fatalf("unexpected request %s %s", method, path)
-			return nil, nil
+	newCheckoutClient = func() checkoutCLIClient {
+		return &fakeCheckoutClient{
+			previewFn: func(_ *session.Session, opts checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+				if opts.UserID != "" {
+					t.Fatalf("preview opts.UserID = %q, want empty", opts.UserID)
+				}
+				return preview, nil
+			},
+			finalizeFn: func(_ *session.Session, _ checkoutcore.FinalizeOptions) (*checkoutcore.FinalizeResult, error) {
+				t.Fatal("finalize must not be called without --confirm")
+				return nil, nil
+			},
 		}
 	}
 
-	payloadFile := writeTempJSON(t, map[string]any{"paymentMethodId": "pm-1"})
 	out := captureStdout(func() {
 		root := NewRootCmd()
-		root.SetArgs([]string{"--provider", session.ProviderFrisco, "--format", "json", "checkout", "finalize", "--payload-file", payloadFile})
+		root.SetArgs([]string{"--provider", session.ProviderFrisco, "--format", "json", "checkout", "finalize"})
 		err := root.Execute()
 		if err == nil {
 			t.Fatal("expected finalize without --confirm to abort")
@@ -95,60 +106,52 @@ func TestCheckoutFinalizeRequiresConfirm(t *testing.T) {
 	if err := json.Unmarshal([]byte(strings.TrimSpace(out)), &parsed); err != nil {
 		t.Fatalf("output is not valid JSON: %v\n%s", err, out)
 	}
-	if parsed["dryRun"] != true {
-		t.Fatalf("dryRun = %v, want true", parsed["dryRun"])
-	}
-	if parsed["aborted"] != true {
-		t.Fatalf("aborted = %v, want true", parsed["aborted"])
+	if parsed["dryRun"] != true || parsed["aborted"] != true {
+		t.Fatalf("unexpected guard output: %v", parsed)
 	}
 	guard, ok := parsed["guard"].(map[string]any)
 	if !ok || guard["requiresConfirm"] != true {
 		t.Fatalf("guard = %v, want requiresConfirm=true", parsed["guard"])
 	}
-	preview, ok := parsed["preview"].(map[string]any)
-	if !ok {
-		t.Fatalf("preview = %T, want object", parsed["preview"])
-	}
-	if preview["mode"] != "preview" {
-		t.Fatalf("preview.mode = %v, want preview", preview["mode"])
+	previewOut, ok := parsed["preview"].(map[string]any)
+	if !ok || previewOut["cart_id"] != "cart-1" {
+		t.Fatalf("preview = %v, want cart_id=cart-1", parsed["preview"])
 	}
 }
 
 func TestCheckoutPreviewJSONOutputShape(t *testing.T) {
 	origLoad := checkoutLoadSession
-	origReq := checkoutRequestJSON
-	origAddr := checkoutGetShippingAddr
+	origClient := newCheckoutClient
 	defer func() {
 		checkoutLoadSession = origLoad
-		checkoutRequestJSON = origReq
-		checkoutGetShippingAddr = origAddr
+		newCheckoutClient = origClient
 	}()
 
 	checkoutLoadSession = func(_ *cobra.Command, _ ...string) (string, *session.Session, error) {
 		return session.ProviderFrisco, &session.Session{BaseURL: session.DefaultBaseURL, UserID: "u-1"}, nil
 	}
-	checkoutGetShippingAddr = func(_ *session.Session, userID string) (map[string]any, error) {
-		return map[string]any{"city": "Warsaw", "recipient": "Ada"}, nil
-	}
-	checkoutRequestJSON = func(_ *session.Session, method, path string, _ httpclient.RequestOpts) (any, error) {
-		switch {
-		case method == "GET" && strings.HasSuffix(path, "/cart"):
-			return map[string]any{"products": []any{map[string]any{"productId": "P1", "quantity": float64(3)}}}, nil
-		case method == "GET" && strings.HasSuffix(path, "/cart/reservation"):
-			return map[string]any{"warehouse": "WA1"}, nil
-		case method == "GET" && strings.HasSuffix(path, "/payments"):
-			return map[string]any{"items": []any{map[string]any{"channel": "visa"}}}, nil
-		case method == "POST" && strings.Contains(path, "/cart/checkout/preview"):
-			return map[string]any{"status": "ok", "totals": map[string]any{"grandTotal": 49.99}}, nil
-		default:
-			return nil, errors.New("unexpected request")
+	newCheckoutClient = func() checkoutCLIClient {
+		return &fakeCheckoutClient{
+			previewFn: func(_ *session.Session, _ checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+				return &checkoutcore.CheckoutPreview{
+					Provider:        session.ProviderFrisco,
+					UserID:          "u-1",
+					CartID:          "cart-1",
+					ItemCount:       3,
+					ReadyToFinalize: true,
+					Reservation:     &checkoutcore.ReservationWindow{StartsAt: "2026-04-21T10:00:00Z", EndsAt: "2026-04-21T12:00:00Z"},
+					Payment:         &checkoutcore.PaymentSelection{Method: "CARD", Channel: "Dotpay"},
+				}, nil
+			},
+			finalizeFn: func(_ *session.Session, _ checkoutcore.FinalizeOptions) (*checkoutcore.FinalizeResult, error) {
+				return nil, errors.New("unexpected finalize")
+			},
 		}
 	}
 
-	payloadFile := writeTempJSON(t, map[string]any{"paymentMethodId": "pm-1"})
 	out := captureStdout(func() {
 		root := NewRootCmd()
-		root.SetArgs([]string{"--provider", session.ProviderFrisco, "--format", "json", "checkout", "preview", "--payload-file", payloadFile})
+		root.SetArgs([]string{"--provider", session.ProviderFrisco, "--format", "json", "checkout", "preview"})
 		if err := root.Execute(); err != nil {
 			t.Fatalf("Execute: %v", err)
 		}
@@ -158,63 +161,66 @@ func TestCheckoutPreviewJSONOutputShape(t *testing.T) {
 	if err := json.Unmarshal([]byte(strings.TrimSpace(out)), &parsed); err != nil {
 		t.Fatalf("output is not valid JSON: %v\n%s", err, out)
 	}
-	for _, key := range []string{"mode", "provider", "userId", "cart", "cartSummary", "checkoutPreview", "shippingAddress", "accountPayments"} {
+	for _, key := range []string{"provider", "user_id", "cart_id", "item_count", "ready_to_finalize", "reservation", "payment"} {
 		if _, ok := parsed[key]; !ok {
 			t.Fatalf("missing key %q in output: %v", key, parsed)
 		}
-	}
-	if parsed["mode"] != "preview" {
-		t.Fatalf("mode = %v, want preview", parsed["mode"])
 	}
 }
 
 func TestCheckoutFinalizeConfirmReadback(t *testing.T) {
 	origLoad := checkoutLoadSession
-	origReq := checkoutRequestJSON
-	origAddr := checkoutGetShippingAddr
+	origClient := newCheckoutClient
 	defer func() {
 		checkoutLoadSession = origLoad
-		checkoutRequestJSON = origReq
-		checkoutGetShippingAddr = origAddr
+		newCheckoutClient = origClient
 	}()
 
 	checkoutLoadSession = func(_ *cobra.Command, _ ...string) (string, *session.Session, error) {
 		return session.ProviderFrisco, &session.Session{BaseURL: session.DefaultBaseURL, UserID: "u-1"}, nil
 	}
-	checkoutGetShippingAddr = func(_ *session.Session, userID string) (map[string]any, error) {
-		return map[string]any{"city": "Warsaw"}, nil
+	preview := &checkoutcore.CheckoutPreview{
+		Provider:        session.ProviderFrisco,
+		UserID:          "u-1",
+		CartID:          "cart-1",
+		ItemCount:       2,
+		ReadyToFinalize: true,
+		Total:           &checkoutcore.Money{Amount: 42.5, Currency: "PLN"},
 	}
-	ordersCalls := 0
-	checkoutRequestJSON = func(_ *session.Session, method, path string, opts httpclient.RequestOpts) (any, error) {
-		switch {
-		case method == "GET" && strings.HasSuffix(path, "/orders"):
-			ordersCalls++
-			if ordersCalls == 1 {
-				return map[string]any{"orders": []any{map[string]any{"orderId": "OLD-1"}}}, nil
-			}
-			return map[string]any{"orders": []any{map[string]any{"orderId": "NEW-1"}, map[string]any{"orderId": "OLD-1"}}}, nil
-		case method == "POST" && strings.Contains(path, "/cart/checkout/finalize"):
-			if opts.Data == nil {
-				t.Fatal("expected finalize payload to be forwarded")
-			}
-			return map[string]any{"status": "placed", "orderId": "NEW-1"}, nil
-		case method == "GET" && strings.HasSuffix(path, "/orders/NEW-1"):
-			return map[string]any{"orderId": "NEW-1", "status": "Placed"}, nil
-		case method == "GET" && strings.HasSuffix(path, "/orders/NEW-1/delivery"):
-			return map[string]any{"slot": "10:00-12:00"}, nil
-		case method == "GET" && strings.HasSuffix(path, "/orders/NEW-1/payments"):
-			return map[string]any{"status": "authorized"}, nil
-		case method == "GET" && strings.HasSuffix(path, "/cart/reservation"):
-			return nil, &httpclient.ErrorDetails{Status: 404, Reason: "Not Found"}
-		default:
-			return nil, fmt.Errorf("unexpected request %s %s", method, path)
+	newCheckoutClient = func() checkoutCLIClient {
+		return &fakeCheckoutClient{
+			previewFn: func(_ *session.Session, _ checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+				return preview, nil
+			},
+			finalizeFn: func(_ *session.Session, opts checkoutcore.FinalizeOptions) (*checkoutcore.FinalizeResult, error) {
+				if opts.Guard == nil || opts.Guard.ExpectedCartID != "cart-1" {
+					t.Fatalf("guard = %+v, want cart-1", opts.Guard)
+				}
+				if opts.Guard.ExpectedItemCount == nil || *opts.Guard.ExpectedItemCount != 2 {
+					t.Fatalf("guard item count = %+v, want 2", opts.Guard)
+				}
+				if opts.Guard.ExpectedTotal == nil || *opts.Guard.ExpectedTotal != 42.5 {
+					t.Fatalf("guard total = %+v, want 42.5", opts.Guard)
+				}
+				return &checkoutcore.FinalizeResult{
+					Provider: session.ProviderFrisco,
+					UserID:   "u-1",
+					Status:   checkoutcore.FinalizeStatusPlaced,
+					OrderID:  "ord-123",
+					Preview:  preview,
+					Readback: &checkoutcore.OrderReadback{
+						OrderID:  "ord-123",
+						Order:    map[string]any{"id": "ord-123", "status": "Placed"},
+						Payments: []map[string]any{{"status": "Paid"}},
+					},
+				}, nil
+			},
 		}
 	}
 
-	payloadFile := writeTempJSON(t, map[string]any{"paymentMethodId": "pm-1"})
 	out := captureStdout(func() {
 		root := NewRootCmd()
-		root.SetArgs([]string{"--provider", session.ProviderFrisco, "--format", "json", "checkout", "finalize", "--confirm", "--payload-file", payloadFile})
+		root.SetArgs([]string{"--provider", session.ProviderFrisco, "--format", "json", "checkout", "finalize", "--confirm"})
 		if err := root.Execute(); err != nil {
 			t.Fatalf("Execute: %v", err)
 		}
@@ -224,11 +230,11 @@ func TestCheckoutFinalizeConfirmReadback(t *testing.T) {
 	if err := json.Unmarshal([]byte(strings.TrimSpace(out)), &parsed); err != nil {
 		t.Fatalf("output is not valid JSON: %v\n%s", err, out)
 	}
-	if parsed["finalized"] != true {
-		t.Fatalf("finalized = %v, want true", parsed["finalized"])
+	if parsed["status"] != string(checkoutcore.FinalizeStatusPlaced) {
+		t.Fatalf("status = %v, want %s", parsed["status"], checkoutcore.FinalizeStatusPlaced)
 	}
-	if parsed["orderId"] != "NEW-1" {
-		t.Fatalf("orderId = %v, want NEW-1", parsed["orderId"])
+	if parsed["order_id"] != "ord-123" {
+		t.Fatalf("order_id = %v, want ord-123", parsed["order_id"])
 	}
 	readback, ok := parsed["readback"].(map[string]any)
 	if !ok {
@@ -237,39 +243,90 @@ func TestCheckoutFinalizeConfirmReadback(t *testing.T) {
 	if _, ok := readback["order"]; !ok {
 		t.Fatalf("readback.order missing: %v", readback)
 	}
-	if _, ok := readback["delivery"]; !ok {
-		t.Fatalf("readback.delivery missing: %v", readback)
-	}
 	if _, ok := readback["payments"]; !ok {
 		t.Fatalf("readback.payments missing: %v", readback)
 	}
 }
 
-func TestExtractCheckoutHelpers(t *testing.T) {
-	if got := extractCheckoutOrderID(map[string]any{"order": map[string]any{"orderId": "ORD-1"}}); got != "ORD-1" {
-		t.Fatalf("extractCheckoutOrderID = %q, want ORD-1", got)
+func TestCheckoutFinalizeActionRequiredPrintsStructuredResult(t *testing.T) {
+	origLoad := checkoutLoadSession
+	origClient := newCheckoutClient
+	defer func() {
+		checkoutLoadSession = origLoad
+		newCheckoutClient = origClient
+	}()
+
+	checkoutLoadSession = func(_ *cobra.Command, _ ...string) (string, *session.Session, error) {
+		return session.ProviderFrisco, &session.Session{BaseURL: session.DefaultBaseURL, UserID: "u-1"}, nil
 	}
-	redirect := extractCheckoutRedirect(map[string]any{"redirectUrl": "https://bank.example/3ds", "method": "POST"})
-	if redirect == nil || redirect["url"] != "https://bank.example/3ds" {
-		t.Fatalf("redirect = %v", redirect)
+	preview := &checkoutcore.CheckoutPreview{Provider: session.ProviderFrisco, UserID: "u-1", CartID: "cart-1", ItemCount: 1}
+	result := &checkoutcore.FinalizeResult{
+		Provider: session.ProviderFrisco,
+		UserID:   "u-1",
+		Status:   checkoutcore.FinalizeStatusRequiresAction,
+		OrderID:  "ord-3ds",
+		Preview:  preview,
+		Action: &checkoutcore.PaymentAction{
+			Kind:   checkoutcore.PaymentActionKindRedirect,
+			URL:    "https://bank.example/3ds",
+			Method: "GET",
+		},
 	}
-	before := []map[string]any{{"orderId": "OLD-1"}}
-	after := []map[string]any{{"orderId": "NEW-1"}, {"orderId": "OLD-1"}}
-	if got := detectNewOrderID(before, after); got != "NEW-1" {
-		t.Fatalf("detectNewOrderID = %q, want NEW-1", got)
+	newCheckoutClient = func() checkoutCLIClient {
+		return &fakeCheckoutClient{
+			previewFn: func(_ *session.Session, _ checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+				return preview, nil
+			},
+			finalizeFn: func(_ *session.Session, _ checkoutcore.FinalizeOptions) (*checkoutcore.FinalizeResult, error) {
+				return result, &checkoutcore.ActionRequiredError{Action: result.Action, Result: result}
+			},
+		}
+	}
+
+	out := captureStdout(func() {
+		root := NewRootCmd()
+		root.SetArgs([]string{"--provider", session.ProviderFrisco, "--format", "json", "checkout", "finalize", "--confirm"})
+		if err := root.Execute(); err != nil {
+			t.Fatalf("Execute: %v", err)
+		}
+	})
+
+	var parsed map[string]any
+	if err := json.Unmarshal([]byte(strings.TrimSpace(out)), &parsed); err != nil {
+		t.Fatalf("output is not valid JSON: %v\n%s", err, out)
+	}
+	if parsed["status"] != string(checkoutcore.FinalizeStatusRequiresAction) {
+		t.Fatalf("status = %v, want requires_action", parsed["status"])
+	}
+	action, ok := parsed["action"].(map[string]any)
+	if !ok || action["url"] != "https://bank.example/3ds" {
+		t.Fatalf("action = %v, want redirect url", parsed["action"])
 	}
 }
 
-func writeTempJSON(t *testing.T, v any) string {
-	t.Helper()
-	dir := t.TempDir()
-	path := filepath.Join(dir, "payload.json")
-	b, err := json.Marshal(v)
-	if err != nil {
-		t.Fatalf("Marshal: %v", err)
+func TestFinalizeGuardFromPreview(t *testing.T) {
+	preview := &checkoutcore.CheckoutPreview{
+		CartID:    "cart-1",
+		ItemCount: 4,
+		Total:     &checkoutcore.Money{Amount: 99.9},
 	}
-	if err := os.WriteFile(path, b, 0o600); err != nil {
-		t.Fatalf("WriteFile: %v", err)
+	guard := finalizeGuardFromPreview(preview)
+	if guard == nil || guard.ExpectedCartID != "cart-1" {
+		t.Fatalf("guard = %+v", guard)
 	}
-	return path
+	if guard.ExpectedItemCount == nil || *guard.ExpectedItemCount != 4 {
+		t.Fatalf("item count guard = %+v", guard)
+	}
+	if guard.ExpectedTotal == nil || *guard.ExpectedTotal != 99.9 {
+		t.Fatalf("total guard = %+v", guard)
+	}
+}
+
+func checkoutSubcommandNames(cmd *cobra.Command) []string {
+	names := make([]string, 0, len(cmd.Commands()))
+	for _, subcmd := range cmd.Commands() {
+		names = append(names, subcmd.Name())
+	}
+	sort.Strings(names)
+	return names
 }
