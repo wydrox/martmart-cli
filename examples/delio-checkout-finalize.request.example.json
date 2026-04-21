@@ -1,0 +1,35 @@
+{
+  "_note": "Redacted / provisional Delio checkout finalize reference. These are the GraphQL steps already modeled in internal/delio, but there is no public Delio `checkout finalize` CLI command yet.",
+  "sequence": [
+    {
+      "operationName": "CreatePayment",
+      "variables": {
+        "cartId": "cart_delio_123"
+      }
+    },
+    {
+      "operationName": "PaymentMethods",
+      "variables": {
+        "cartId": "cart_delio_123",
+        "paymentId": "pay_123"
+      }
+    },
+    {
+      "operationName": "MakePayment",
+      "variables": {
+        "cartId": "cart_delio_123",
+        "paymentId": "pay_123",
+        "paymentConfig": {
+          "paymentChannel": "Web",
+          "paymentMethod": {
+            "adyenPayload": {
+              "type": "scheme",
+              "storedPaymentMethodId": "pm_1"
+            }
+          },
+          "returnUrl": "https://delio.com.pl/checkout/payment"
+        }
+      }
+    }
+  ]
+}

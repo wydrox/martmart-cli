@@ -1,0 +1,40 @@
+{
+  "_note": "Redacted / provisional Delio checkout preview-preparation reference. These request fragments mirror helper shapes already present in internal/delio for cart updates and payment settings lookup. Delio checkout is not yet exposed as a user-facing MartMart CLI command.",
+  "sequence": [
+    {
+      "operationName": "UpdateCurrentCart",
+      "variables": {
+        "cartId": "cart_delio_123",
+        "actions": [
+          {
+            "SetDeliveryScheduleSlot": {
+              "deliveryScheduleSlot": {
+                "dateFrom": "2026-04-22T18:00:00+02:00",
+                "dateTo": "2026-04-22T20:00:00+02:00"
+              }
+            }
+          },
+          {
+            "SetPersonalBillingAddress": {
+              "personalBillingAddress": {
+                "firstName": "Jane",
+                "lastName": "Doe",
+                "streetName": "Marszalkowska",
+                "streetNumber": "1",
+                "apartment": "10",
+                "postalCode": "00-001",
+                "city": "Warszawa",
+                "countryCode": "PL",
+                "email": "jane@example.com"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "operationName": "PaymentSettings",
+      "variables": {}
+    }
+  ]
+}

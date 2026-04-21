@@ -320,6 +320,86 @@ func TestCheckoutFinalizeConfirmReadback(t *testing.T) {
 	}
 }
 
+func TestCheckoutFinalizeRoutesDelioProvider(t *testing.T) {
+	origLoad := checkoutLoadSession
+	origClient := newCheckoutClient
+	defer func() {
+		checkoutLoadSession = origLoad
+		newCheckoutClient = origClient
+	}()
+
+	checkoutLoadSession = func(_ *cobra.Command) (string, *session.Session, error) {
+		return session.ProviderDelio, &session.Session{BaseURL: session.DefaultDelioBaseURL, UserID: "d-1"}, nil
+	}
+	preview := &checkoutcore.CheckoutPreview{
+		Provider:        session.ProviderDelio,
+		UserID:          "d-1",
+		CartID:          "delio-cart-1",
+		ItemCount:       1,
+		ReadyToFinalize: true,
+		Total:           &checkoutcore.Money{Amount: 18.25, Currency: "PLN"},
+	}
+	newCheckoutClient = func(provider string) (checkoutCLIClient, error) {
+		if provider != session.ProviderDelio {
+			t.Fatalf("factory provider = %q, want %q", provider, session.ProviderDelio)
+		}
+		return &fakeCheckoutClient{
+			previewFn: func(_ *session.Session, opts checkoutcore.PreviewOptions) (*checkoutcore.CheckoutPreview, error) {
+				if opts.Provider != session.ProviderDelio {
+					t.Fatalf("preview opts.Provider = %q, want %q", opts.Provider, session.ProviderDelio)
+				}
+				if opts.UserID != "" {
+					t.Fatalf("preview opts.UserID = %q, want empty", opts.UserID)
+				}
+				return preview, nil
+			},
+			finalizeFn: func(_ *session.Session, opts checkoutcore.FinalizeOptions) (*checkoutcore.FinalizeResult, error) {
+				if opts.Provider != session.ProviderDelio {
+					t.Fatalf("finalize opts.Provider = %q, want %q", opts.Provider, session.ProviderDelio)
+				}
+				if opts.Guard == nil || opts.Guard.ExpectedCartID != "delio-cart-1" {
+					t.Fatalf("guard = %+v, want delio-cart-1", opts.Guard)
+				}
+				if opts.Guard.ExpectedItemCount == nil || *opts.Guard.ExpectedItemCount != 1 {
+					t.Fatalf("guard item count = %+v, want 1", opts.Guard)
+				}
+				if opts.Guard.ExpectedTotal == nil || *opts.Guard.ExpectedTotal != 18.25 {
+					t.Fatalf("guard total = %+v, want 18.25", opts.Guard)
+				}
+				return &checkoutcore.FinalizeResult{
+					Provider: session.ProviderDelio,
+					UserID:   "d-1",
+					Status:   checkoutcore.FinalizeStatusPending,
+					OrderID:  "delio-ord-123",
+					Preview:  preview,
+				}, nil
+			},
+		}, nil
+	}
+
+	out := captureStdout(func() {
+		root := NewRootCmd()
+		root.SetArgs([]string{"--provider", session.ProviderDelio, "--format", "json", "checkout", "finalize", "--confirm"})
+		if err := root.Execute(); err != nil {
+			t.Fatalf("Execute: %v", err)
+		}
+	})
+
+	var parsed map[string]any
+	if err := json.Unmarshal([]byte(strings.TrimSpace(out)), &parsed); err != nil {
+		t.Fatalf("output is not valid JSON: %v\n%s", err, out)
+	}
+	if parsed["provider"] != session.ProviderDelio {
+		t.Fatalf("provider = %v, want %s", parsed["provider"], session.ProviderDelio)
+	}
+	if parsed["status"] != string(checkoutcore.FinalizeStatusPending) {
+		t.Fatalf("status = %v, want %s", parsed["status"], checkoutcore.FinalizeStatusPending)
+	}
+	if parsed["order_id"] != "delio-ord-123" {
+		t.Fatalf("order_id = %v, want delio-ord-123", parsed["order_id"])
+	}
+}
+
 func TestCheckoutFinalizeActionRequiredPrintsStructuredResult(t *testing.T) {
 	origLoad := checkoutLoadSession
 	origClient := newCheckoutClient

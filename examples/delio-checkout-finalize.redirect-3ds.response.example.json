@@ -1,0 +1,17 @@
+{
+  "_note": "Redacted / provisional Delio makePayment response when Adyen requires additional shopper action. This matches the makePayment.adyenResponse branch already parsed by internal/delio helpers. It is documentation for future checkout wiring, not current MartMart CLI output.",
+  "data": {
+    "makePayment": {
+      "adyenResponse": {
+        "resultCode": "RedirectShopper",
+        "action": {
+          "type": "redirect",
+          "paymentMethodType": "scheme",
+          "method": "GET",
+          "url": "https://checkoutshopper-live.adyen.com/checkoutshopper/threeDS/redirect.shtml?redirectData=REPLACE_ME"
+        },
+        "paymentData": "Ab02b4c0!BQABAgCUiQAA...REPLACE_ME"
+      }
+    }
+  }
+}

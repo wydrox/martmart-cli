@@ -79,7 +79,7 @@ martmart mcp
 | Reservation reserve/cancel | ✅ | ❌ |
 | Account / orders | ✅ | MVP / partial |
 | MCP support | ✅ | partial, shared CLI path |
-| Checkout / payment finalization | ⚠️ experimental: preview + guarded finalize (`--confirm`) | ❌ CLI support today; provisional checkout fixtures only |
+| Checkout / payment finalization | ⚠️ experimental: preview + guarded finalize (`--confirm`) | ⚠️ internal checkout/Adyen helpers + contract fixtures; no public CLI checkout command yet |
 
 ## Safety and scope
 
@@ -95,11 +95,11 @@ Implemented scope today:
 - run **guarded** Frisco finalization only with explicit `checkout finalize --confirm`
 
 Still not implemented / not supported:
-- Delio checkout commands / finalization in the CLI
+- public Delio `checkout` commands / finalization in the CLI
 - automatic background finalization from MCP or agent loops
 - redirect / 3DS completion inside the CLI after the external handoff step
 
-Delio checkout is still **not wired into the CLI**. The repo may still contain redacted Delio checkout fixtures under `examples/` so the expected preview/finalize/redirect contract is documented for future implementation work, including Adyen-style action payloads.
+Delio checkout is still **not wired into the user-facing CLI**. What *is* present today is lower-level Delio checkout contract coverage in `internal/delio` for payment settings, payment creation, payment-method discovery, make-payment payload building, and Adyen response extraction. The redacted Delio checkout fixtures under `examples/` document those request/response shapes and the expected Adyen action handoff without implying that `martmart --provider delio checkout ...` is already live.
 
 That keeps the tool useful while still requiring an explicit opt-in before any final order submission.
 
@@ -376,13 +376,15 @@ Frisco repo fixtures:
 
 Delio contract-reference fixtures:
 
+- [examples/delio-checkout-preview.request.example.json](examples/delio-checkout-preview.request.example.json)
 - [examples/delio-checkout-preview.response.example.json](examples/delio-checkout-preview.response.example.json)
+- [examples/delio-checkout-finalize.request.example.json](examples/delio-checkout-finalize.request.example.json)
 - [examples/delio-checkout-finalize.response.example.json](examples/delio-checkout-finalize.response.example.json)
-- [examples/delio-checkout-finalize.redirect-adyen.response.example.json](examples/delio-checkout-finalize.redirect-adyen.response.example.json)
+- [examples/delio-checkout-finalize.redirect-3ds.response.example.json](examples/delio-checkout-finalize.redirect-3ds.response.example.json)
 
-These examples are **redacted / provisional**. They are meant to document the expected contract shape and failure modes for implementation work, not to claim that the final browser-confirmed endpoint is already fully verified.
+These examples are **redacted / provisional**. They are meant to document the Delio GraphQL + Adyen contract shapes already reflected in `internal/delio` helpers, not to claim that the final browser-confirmed checkout CLI path is already fully verified.
 
-For Frisco, MartMart already returns a structured action handoff when finalize hits a redirect / 3DS stop. For Delio, the fixture set includes an **Adyen-style action payload example** so future implementation can map the same kind of external handoff safely without implying that the CLI path is already live.
+For Frisco, MartMart already returns a structured action handoff when finalize hits a redirect / 3DS stop. For Delio, the fixture set now documents the underlying Adyen-backed `makePayment` flow and the redirect / 3DS branch that a future provider-level checkout client would translate into the same kind of structured external handoff.
 
 ### Remaining evidence to harden live checkout finalization
 
