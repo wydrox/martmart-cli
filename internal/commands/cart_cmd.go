@@ -376,11 +376,11 @@ func newCartAddCmd() *cobra.Command {
 					return err
 				}
 				if hasSearch {
-					sku, err := resolveDelioProductBySearch(s, searchPhrase, coords)
+					result, err := cartAddSearchWithMemoryDelio(s, searchPhrase, coords, quantity)
 					if err != nil {
 						return err
 					}
-					productID = sku
+					return printJSON(result)
 				}
 				current, err := delio.CurrentCart(s)
 				if err != nil {
@@ -396,6 +396,9 @@ func newCartAddCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
+				if _, err := delio.ExtractUpdatedCart(result); err != nil {
+					return err
+				}
 				return printJSON(result)
 			}
 			uid, err := session.RequireUserID(s, userID)
@@ -403,25 +406,15 @@ func newCartAddCmd() *cobra.Command {
 				return err
 			}
 
-			// Resolve product ID via search when --search is given.
 			if hasSearch {
-				pid, err := resolveProductBySearch(s, uid, searchPhrase, categoryID)
+				result, err := cartAddSearchWithMemoryFrisco(s, uid, searchPhrase, categoryID, quantity)
 				if err != nil {
 					return err
 				}
-				productID = pid
+				return printJSON(result)
 			}
 
-			path := fmt.Sprintf("/app/commerce/api/v1/users/%s/cart", uid)
-			body := map[string]any{
-				"products": []any{
-					map[string]any{"productId": productID, "quantity": quantity},
-				},
-			}
-			result, err := httpclient.RequestJSON(s, "PUT", path, httpclient.RequestOpts{
-				Data:       body,
-				DataFormat: httpclient.FormatJSON,
-			})
+			result, err := addFriscoProductToCart(s, uid, productID, quantity)
 			if err != nil {
 				return err
 			}
@@ -449,6 +442,11 @@ const searchMinScore = 0.5
 // prints up to 3 candidates and returns an error asking the user to retry with
 // --product-id.
 func resolveProductBySearch(s *session.Session, uid, phrase, categoryID string) (string, error) {
+	_, productID, err := resolveProductBySearchPayload(s, uid, phrase, categoryID)
+	return productID, err
+}
+
+func resolveProductBySearchPayload(s *session.Session, uid, phrase, categoryID string) (any, string, error) {
 	path := fmt.Sprintf("/app/commerce/api/v1/users/%s/offer/products/query", uid)
 	q := []string{
 		"purpose=Listing",
@@ -466,21 +464,20 @@ func resolveProductBySearch(s *session.Session, uid, phrase, categoryID string) 
 
 	result, err := httpclient.RequestJSON(s, "GET", path, httpclient.RequestOpts{Query: q})
 	if err != nil {
-		return "", fmt.Errorf("product search failed: %w", err)
+		return nil, "", fmt.Errorf("product search failed: %w", err)
 	}
 
 	m, ok := result.(map[string]any)
 	if !ok {
-		return "", fmt.Errorf("unexpected search response format")
+		return nil, "", fmt.Errorf("unexpected search response format")
 	}
 	rawProducts, _ := m["products"].([]any)
 	if len(rawProducts) == 0 {
-		return "", fmt.Errorf("no products found for search phrase %q", phrase)
+		return result, "", fmt.Errorf("no products found for search phrase %q", phrase)
 	}
 
 	products := picker.NormaliseProducts(rawProducts)
 	best, top3, ok := picker.Pick(products, phrase, searchMinScore)
-
 	if !ok {
 		fmt.Printf("No strong match found for %q (score < %.1f).\n\n", phrase, searchMinScore)
 		if len(top3) > 0 {
@@ -504,23 +501,15 @@ func resolveProductBySearch(s *session.Session, uid, phrase, categoryID string) 
 			}
 			_ = w.Flush()
 		}
-		return "", fmt.Errorf("use --product-id with one of the product IDs above")
+		return result, "", fmt.Errorf("use --product-id with one of the product IDs above")
 	}
 
-	// Print the picked product before adding.
 	ppkgStr := "-"
 	if best.PricePerKg > 0 {
 		ppkgStr = fmt.Sprintf("%.2f /kg", best.PricePerKg)
 	}
-	fmt.Printf("Picked: %s  [%s]  %.2f PLN  %s  %s\n",
-		best.Name,
-		best.ProductID,
-		best.Price,
-		fallbackDash(best.Grammage),
-		ppkgStr,
-	)
-
-	return best.ProductID, nil
+	fmt.Printf("Picked: %s  [%s]  %.2f PLN  %s  %s\n", best.Name, best.ProductID, best.Price, fallbackDash(best.Grammage), ppkgStr)
+	return result, best.ProductID, nil
 }
 
 func newCartRemoveCmd() *cobra.Command {

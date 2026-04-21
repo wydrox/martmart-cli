@@ -50,6 +50,35 @@ var (
 
 var defaultHTTPClient = &http.Client{Timeout: 30 * time.Second}
 
+type ErrorDetails struct {
+	Status int    `json:"status"`
+	Reason string `json:"reason"`
+	URL    string `json:"url,omitempty"`
+	Body   string `json:"body,omitempty"`
+}
+
+func (e *ErrorDetails) Error() string {
+	if e == nil {
+		return ""
+	}
+	b, _ := json.MarshalIndent(e, "", "  ")
+	return string(b)
+}
+
+func ParseError(err error) (*ErrorDetails, bool) {
+	if err == nil {
+		return nil, false
+	}
+	var details ErrorDetails
+	if unmarshalErr := json.Unmarshal([]byte(err.Error()), &details); unmarshalErr != nil {
+		return nil, false
+	}
+	if details.Status == 0 {
+		return nil, false
+	}
+	return &details, true
+}
+
 // makeURL joins base with path or returns absolute URL.
 func makeURL(baseURL, pathOrURL string) (string, error) {
 	if strings.HasPrefix(pathOrURL, "http://") || strings.HasPrefix(pathOrURL, "https://") {
@@ -210,14 +239,13 @@ func requestJSONWithAutoRefresh(
 				return requestJSONWithAutoRefresh(s, method, pathOrURL, opts, false)
 			}
 		}
-		msg := map[string]any{
-			"status": resp.StatusCode,
-			"reason": http.StatusText(resp.StatusCode),
-			"url":    sanitizeErrorURL(fullURL),
-			"body":   sanitizeErrorBody(text),
+		details := &ErrorDetails{
+			Status: resp.StatusCode,
+			Reason: http.StatusText(resp.StatusCode),
+			URL:    sanitizeErrorURL(fullURL),
+			Body:   sanitizeErrorBody(text),
 		}
-		b, _ := json.MarshalIndent(msg, "", "  ")
-		return nil, fmt.Errorf("%s", string(b))
+		return nil, fmt.Errorf("%s", details.Error())
 	}
 
 	ct := resp.Header.Get("Content-Type")

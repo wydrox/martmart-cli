@@ -189,16 +189,21 @@ func printDelioSlotsTable(v any, startDate string, days int) error {
 }
 
 func resolveDelioProductBySearch(s *session.Session, phrase string, coords *delio.Coordinates) (string, error) {
+	_, sku, err := resolveDelioProductBySearchPayload(s, phrase, coords)
+	return sku, err
+}
+
+func resolveDelioProductBySearchPayload(s *session.Session, phrase string, coords *delio.Coordinates) (any, string, error) {
 	result, err := delio.SearchProducts(s, phrase, 10, 0, coords)
 	if err != nil {
-		return "", fmt.Errorf("Delio product search failed: %w", err)
+		return nil, "", fmt.Errorf("Delio product search failed: %w", err)
 	}
 	results, err := extractDelioSearchResults(result)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 	if len(results) == 0 {
-		return "", fmt.Errorf("no Delio products found for search phrase %q", phrase)
+		return result, "", fmt.Errorf("no Delio products found for search phrase %q", phrase)
 	}
 	bestScore := -1.0
 	bestIdx := -1
@@ -211,11 +216,11 @@ func resolveDelioProductBySearch(s *session.Session, phrase string, coords *deli
 		}
 	}
 	if bestIdx < 0 {
-		return "", fmt.Errorf("no usable Delio result for %q", phrase)
+		return result, "", fmt.Errorf("no usable Delio result for %q", phrase)
 	}
 	best := results[bestIdx]
 	fmt.Printf("Picked: %s  [%s]\n", asString(best["name"]), asString(best["sku"]))
-	return asString(best["sku"]), nil
+	return result, asString(best["sku"]), nil
 }
 
 func delioCartItemQuantity(cart map[string]any, sku string) int {

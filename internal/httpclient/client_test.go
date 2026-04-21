@@ -202,6 +202,13 @@ func TestRequestJSON_ErrorStatus(t *testing.T) {
 	if !strings.Contains(err.Error(), "404") && !strings.Contains(err.Error(), "Not Found") {
 		t.Errorf("error should mention 404: %v", err)
 	}
+	details, ok := ParseError(err)
+	if !ok {
+		t.Fatalf("ParseError should succeed: %v", err)
+	}
+	if details.Status != http.StatusNotFound || details.Reason != "Not Found" {
+		t.Fatalf("unexpected details: %+v", details)
+	}
 }
 
 func TestRequestJSON_NonJSONResponse(t *testing.T) {
@@ -425,3 +432,39 @@ func TestSanitizeErrorBody_CookieToken(t *testing.T) {
 		t.Errorf("expected 'rtokenN=***' placeholder, got: %s", got)
 	}
 }
+
+func TestParseError(t *testing.T) {
+	cases := []struct {
+		name   string
+		err    error
+		wantOK bool
+		want   int
+	}{
+		{"401", &ErrorDetails{Status: 401, Reason: "Unauthorized", Body: `{"error":"auth"}`}, true, 401},
+		{"404", &ErrorDetails{Status: 404, Reason: "Not Found", Body: `{"error":"missing"}`}, true, 404},
+		{"429", &ErrorDetails{Status: 429, Reason: "Too Many Requests"}, true, 429},
+		{"5xx", &ErrorDetails{Status: 503, Reason: "Service Unavailable"}, true, 503},
+		{"malformed", json.Unmarshal([]byte(`{`), &map[string]any{}), false, 0},
+		{"plain", assertPlainError("boom"), false, 0},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			details, ok := ParseError(tc.err)
+			if ok != tc.wantOK {
+				t.Fatalf("ok=%v want %v", ok, tc.wantOK)
+			}
+			if !tc.wantOK {
+				return
+			}
+			if details.Status != tc.want {
+				t.Fatalf("status=%d want %d", details.Status, tc.want)
+			}
+		})
+	}
+}
+
+func assertPlainError(msg string) error { return &plainError{msg: msg} }
+
+type plainError struct{ msg string }
+
+func (e *plainError) Error() string { return e.msg }

@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/wydrox/martmart-cli/internal/delio"
 )
 
 func TestOpenPathRunsMigrations(t *testing.T) {
@@ -266,6 +268,117 @@ func TestNormalizeDelioPayloads(t *testing.T) {
 	}
 	if len(cartRecords) != 1 || cartRecords[0].PriceMinor == nil || *cartRecords[0].PriceMinor != 399 {
 		t.Fatalf("unexpected cart record: %+v", cartRecords)
+	}
+}
+
+func TestQueryMemory(t *testing.T) {
+	t.Parallel()
+	db := openTestDB(t)
+	defer db.Close()
+	ctx := context.Background()
+	now := time.Date(2026, 4, 21, 12, 0, 0, 0, time.UTC)
+	queryNorm := BuildFriscoQueryNorm("Milk 3.2%", "cat-1")
+
+	if err := db.UpsertQuerySuccess(ctx, QuerySuccessInput{
+		Provider:              "frisco",
+		QueryText:             "Milk 3.2%",
+		QueryNorm:             queryNorm,
+		LastSelectedProductID: "p-1",
+		Now:                   now,
+		LiveSearchUsed:        true,
+	}); err != nil {
+		t.Fatalf("UpsertQuerySuccess first: %v", err)
+	}
+
+	rec, err := db.GetQuery(ctx, "frisco", queryNorm)
+	if err != nil {
+		t.Fatalf("GetQuery: %v", err)
+	}
+	if rec.QueryText != "Milk 3.2%" || rec.LastSelectedProductID != "p-1" || rec.SuccessCount != 1 {
+		t.Fatalf("unexpected first record: %+v", rec)
+	}
+	if rec.TTLDays != DefaultQueryTTLDays || rec.LastLiveSearchAt == nil || rec.LastSelectedAt == nil {
+		t.Fatalf("expected ttl/live/selected timestamps, got %+v", rec)
+	}
+
+	if err := db.UpsertQueryError(ctx, "frisco", "Milk 3.2%", queryNorm, "http_404", now.Add(time.Hour), true); err != nil {
+		t.Fatalf("UpsertQueryError: %v", err)
+	}
+	rec, err = db.GetQuery(ctx, "frisco", queryNorm)
+	if err != nil {
+		t.Fatalf("GetQuery after error: %v", err)
+	}
+	if rec.LastSelectedProductID != "p-1" {
+		t.Fatalf("failure should not overwrite selection: %+v", rec)
+	}
+	if rec.LastErrorCode != "http_404" || rec.FallbackCount != 1 {
+		t.Fatalf("expected error + fallback count, got %+v", rec)
+	}
+
+	if err := db.UpsertQuerySuccess(ctx, QuerySuccessInput{
+		Provider:          "frisco",
+		QueryText:         "Milk 3.2%",
+		QueryNorm:         queryNorm,
+		Now:               now.Add(2 * time.Hour),
+		PreserveSelection: true,
+	}); err != nil {
+		t.Fatalf("UpsertQuerySuccess cache hit: %v", err)
+	}
+	rec, err = db.GetQuery(ctx, "frisco", queryNorm)
+	if err != nil {
+		t.Fatalf("GetQuery after cache hit: %v", err)
+	}
+	if rec.SuccessCount != 2 || rec.LastSelectedProductID != "p-1" {
+		t.Fatalf("unexpected cache-hit record: %+v", rec)
+	}
+	if rec.LastErrorCode != "" || rec.LastErrorAt != nil {
+		t.Fatalf("expected last_error cleared on success: %+v", rec)
+	}
+	if rec.LastLiveSearchAt == nil || !rec.LastLiveSearchAt.Equal(now) {
+		t.Fatalf("cache hit should preserve live search timestamp: %+v", rec)
+	}
+
+	if err := db.UpsertQuerySuccess(ctx, QuerySuccessInput{
+		Provider:              "frisco",
+		QueryText:             "Milk 3.2%",
+		QueryNorm:             queryNorm,
+		LastSelectedProductID: "p-2",
+		Now:                   now.Add(8 * 24 * time.Hour),
+		LiveSearchUsed:        true,
+		FallbackUsed:          true,
+	}); err != nil {
+		t.Fatalf("UpsertQuerySuccess fallback: %v", err)
+	}
+	rec, err = db.GetQuery(ctx, "frisco", queryNorm)
+	if err != nil {
+		t.Fatalf("GetQuery after fallback success: %v", err)
+	}
+	if rec.LastSelectedProductID != "p-2" || rec.SuccessCount != 3 || rec.FallbackCount != 2 {
+		t.Fatalf("unexpected fallback success record: %+v", rec)
+	}
+}
+
+func TestQueryNormBuildersAndTTL(t *testing.T) {
+	t.Parallel()
+	friscoKey := BuildFriscoQueryNorm("  Mleko 3.2% ", "Cat-12")
+	if friscoKey != "mleko 3.2%|category:cat-12" {
+		t.Fatalf("unexpected frisco key: %q", friscoKey)
+	}
+	delioKey := BuildDelioQueryNorm("Jogurt", &delio.Coordinates{Lat: 52.2296756, Long: 21.0122287})
+	if delioKey != "jogurt|coords:52.2297,21.0122" {
+		t.Fatalf("unexpected delio key: %q", delioKey)
+	}
+
+	live := time.Date(2026, 4, 14, 12, 0, 0, 0, time.UTC)
+	rec := &QueryRecord{TTLDays: 0, LastLiveSearchAt: &live}
+	if !IsFresh(rec, live.Add(6*24*time.Hour+23*time.Hour)) {
+		t.Fatal("expected fresh before 7 days")
+	}
+	if !IsStale(rec, live.Add(7*24*time.Hour)) {
+		t.Fatal("expected stale at 7 days boundary")
+	}
+	if !IsStale(&QueryRecord{}, live) {
+		t.Fatal("expected stale when last_live_search_at missing")
 	}
 }
 

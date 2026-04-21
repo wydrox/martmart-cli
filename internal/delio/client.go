@@ -47,6 +47,27 @@ func graphqlRequest(s *session.Session, path string, payload map[string]any) (an
 	})
 }
 
+type UpdateCurrentCartError struct {
+	Message string
+	Payload any
+	Errors  []any
+}
+
+func (e *UpdateCurrentCartError) Error() string {
+	if e == nil {
+		return ""
+	}
+	if strings.TrimSpace(e.Message) != "" {
+		return e.Message
+	}
+	return "updateCurrentCart validation failed"
+}
+
+func IsUpdateCurrentCartBusinessError(err error) bool {
+	var target *UpdateCurrentCartError
+	return errors.As(err, &target)
+}
+
 func unwrapGraphQL(payload any) (map[string]any, error) {
 	root, ok := payload.(map[string]any)
 	if !ok {
@@ -267,6 +288,26 @@ func UpdateCurrentCart(s *session.Session, cartID string, actions []map[string]a
 		},
 		"query": updateCurrentCartMutation,
 	})
+}
+
+func ExtractUpdatedCart(payload any) (map[string]any, error) {
+	root, ok := payload.(map[string]any)
+	if !ok {
+		return nil, &UpdateCurrentCartError{Message: "unexpected Delio response shape", Payload: payload}
+	}
+	if rawErrors, ok := root["errors"].([]any); ok && len(rawErrors) > 0 {
+		b, _ := json.Marshal(rawErrors)
+		return nil, &UpdateCurrentCartError{Message: fmt.Sprintf("graphql errors: %s", string(b)), Payload: payload, Errors: rawErrors}
+	}
+	data, ok := root["data"].(map[string]any)
+	if !ok {
+		return nil, &UpdateCurrentCartError{Message: "missing Delio response data", Payload: payload}
+	}
+	updated, ok := data["updateCart"].(map[string]any)
+	if !ok || updated == nil {
+		return nil, &UpdateCurrentCartError{Message: "missing updateCart in Delio response", Payload: payload}
+	}
+	return updated, nil
 }
 
 // DeliveryScheduleSlots fetches delivery slots for the given or inferred coordinates.
