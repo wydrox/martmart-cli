@@ -15,6 +15,7 @@ import (
 	"github.com/wydrox/martmart-cli/internal/httpclient"
 	"github.com/wydrox/martmart-cli/internal/login"
 	"github.com/wydrox/martmart-cli/internal/session"
+	"github.com/wydrox/martmart-cli/internal/upmenu"
 )
 
 // session login defaults to a provider-specific start URL when --login-url is not set.
@@ -165,7 +166,7 @@ func newSessionVerifyCmd() *cobra.Command {
 			case session.ProviderDelio:
 				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Session OK: Delio currentCart responded successfully.")
 			case session.ProviderUpMenu:
-				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Session OK: UpMenu session request responded successfully.")
+				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Session OK: UpMenu public restaurant endpoint responded successfully.")
 			default:
 				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Session OK: cart API responded successfully.")
 			}
@@ -189,10 +190,19 @@ func verifyLoadedSession(provider string, s *session.Session, userID string) err
 		_, err = delio.ExtractCurrentCart(payload)
 		return err
 	case session.ProviderUpMenu:
-		if session.HeaderValue(s, "Cookie") == "" && session.HeaderValue(s, "Authorization") == "" {
-			return errors.New("no auth headers in UpMenu session. Use 'session from-curl' with a copied authenticated UpMenu request")
+		cfg := upmenu.Config{
+			BaseURL:      session.DefaultBaseURLForProvider(provider),
+			SiteID:       upmenu.DefaultSiteID,
+			RestaurantID: upmenu.DefaultRestaurantID,
 		}
-		_, err := httpclient.RequestJSON(s, "GET", "/", httpclient.RequestOpts{})
+		if s != nil && strings.TrimSpace(s.BaseURL) != "" {
+			cfg.BaseURL = strings.TrimSpace(s.BaseURL)
+		}
+		client, err := upmenu.NewClient(cfg)
+		if err != nil {
+			return err
+		}
+		_, err = client.RestaurantInfo(context.Background())
 		return err
 	default:
 		if session.TokenString(s) == "" {

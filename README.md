@@ -6,13 +6,13 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-compatible-7C3AED)](https://modelcontextprotocol.io)
 
-**One grocery CLI for Frisco.pl and Delio.**
+**One grocery CLI for Frisco.pl, Delio, and public UpMenu storefront MVPs.**
 
-MartMart CLI gives you a single command-line interface for **session login**, **product search**, **cart operations**, **delivery slots**, and **MCP-based AI workflows** across supported grocery providers.
+MartMart CLI gives you a single command-line interface for **session login**, **product search**, **cart operations**, **delivery slots**, **restaurant storefront flows**, and **MCP-based AI workflows** across supported providers.
 
-> **Status:** usable today for Frisco, MVP support for Delio.
+> **Status:** usable today for Frisco, MVP support for Delio, and public MVP support for UpMenu/Dobra Buła.
 >
-> **Disclaimer:** independent community project, not affiliated with Frisco or Delio. Use only with **your own account/session** and at your own risk.
+> **Disclaimer:** independent community project, not affiliated with Frisco, Delio, UpMenu, or Dobra Buła. Use only with **your own account/session** and at your own risk.
 
 ## Why MartMart CLI
 
@@ -27,8 +27,9 @@ It is built for people who want to:
 
 ## Highlights
 
-- **One CLI, multiple providers** via `--provider frisco|delio`
+- **One CLI, multiple providers** via `--provider frisco|delio|upmenu`
 - **Unified browser-profile login** for Frisco and Delio
+- **Public UpMenu/Dobra Buła restaurant + cart MVP**
 - **Product search and lookup**
 - **Cart read/write operations**
 - **Delivery slot lookup**
@@ -63,26 +64,25 @@ martmart mcp
 
 ## Provider support
 
-| Capability | Frisco | Delio |
-|---|---:|---:|
-| Browser-profile login | ✅ | ✅ |
-| Session verify | ✅ | ✅ |
-| cURL session import | ✅ | ✅ |
-| Refresh token flow | ✅ | ❌ |
-| Product search | ✅ | ✅ |
-| Product details | ✅ | ✅ |
-| Nutrition info | ✅ | ❌ |
-| Cart show | ✅ | ✅ |
-| Cart add/remove | ✅ | ✅ |
-| Batch cart input | ✅ | ❌ |
-| Interactive cart TUI | ✅ | ❌ |
-| Delivery slots | ✅ | ✅ |
-| Reservation reserve/cancel | ✅ | ❌ |
-| Account / orders | ✅ | MVP / partial |
-| MCP support | ✅ | partial, shared CLI path |
+| Capability | Frisco | Delio | UpMenu / Dobra Buła MVP |
+|---|---:|---:|---:|
+| Browser-profile login | ✅ | ✅ | ❌ |
+| Session verify | ✅ | ✅ | ✅ public endpoint check |
+| cURL session import | ✅ | ✅ | ✅ |
+| Refresh token flow | ✅ | ❌ | ❌ |
+| Product search | ✅ | ✅ | ❌ use `restaurant menu` |
+| Product details | ✅ | ✅ | ❌ use `restaurant menu` |
+| Cart show | ✅ | ✅ | ✅ |
+| Cart add/remove | ✅ | ✅ | ✅ add / ❌ remove |
+| Batch cart input | ✅ | ❌ | ❌ |
+| Interactive cart TUI | ✅ | ❌ | ❌ |
+| Delivery slots | ✅ | ✅ | ❌ |
+| Reservation reserve/cancel | ✅ | ❌ | ❌ |
+| Account / orders | ✅ | MVP / partial | ❌ |
+| Checkout / payment finalization | ⚠️ experimental: preview + guarded finalize (`--confirm`) | ⚠️ experimental: preview + guarded finalize (`--confirm`, Adyen-backed) | ❌ |
+| MCP support | ✅ | partial, shared CLI path | ✅ dedicated `upmenu_*` tools |
 
-UpMenu/Dobra Buła is currently exposed as an **MCP-only MVP surface** rather than a full `--provider` CLI provider. Use the dedicated UpMenu MCP tools above instead of Frisco/Delio session or product/cart tools.
-| Checkout / payment finalization | ⚠️ experimental: preview + guarded finalize (`--confirm`) | ⚠️ experimental: preview + guarded finalize (`--confirm`, Adyen-backed) |
+UpMenu/Dobra Buła support is an MVP focused on public restaurant info, menu parsing, simple cart add/show, and MCP exposure. The default storefront target is Dobra Buła Wola; pass `--restaurant-url` (or `restaurant_url` in MCP) to target another branch. For configurable burgers/options or payment finalization, use the live storefront flow.
 
 ## Safety and scope
 
@@ -197,6 +197,15 @@ martmart --provider delio products get --product-id A0000860
 martmart --provider delio cart show
 martmart --provider delio cart add --product-id A0000860 --quantity 1
 martmart --provider delio reservation slots
+```
+
+#### UpMenu / Dobra Buła examples
+
+```bash
+martmart --provider upmenu restaurant info --format json
+martmart --provider upmenu restaurant menu --format json
+martmart --provider upmenu cart show --format json
+martmart --provider upmenu cart add --product-id 16848b98-94d0-11f0-9141-525400080621 --quantity 1 --format json
 ```
 
 ## Common workflows

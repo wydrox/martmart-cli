@@ -603,7 +603,7 @@ func toolAccountMembershipPoints(_ context.Context, _ *mcp.CallToolRequest, in a
 }
 
 type sessionStatusIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"optional provider id; when omitted returns all providers; one of delio, frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"optional provider id; when omitted returns all providers; one of delio, frisco, upmenu"`
 }
 
 func toolSessionStatus(_ context.Context, _ *mcp.CallToolRequest, in sessionStatusIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
@@ -635,11 +635,22 @@ func sessionStatusProviders(requestedProvider string) ([]string, error) {
 	if strings.TrimSpace(requestedProvider) == "" {
 		return mcpAvailableProviders(), nil
 	}
-	provider, err := mcpResolveProvider(requestedProvider)
+	provider, err := mcpResolveSessionProvider(requestedProvider)
 	if err != nil {
 		return nil, err
 	}
 	return []string{provider}, nil
+}
+
+func mcpResolveSessionProvider(provider string) (string, error) {
+	provider = session.NormalizeProvider(provider)
+	if provider == "" {
+		return "", errors.New("provider is required; ask the user whether to use frisco, delio, or upmenu")
+	}
+	if err := session.ValidateProvider(provider); err != nil {
+		return "", err
+	}
+	return provider, nil
 }
 
 func sessionStatusPayload(targetProviders []string) (map[string]any, error) {
@@ -740,13 +751,13 @@ func sessionStatusEntry(provider string, s *session.Session, sourcePath string) 
 		"cookie_saved":           cookieSaved,
 		"header_keys":            mcpASAHeaderKeysSorted(s.Headers),
 		"auth_mechanisms":        authMechanisms,
-		"interactive_login_hint": !session.IsAuthenticated(s),
+		"interactive_login_hint": provider != session.ProviderUpMenu && !session.IsAuthenticated(s),
 	}
 }
 
 // sessionFromCurlIn is the input type for the session_from_curl tool.
 type sessionFromCurlIn struct {
-	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
+	Provider string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco, upmenu"`
 	Curl     string `json:"curl"`
 }
 
@@ -754,7 +765,7 @@ func toolSessionFromCurl(_ context.Context, _ *mcp.CallToolRequest, in sessionFr
 	if strings.TrimSpace(in.Curl) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("curl is required")
 	}
-	provider, err := mcpResolveProvider(in.Provider)
+	provider, err := mcpResolveSessionProvider(in.Provider)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -782,14 +793,17 @@ func toolSessionFromCurl(_ context.Context, _ *mcp.CallToolRequest, in sessionFr
 
 // authRefreshTokenIn is the input type for the session_refresh_token tool.
 type authRefreshTokenIn struct {
-	Provider     string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
+	Provider     string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco, upmenu"`
 	RefreshToken string `json:"refresh_token,omitempty" jsonschema:"optional; else session refresh_token"`
 }
 
 func toolAuthRefreshToken(_ context.Context, _ *mcp.CallToolRequest, in authRefreshTokenIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	provider, err := mcpResolveProvider(in.Provider)
+	provider, err := mcpResolveSessionProvider(in.Provider)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
+	}
+	if provider == session.ProviderUpMenu {
+		return nil, mcpCPFriscoToolOut{}, errors.New("session_refresh_token is not supported for provider \"upmenu\"; import a fresh request with session_from_curl or use the public upmenu_* tools")
 	}
 	s, err := session.LoadProvider(provider)
 	if err != nil {
@@ -849,7 +863,7 @@ const defaultSessionLoginTimeoutSec = 180
 
 // sessionLoginIn is the input type for the session_login tool.
 type sessionLoginIn struct {
-	Provider   string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco"`
+	Provider   string `json:"provider,omitempty" jsonschema:"provider id; required; one of delio, frisco, upmenu"`
 	TimeoutSec *int   `json:"timeout_sec,omitempty" jsonschema:"Login timeout in seconds; default 180"`
 }
 
@@ -862,9 +876,12 @@ func sessionLoginTimeoutSec(in sessionLoginIn) int {
 }
 
 func toolSessionLogin(ctx context.Context, _ *mcp.CallToolRequest, in sessionLoginIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	provider, err := mcpResolveProvider(in.Provider)
+	provider, err := mcpResolveSessionProvider(in.Provider)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
+	}
+	if provider == session.ProviderUpMenu {
+		return nil, mcpCPFriscoToolOut{}, errors.New("session_login is not supported for provider \"upmenu\"; use session_status or the public upmenu_* tools instead")
 	}
 	if err := requireRecentSessionStatus(provider, time.Now()); err != nil {
 		return nil, mcpCPFriscoToolOut{}, err

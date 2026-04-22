@@ -13,6 +13,7 @@ import (
 	"github.com/wydrox/martmart-cli/internal/httpclient"
 	"github.com/wydrox/martmart-cli/internal/login"
 	"github.com/wydrox/martmart-cli/internal/session"
+	"github.com/wydrox/martmart-cli/internal/upmenu"
 )
 
 func TestTokenSaved(t *testing.T) {
@@ -233,30 +234,17 @@ func TestVerifyLoadedSession_DelioRejectsGraphQLErrors(t *testing.T) {
 	}
 }
 
-func TestVerifyLoadedSession_UpMenuRequiresAuthHeaders(t *testing.T) {
-	err := verifyLoadedSession(session.ProviderUpMenu, &session.Session{BaseURL: "https://example.com"}, "")
-	if err == nil || !strings.Contains(err.Error(), "no auth headers in UpMenu session") {
-		t.Fatalf("verifyLoadedSession error = %v, want missing UpMenu auth message", err)
-	}
-}
-
-func TestVerifyLoadedSession_UpMenuChecksBaseURL(t *testing.T) {
+func TestVerifyLoadedSession_UpMenuUsesPublicRestaurantEndpoint(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			t.Fatalf("path = %q, want /", r.URL.Path)
-		}
-		if got := r.Header.Get("Cookie"); got == "" {
-			t.Fatal("expected Cookie header on UpMenu verify request")
+		if r.URL.Path != "/restapi/restaurant/"+upmenu.DefaultRestaurantID {
+			t.Fatalf("path = %q", r.URL.Path)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"ok":true}`))
+		_, _ = w.Write([]byte(`{"id":"` + upmenu.DefaultRestaurantID + `","name":"Dobra Buła"}`))
 	}))
 	defer server.Close()
 
-	err := verifyLoadedSession(session.ProviderUpMenu, &session.Session{
-		BaseURL: server.URL,
-		Headers: map[string]string{"Cookie": "XSRF-TOKEN=a; laravel_session=b"},
-	}, "")
+	err := verifyLoadedSession(session.ProviderUpMenu, &session.Session{BaseURL: server.URL}, "")
 	if err != nil {
 		t.Fatalf("verifyLoadedSession error = %v, want nil", err)
 	}

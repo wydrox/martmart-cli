@@ -19,23 +19,23 @@ type State struct {
 }
 
 type RestaurantInfo struct {
-	ID                   string   `json:"id,omitempty"`
-	Name                 string   `json:"name,omitempty"`
-	URL                  string   `json:"url,omitempty"`
-	Street               string   `json:"street,omitempty"`
-	PostalCode           string   `json:"postal_code,omitempty"`
-	City                 string   `json:"city,omitempty"`
-	Phone                string   `json:"phone,omitempty"`
-	Email                string   `json:"email,omitempty"`
-	Currency             string   `json:"currency,omitempty"`
-	Delivery             bool     `json:"delivery"`
-	Takeaway             bool     `json:"takeaway"`
-	OnSite               bool     `json:"onsite"`
-	OnlineOrdering       bool     `json:"online_ordering"`
-	OpenNow              bool     `json:"open_now"`
-	MinimumOrderPrice    *float64 `json:"minimum_order_price,omitempty"`
-	MinimumDeliveryCost  *float64 `json:"minimum_delivery_cost,omitempty"`
-	MaximumDeliveryCost  *float64 `json:"maximum_delivery_cost,omitempty"`
+	ID                  string   `json:"id,omitempty"`
+	Name                string   `json:"name,omitempty"`
+	URL                 string   `json:"url,omitempty"`
+	Street              string   `json:"street,omitempty"`
+	PostalCode          string   `json:"postal_code,omitempty"`
+	City                string   `json:"city,omitempty"`
+	Phone               string   `json:"phone,omitempty"`
+	Email               string   `json:"email,omitempty"`
+	Currency            string   `json:"currency,omitempty"`
+	Delivery            bool     `json:"delivery"`
+	Takeaway            bool     `json:"takeaway"`
+	OnSite              bool     `json:"onsite"`
+	OnlineOrdering      bool     `json:"online_ordering"`
+	OpenNow             bool     `json:"open_now"`
+	MinimumOrderPrice   *float64 `json:"minimum_order_price,omitempty"`
+	MinimumDeliveryCost *float64 `json:"minimum_delivery_cost,omitempty"`
+	MaximumDeliveryCost *float64 `json:"maximum_delivery_cost,omitempty"`
 }
 
 type Menu struct {
@@ -70,16 +70,16 @@ type Variant struct {
 }
 
 type Cart struct {
-	ID            string     `json:"id,omitempty"`
-	DeliveryType  string     `json:"delivery_type,omitempty"`
-	DeliveryStatus string    `json:"delivery_status,omitempty"`
-	TotalCost     *float64   `json:"total_cost,omitempty"`
-	ProductsCost  *float64   `json:"products_cost,omitempty"`
-	DeliveryCost  *float64   `json:"delivery_cost,omitempty"`
-	ItemsSize     int        `json:"items_size,omitempty"`
-	Items         []CartItem `json:"items,omitempty"`
-	Messages      []string   `json:"messages,omitempty"`
-	Errors        []string   `json:"errors,omitempty"`
+	ID             string     `json:"id,omitempty"`
+	DeliveryType   string     `json:"delivery_type,omitempty"`
+	DeliveryStatus string     `json:"delivery_status,omitempty"`
+	TotalCost      *float64   `json:"total_cost,omitempty"`
+	ProductsCost   *float64   `json:"products_cost,omitempty"`
+	DeliveryCost   *float64   `json:"delivery_cost,omitempty"`
+	ItemsSize      int        `json:"items_size,omitempty"`
+	Items          []CartItem `json:"items,omitempty"`
+	Messages       []string   `json:"messages,omitempty"`
+	Errors         []string   `json:"errors,omitempty"`
 }
 
 type CartItem struct {
@@ -92,11 +92,11 @@ type CartItem struct {
 }
 
 type CartRequest struct {
-	CartID         string `json:"cartId,omitempty"`
-	CustomerID     any    `json:"customerId,omitempty"`
-	DeliveryType   string `json:"deliveryType,omitempty"`
-	CartLocation   string `json:"cartLocation,omitempty"`
-	PaymentMethod  string `json:"paymentMethod,omitempty"`
+	CartID        string `json:"cartId,omitempty"`
+	CustomerID    any    `json:"customerId,omitempty"`
+	DeliveryType  string `json:"deliveryType,omitempty"`
+	CartLocation  string `json:"cartLocation,omitempty"`
+	PaymentMethod string `json:"paymentMethod,omitempty"`
 }
 
 type RequiredResult struct {
@@ -104,21 +104,21 @@ type RequiredResult struct {
 }
 
 type BuyingFlow struct {
-	BuyingFlowID   string          `json:"buyingFlowId,omitempty"`
-	RestaurantID   string          `json:"restaurantId,omitempty"`
-	CartID         string          `json:"cartId,omitempty"`
-	ProductPriceID string          `json:"productPriceId,omitempty"`
-	ProductName    string          `json:"productName,omitempty"`
-	ProductPrice   *float64        `json:"productPrice,omitempty"`
-	Quantity       int             `json:"quantity,omitempty"`
+	BuyingFlowID   string           `json:"buyingFlowId,omitempty"`
+	RestaurantID   string           `json:"restaurantId,omitempty"`
+	CartID         string           `json:"cartId,omitempty"`
+	ProductPriceID string           `json:"productPriceId,omitempty"`
+	ProductName    string           `json:"productName,omitempty"`
+	ProductPrice   *float64         `json:"productPrice,omitempty"`
+	Quantity       int              `json:"quantity,omitempty"`
 	Steps          []BuyingFlowStep `json:"steps,omitempty"`
-	Errors         []string        `json:"errors,omitempty"`
-	TotalPrice     *float64        `json:"totalPrice,omitempty"`
-	Raw            map[string]any  `json:"-"`
+	Errors         []string         `json:"errors,omitempty"`
+	TotalPrice     *float64         `json:"totalPrice,omitempty"`
+	Raw            map[string]any   `json:"-"`
 }
 
 type BuyingFlowStep struct {
-	ID    string `json:"id,omitempty"`
-	Name  string `json:"name,omitempty"`
-	Done  bool   `json:"done"`
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
+	Done bool   `json:"done"`
 }

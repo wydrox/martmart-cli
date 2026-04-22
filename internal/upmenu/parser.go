@@ -55,9 +55,13 @@ func parseProductNode(node *html.Node, category MenuCategory) MenuProduct {
 		CategoryID:   category.ID,
 		CategoryName: category.Name,
 		Name:         strings.TrimSpace(textContent(firstDescendant(node, func(n *html.Node) bool { return hasClass(n, "theme-product-name") }))),
-		Description:  normalizeWhitespace(textContent(firstDescendant(node, func(n *html.Node) bool { return hasClass(n, "theme-product-description") || hasClass(n, "theme-product-desc") }))),
+		Description: normalizeWhitespace(textContent(firstDescendant(node, func(n *html.Node) bool {
+			return hasClass(n, "theme-product-description") || hasClass(n, "theme-product-desc")
+		}))),
 	}
-	if image := firstDescendant(node, func(n *html.Node) bool { return hasClass(n, "theme-product-image") || hasClass(n, "_buying-flow-image") }); image != nil {
+	if image := firstDescendant(node, func(n *html.Node) bool {
+		return hasClass(n, "theme-product-image") || hasClass(n, "_buying-flow-image")
+	}); image != nil {
 		product.ImageURL = firstNonEmpty(attr(image, "data-src"), extractBackgroundURL(attr(image, "style")))
 		if product.ImageURL == "" {
 			if child := firstDescendant(image, func(n *html.Node) bool { return attr(n, "data-src") != "" }); child != nil {

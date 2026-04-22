@@ -256,6 +256,13 @@ func (c *Client) AddSimple(ctx context.Context, productPriceID string, quantity 
 	if quantity <= 0 {
 		return nil, fmt.Errorf("quantity must be > 0")
 	}
+	required, err := c.RequiresConfiguration(ctx, productPriceID)
+	if err != nil {
+		return nil, err
+	}
+	if required {
+		return nil, ErrProductRequiresConfiguration
+	}
 	for i := 0; i < quantity; i++ {
 		flow, err := c.StartBuyingFlow(ctx, productPriceID)
 		if err != nil {

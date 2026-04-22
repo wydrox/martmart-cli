@@ -14,12 +14,12 @@ import (
 func registerUpMenuTools(server *mcp.Server) {
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "upmenu_restaurant_info",
-		Description: "Fetch public restaurant information from the UpMenu/Dobra Buła storefront. Defaults to the Dobra Buła Solidarności restaurant page when restaurant_url is omitted.",
+		Description: "Fetch public restaurant information from the UpMenu/Dobra Buła storefront. Defaults to the Dobra Buła Wola restaurant page when restaurant_url is omitted.",
 	}, toolUpMenuRestaurantInfo)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "upmenu_menu_show",
-		Description: "Fetch the public UpMenu menu for the Dobra Buła MVP storefront. Defaults to the Dobra Buła Solidarności restaurant page when restaurant_url is omitted.",
+		Description: "Fetch the public UpMenu menu for the Dobra Buła MVP storefront. Defaults to the Dobra Buła Wola restaurant page when restaurant_url is omitted.",
 	}, toolUpMenuMenuShow)
 
 	mcp.AddTool(server, &mcp.Tool{
@@ -34,7 +34,7 @@ func registerUpMenuTools(server *mcp.Server) {
 }
 
 type upmenuBaseIn struct {
-	RestaurantURL string `json:"restaurant_url,omitempty" jsonschema:"optional absolute UpMenu restaurant page URL; defaults to the Dobra Buła Solidarności storefront"`
+	RestaurantURL string `json:"restaurant_url,omitempty" jsonschema:"optional absolute UpMenu restaurant page URL; defaults to the Dobra Buła Wola storefront"`
 	Language      string `json:"language,omitempty" jsonschema:"optional storefront language header; default pl"`
 }
 

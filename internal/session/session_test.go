@@ -848,8 +848,13 @@ func TestSupportedProviders_IncludesUpMenu(t *testing.T) {
 }
 
 func TestProviderForURL_InfersUpMenu(t *testing.T) {
-	if got := ProviderForURL("https://www.upmenu.com/admin/login"); got != ProviderUpMenu {
-		t.Fatalf("ProviderForURL = %q, want %q", got, ProviderUpMenu)
+	for _, rawURL := range []string{
+		"https://www.upmenu.com/admin/login",
+		"https://dobrabula.orderwebsite.com/dobra-bula-wola",
+	} {
+		if got := ProviderForURL(rawURL); got != ProviderUpMenu {
+			t.Fatalf("ProviderForURL(%q) = %q, want %q", rawURL, got, ProviderUpMenu)
+		}
 	}
 }
 

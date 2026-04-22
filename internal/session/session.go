@@ -26,8 +26,8 @@ const (
 	DefaultBaseURL = "https://www.frisco.pl"
 	// DefaultDelioBaseURL is the base URL for the Delio API.
 	DefaultDelioBaseURL = "https://delio.com.pl"
-	// DefaultUpMenuBaseURL is the default base URL for UpMenu sessions.
-	DefaultUpMenuBaseURL = "https://www.upmenu.com"
+	// DefaultUpMenuBaseURL is the default base URL for the Dobra Buła UpMenu MVP.
+	DefaultUpMenuBaseURL = "https://dobrabula.orderwebsite.com"
 )
 
 var (
@@ -129,6 +129,8 @@ func ProviderForURL(rawURL string) string {
 		case host == "delio.com.pl" || strings.HasSuffix(host, ".delio.com.pl"):
 			return ProviderDelio
 		case host == "upmenu.com" || strings.HasSuffix(host, ".upmenu.com"):
+			return ProviderUpMenu
+		case host == "orderwebsite.com" || strings.HasSuffix(host, ".orderwebsite.com"):
 			return ProviderUpMenu
 		case host == "frisco.pl" || strings.HasSuffix(host, ".frisco.pl"):
 			return ProviderFrisco
