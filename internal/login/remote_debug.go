@@ -19,6 +19,8 @@ import (
 	"github.com/chromedp/cdproto/target"
 	"github.com/chromedp/chromedp"
 
+	"github.com/wydrox/martmart-cli/internal/delio"
+	"github.com/wydrox/martmart-cli/internal/httpclient"
 	"github.com/wydrox/martmart-cli/internal/session"
 )
 
@@ -142,13 +144,13 @@ func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, erro
 					targetID = targetInfo.ID
 				}
 				capture, err := captureFriscoSessionFromRemoteTarget(ctx, version.WebSocketDebuggerURL, targetID, loginURL)
-				if err == nil && capture.AccessToken != "" {
+				if err == nil && (capture.AccessToken != "" || capture.RefreshToken != "") {
 					return saveFriscoSessionFromCapture(s, baseURL, "", capture)
 				}
 				if err != nil {
 					lastErr = err
 				} else {
-					lastErr = errors.New("Frisco session token not detected in the current browser yet")
+					lastErr = errors.New("Frisco auth data not detected in the current browser yet")
 				}
 			}
 		}
@@ -489,6 +491,48 @@ func captureFriscoSessionFromRemoteTarget(ctx context.Context, browserWSURL, tar
 	}
 	defer cancelTask()
 
+	captured := remoteDebugFriscoCapture{}
+	var mu sync.Mutex
+
+	chromedp.ListenTarget(taskCtx, func(ev any) {
+		switch e := ev.(type) {
+		case *network.EventRequestWillBeSent:
+			if uid := session.ExtractUserID(e.Request.URL); uid != "" {
+				mu.Lock()
+				if captured.UserID == "" {
+					captured.UserID = uid
+				}
+				mu.Unlock()
+			}
+		case *network.EventRequestWillBeSentExtraInfo:
+			mu.Lock()
+			if captured.AccessToken == "" {
+				if token := bearerFromHeaders(e.Headers); token != "" {
+					captured.AccessToken = token
+				}
+			}
+			if cookie := headerStringValue(e.Headers, "Cookie"); cookie != "" {
+				if captured.CookieHeader == "" {
+					captured.CookieHeader = cookie
+				}
+				if captured.RefreshToken == "" {
+					if rt := session.ExtractRefreshTokenFromHeaderValue(cookie); rt != "" {
+						captured.RefreshToken = rt
+					}
+				}
+			}
+			mu.Unlock()
+		case *network.EventResponseReceivedExtraInfo:
+			if rt := refreshTokenFromHeaders(e.Headers); rt != "" {
+				mu.Lock()
+				if captured.RefreshToken == "" {
+					captured.RefreshToken = rt
+				}
+				mu.Unlock()
+			}
+		}
+	})
+
 	var cookies []*network.Cookie
 	err := chromedp.Run(taskCtx,
 		network.Enable(),
@@ -505,15 +549,28 @@ func captureFriscoSessionFromRemoteTarget(ctx context.Context, browserWSURL, tar
 	host := hostForURL(loginURL)
 	cookieHeader := cookieHeaderFromCDPCookies(cookies, host)
 	cookieMap := cookieMapFromCDPCookies(cookies, host)
-	accessToken := extractFriscoAccessToken(cookieMap)
-	refreshToken := extractFriscoRefreshToken(cookieMap, cookieHeader)
-	userID := extractFriscoUserID(cookieMap, accessToken)
+
+	mu.Lock()
+	if strings.TrimSpace(captured.CookieHeader) == "" && cookieHeader != "" {
+		captured.CookieHeader = cookieHeader
+	}
+	if strings.TrimSpace(captured.AccessToken) == "" {
+		captured.AccessToken = extractFriscoAccessToken(cookieMap)
+	}
+	if strings.TrimSpace(captured.RefreshToken) == "" {
+		captured.RefreshToken = extractFriscoRefreshToken(cookieMap, captured.CookieHeader)
+	}
+	if strings.TrimSpace(captured.UserID) == "" {
+		captured.UserID = extractFriscoUserID(cookieMap, captured.AccessToken)
+	}
+	result := captured
+	mu.Unlock()
 
 	return &remoteDebugFriscoCapture{
-		CookieHeader: cookieHeader,
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-		UserID:       userID,
+		CookieHeader: strings.TrimSpace(result.CookieHeader),
+		AccessToken:  strings.TrimSpace(result.AccessToken),
+		RefreshToken: strings.TrimSpace(result.RefreshToken),
+		UserID:       strings.TrimSpace(result.UserID),
 	}, nil
 }
 
@@ -632,6 +689,9 @@ func saveDelioSessionFromCapture(s *session.Session, baseURL, profileDirectory s
 	if strings.TrimSpace(capture.UserID) != "" {
 		s.UserID = strings.TrimSpace(capture.UserID)
 	}
+	if err := verifyDelioCapturedSession(s); err != nil {
+		return nil, err
+	}
 	if err := session.SaveProvider(session.ProviderForSession(s, session.ProviderDelio), s); err != nil {
 		return nil, err
 	}
@@ -650,9 +710,6 @@ func saveFriscoSessionFromCapture(s *session.Session, baseURL, profileDirectory 
 	if capture == nil {
 		return nil, errors.New("missing Frisco capture")
 	}
-	if strings.TrimSpace(capture.AccessToken) == "" {
-		return nil, errors.New("Frisco access token not detected in captured browser session")
-	}
 	s.BaseURL = baseURL
 	if s.Headers == nil {
 		s.Headers = map[string]string{}
@@ -660,8 +717,13 @@ func saveFriscoSessionFromCapture(s *session.Session, baseURL, profileDirectory 
 	if strings.TrimSpace(capture.CookieHeader) != "" {
 		s.Headers["Cookie"] = strings.TrimSpace(capture.CookieHeader)
 	}
-	s.Token = strings.TrimSpace(capture.AccessToken)
-	s.Headers["Authorization"] = "Bearer " + strings.TrimSpace(capture.AccessToken)
+	if strings.TrimSpace(capture.AccessToken) != "" {
+		s.Token = strings.TrimSpace(capture.AccessToken)
+		s.Headers["Authorization"] = "Bearer " + strings.TrimSpace(capture.AccessToken)
+	} else {
+		s.Token = nil
+		delete(s.Headers, "Authorization")
+	}
 	if strings.TrimSpace(capture.RefreshToken) != "" {
 		s.RefreshToken = strings.TrimSpace(capture.RefreshToken)
 	} else {
@@ -669,6 +731,24 @@ func saveFriscoSessionFromCapture(s *session.Session, baseURL, profileDirectory 
 	}
 	if strings.TrimSpace(capture.UserID) != "" {
 		s.UserID = strings.TrimSpace(capture.UserID)
+	}
+	if session.RefreshTokenString(s) != "" && (session.TokenString(s) == "" || session.UserIDString(s) == "") {
+		if err := refreshFriscoAccessToken(s); err != nil {
+			return nil, err
+		}
+	}
+	if session.TokenString(s) == "" {
+		return nil, errors.New("Frisco access token not detected in captured browser session")
+	}
+	if session.UserIDString(s) == "" {
+		if uid := extractUserIDFromJWT(session.TokenString(s)); uid != "" {
+			s.UserID = uid
+		}
+	}
+	if session.UserIDString(s) != "" {
+		if err := verifyFriscoCapturedSession(s); err != nil {
+			return nil, err
+		}
 	}
 	if err := session.SaveProvider(session.ProviderForSession(s, session.ProviderFrisco), s); err != nil {
 		return nil, err
@@ -683,6 +763,81 @@ func saveFriscoSessionFromCapture(s *session.Session, baseURL, profileDirectory 
 		Provider:          session.ProviderFrisco,
 		ProfileDirectory:  profileDirectory,
 	}, nil
+}
+
+func verifyDelioCapturedSession(s *session.Session) error {
+	if s == nil {
+		return errors.New("missing Delio session")
+	}
+	payload, err := delio.CurrentCart(s)
+	if err != nil {
+		return err
+	}
+	if _, err := delio.ExtractCurrentCart(payload); err != nil {
+		return err
+	}
+	return nil
+}
+
+func refreshFriscoAccessToken(s *session.Session) error {
+	if s == nil {
+		return errors.New("missing Frisco session")
+	}
+	rt := strings.TrimSpace(session.RefreshTokenString(s))
+	if rt == "" {
+		return errors.New("missing Frisco refresh token")
+	}
+	result, err := httpclient.RequestJSON(s, http.MethodPost, "/app/commerce/connect/token", httpclient.RequestOpts{
+		Data: map[string]any{
+			"grant_type":    "refresh_token",
+			"refresh_token": rt,
+		},
+		DataFormat: httpclient.FormatForm,
+	})
+	if err != nil {
+		return err
+	}
+	payload, ok := result.(map[string]any)
+	if !ok {
+		return errors.New("unexpected Frisco token refresh response")
+	}
+	accessToken, _ := payload["access_token"].(string)
+	accessToken = strings.TrimSpace(accessToken)
+	if accessToken == "" {
+		return errors.New("missing access_token in Frisco token refresh response")
+	}
+	s.Token = accessToken
+	if s.Headers == nil {
+		s.Headers = map[string]string{}
+	}
+	s.Headers["Authorization"] = "Bearer " + accessToken
+	if refreshToken, ok := payload["refresh_token"].(string); ok {
+		refreshToken = strings.TrimSpace(refreshToken)
+		if refreshToken != "" {
+			s.RefreshToken = refreshToken
+		}
+	}
+	if uid := extractUserIDFromJWT(accessToken); uid != "" {
+		s.UserID = uid
+	}
+	return nil
+}
+
+func verifyFriscoCapturedSession(s *session.Session) error {
+	if s == nil {
+		return errors.New("missing Frisco session")
+	}
+	uid := session.UserIDString(s)
+	if uid == "" {
+		if uid = extractUserIDFromJWT(session.TokenString(s)); uid != "" {
+			s.UserID = uid
+		}
+	}
+	if uid == "" {
+		return errors.New("Frisco user_id not detected in captured browser session")
+	}
+	_, err := httpclient.RequestJSON(s, http.MethodGet, fmt.Sprintf("/app/commerce/api/v1/users/%s/cart", uid), httpclient.RequestOpts{})
+	return err
 }
 
 func extractFriscoAccessToken(cookieMap map[string]string) string {

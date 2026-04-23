@@ -248,7 +248,7 @@ func runWithSnapshotBrowser(ctx context.Context, opts Options, provider string) 
 			}
 			continue
 		}
-		if gotToken && gotRefresh {
+		if provider != session.ProviderDelio && gotRefresh {
 			break
 		}
 		if gotToken && !accessDetectedAt.IsZero() && time.Since(accessDetectedAt) > 8*time.Second {
@@ -274,47 +274,33 @@ func runWithSnapshotBrowser(ctx context.Context, opts Options, provider string) 
 		if !hasDelioAuthCookie(cookieHeader) {
 			return nil, fmt.Errorf("Delio auth cookies not detected — open a logged-in Delio page or sign in in the opened browser window and wait for the session to load")
 		}
-	} else if accessToken == "" {
-		return nil, fmt.Errorf("Frisco access token not detected — open a logged-in Frisco page or sign in and navigate to cart/account to trigger API requests")
-	}
-
-	s.BaseURL = baseURL
-	if s.Headers == nil {
-		s.Headers = map[string]string{}
-	}
-	if cookieHeader != "" {
-		s.Headers["Cookie"] = cookieHeader
-	}
-	if provider == session.ProviderFrisco {
-		s.Token = accessToken
-		s.Headers["Authorization"] = "Bearer " + accessToken
-		if refreshToken != "" {
-			s.RefreshToken = refreshToken
+		result, saveErr := saveDelioSessionFromCapture(s, baseURL, profile.ProfileDirectory, &remoteDebugDelioCapture{
+			Headers:      map[string]string{},
+			CookieHeader: cookieHeader,
+			UserID:       userID,
+		})
+		if saveErr == nil && result != nil {
+			result.BrowserApp = filepath.Base(profile.ExecPath)
+			result.BrowserUserDataDir = profile.SourceUserData
 		}
-		if userID != "" {
-			s.UserID = userID
-		}
-	} else {
-		s.Token = nil
-		delete(s.Headers, "Authorization")
-		s.RefreshToken = nil
+		keepLoginPageOpenBriefly(opts, openedAt)
+		return result, saveErr
 	}
-
-	if err := session.SaveProvider(provider, s); err != nil {
-		return nil, err
+	if accessToken == "" && refreshToken == "" {
+		return nil, fmt.Errorf("Frisco auth data not detected — open a logged-in Frisco page or sign in and navigate to cart/account to trigger API requests")
 	}
-
+	result, saveErr := saveFriscoSessionFromCapture(s, baseURL, profile.ProfileDirectory, &remoteDebugFriscoCapture{
+		CookieHeader: cookieHeader,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		UserID:       userID,
+	})
+	if saveErr == nil && result != nil {
+		result.BrowserApp = filepath.Base(profile.ExecPath)
+		result.BrowserUserDataDir = profile.SourceUserData
+	}
 	keepLoginPageOpenBriefly(opts, openedAt)
-	return &Result{
-		Saved:             true,
-		BaseURL:           s.BaseURL,
-		UserID:            s.UserID,
-		TokenSaved:        session.TokenString(s) != "",
-		RefreshTokenSaved: session.RefreshTokenString(s) != "",
-		CookieSaved:       session.HeaderValue(s, "Cookie") != "",
-		Provider:          provider,
-		ProfileDirectory:  profile.ProfileDirectory,
-	}, nil
+	return result, saveErr
 }
 
 func defaultStartURL(provider string) string {

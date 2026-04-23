@@ -167,7 +167,7 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 				targetID = targetInfo.ID
 			}
 			capture, err := captureFriscoSessionFromRemoteTarget(ctx, version.WebSocketDebuggerURL, targetID, loginURL)
-			if err == nil && capture.AccessToken != "" {
+			if err == nil && (capture.AccessToken != "" || capture.RefreshToken != "") {
 				result, saveErr := saveFriscoSessionFromCapture(s, baseURL, profile.ProfileDirectory, capture)
 				if saveErr == nil && result != nil {
 					result.BrowserApp = profile.AppName
@@ -179,7 +179,7 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 			if err != nil {
 				lastErr = err
 			} else {
-				lastErr = fmt.Errorf("Frisco access token not detected in %s profile %q yet", profile.AppName, profile.ProfileDirectory)
+				lastErr = fmt.Errorf("Frisco auth data not detected in %s profile %q yet", profile.AppName, profile.ProfileDirectory)
 			}
 			loginDebugf(opts, "%v", lastErr)
 		}
@@ -196,7 +196,7 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 	if provider == session.ProviderDelio {
 		return nil, fmt.Errorf("Delio auth cookies not detected in %s profile %q within %ds", profile.AppName, profile.ProfileDirectory, timeoutSec)
 	}
-	return nil, fmt.Errorf("Frisco access token not detected in %s profile %q within %ds", profile.AppName, profile.ProfileDirectory, timeoutSec)
+	return nil, fmt.Errorf("Frisco auth data not detected in %s profile %q within %ds", profile.AppName, profile.ProfileDirectory, timeoutSec)
 }
 
 func detectPreferredBrowserProfile(opts Options) (*activeBrowserProfile, error) {
