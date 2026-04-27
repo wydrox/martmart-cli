@@ -130,7 +130,7 @@ func Run(ctx context.Context, opts Options) (*Result, error) {
 	}
 
 	if runtime.GOOS == "darwin" {
-		return runWithExistingBrowser(ctx, opts)
+		return runWithRemoteDebugBrowser(ctx, opts)
 	}
 
 	return runWithSnapshotBrowser(ctx, opts, provider)

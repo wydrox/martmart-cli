@@ -481,6 +481,160 @@ func launchBrowserWithRemoteDebug(profile *browserProfile, opts Options) (string
 	return debugBase, cleanup, nil
 }
 
+func ensurePreferredBrowserRemoteDebugOn9222(ctx context.Context, opts Options) (string, *remoteDebugBrowserInfo, error) {
+	profile, err := detectPreferredBrowserProfile(opts)
+	if err != nil {
+		return "", nil, err
+	}
+	if err := restartBrowserOnRemoteDebugPort(ctx, profile, opts, "9222"); err != nil {
+		return "", nil, err
+	}
+	return "http://127.0.0.1:9222", &remoteDebugBrowserInfo{
+		BrowserApp:         profile.AppName,
+		BrowserUserDataDir: profile.UserDataDir,
+		ProfileDirectory:   profile.ProfileDirectory,
+	}, nil
+}
+
+func restartBrowserOnRemoteDebugPort(ctx context.Context, profile *activeBrowserProfile, opts Options, port string) error {
+	if profile == nil {
+		return errors.New("missing browser profile")
+	}
+	port = strings.TrimSpace(port)
+	if port == "" {
+		return errors.New("missing remote debug port")
+	}
+	loginDebugf(opts, "restarting %s on remote debug port %s using user_data_dir=%s profile=%s", profile.AppName, port, profile.UserDataDir, profile.ProfileDirectory)
+	if err := quitBrowserApp(profile); err != nil {
+		return err
+	}
+	if err := waitForBrowserStopped(ctx, profile, 15*time.Second); err != nil {
+		return err
+	}
+	if err := launchBrowserOnRemoteDebugPort(profile, port, opts); err != nil {
+		return err
+	}
+	return nil
+}
+
+func quitBrowserApp(profile *activeBrowserProfile) error {
+	if profile == nil {
+		return errors.New("missing browser profile")
+	}
+	scriptName := appleScriptQuoted(profile.AppName)
+	target := fmt.Sprintf("application %q", scriptName)
+	if strings.TrimSpace(profile.BundleID) != "" {
+		target = fmt.Sprintf("application id %q", appleScriptQuoted(profile.BundleID))
+	}
+	script := fmt.Sprintf(`tell application "System Events"
+	if exists application process %q then
+		tell %s to quit
+	end if
+end tell`, scriptName, target)
+	cmd := exec.Command("osascript", "-e", script)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("could not quit %s before restart: %w (%s)", profile.AppName, err, strings.TrimSpace(string(out)))
+	}
+	return nil
+}
+
+func waitForBrowserStopped(ctx context.Context, profile *activeBrowserProfile, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	forcedTERM := false
+	forcedKILL := false
+	for time.Now().Before(deadline) {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+		running, err := isBrowserRunning(profile)
+		if err != nil {
+			return err
+		}
+		if !running {
+			return nil
+		}
+		remaining := time.Until(deadline)
+		if !forcedTERM && remaining <= 10*time.Second {
+			_ = forceSignalBrowser(profile, "-TERM")
+			forcedTERM = true
+		}
+		if !forcedKILL && remaining <= 4*time.Second {
+			_ = forceSignalBrowser(profile, "-KILL")
+			forcedKILL = true
+		}
+		time.Sleep(300 * time.Millisecond)
+	}
+	return fmt.Errorf("%s did not stop before relaunch on port 9222", profile.AppName)
+}
+
+func isBrowserRunning(profile *activeBrowserProfile) (bool, error) {
+	if profile == nil {
+		return false, errors.New("missing browser profile")
+	}
+	cmd := exec.Command("pgrep", "-x", profile.AppName)
+	if err := cmd.Run(); err == nil {
+		return true, nil
+	} else if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 1 {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return false, nil
+}
+
+func forceSignalBrowser(profile *activeBrowserProfile, signal string) error {
+	if profile == nil {
+		return errors.New("missing browser profile")
+	}
+	signal = strings.TrimSpace(signal)
+	if signal == "" {
+		signal = "-TERM"
+	}
+	cmd := exec.Command("pkill", signal, "-x", profile.AppName)
+	if err := cmd.Run(); err == nil {
+		return nil
+	} else if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 1 {
+		return nil
+	} else {
+		return err
+	}
+}
+
+func launchBrowserOnRemoteDebugPort(profile *activeBrowserProfile, port string, opts Options) error {
+	if profile == nil {
+		return errors.New("missing browser profile")
+	}
+	if strings.TrimSpace(profile.ExecPath) == "" {
+		return fmt.Errorf("browser executable is not configured for %s", profile.AppName)
+	}
+	args := []string{}
+	if strings.TrimSpace(profile.BundleID) != "" {
+		args = append(args, "-n", "-b", strings.TrimSpace(profile.BundleID), "--args")
+	} else {
+		args = append(args, "-n", "-a", profile.AppName, "--args")
+	}
+	args = append(args,
+		"--remote-debugging-port="+strings.TrimSpace(port),
+		"--user-data-dir="+profile.UserDataDir,
+		"--profile-directory="+profile.ProfileDirectory,
+		"--no-first-run",
+		"--no-default-browser-check",
+		"--new-window",
+		"about:blank",
+	)
+	loginDebugf(opts, "launching %s via open with remote_debug_port=%s user_data_dir=%s profile=%s", profile.AppName, strings.TrimSpace(port), profile.UserDataDir, profile.ProfileDirectory)
+	if out, err := exec.Command("open", args...).CombinedOutput(); err != nil {
+		return fmt.Errorf("could not launch %s on port %s: %w (%s)", profile.AppName, port, err, strings.TrimSpace(string(out)))
+	}
+	return nil
+}
+
+func appleScriptQuoted(s string) string {
+	return strings.ReplaceAll(strings.TrimSpace(s), `"`, `\\"`)
+}
+
 func pickFreeLocalhostPort() (string, error) {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {

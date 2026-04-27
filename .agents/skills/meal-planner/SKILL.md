@@ -5,13 +5,32 @@ description: Plan meals, search Frisco for matching products, build a cost-effec
 
 # Frisco Meal Planner
 
-Help the user go from meal ideas or dietary guidelines to a filled Frisco.pl cart with full nutritional breakdown.
+Help the user go from meal ideas or dietary guidelines to a filled grocery cart with full nutritional breakdown.
+
+## Tooling / Auth Policy
+
+- If the user asks to finish the task via MCP, use MCP end-to-end.
+- If MCP is broken, fix MCP and continue via MCP instead of silently finishing the shopping flow via CLI.
+- Run `session_status` for the chosen provider before any login action.
+- Do **not** run `session_login` just because the session looks suspicious while `session_status` still reports an authenticated session.
+- First try the actual MCP/API operation. Only suggest or run `session_login` after a concrete auth failure (`401`, `UNAUTHENTICATED`, `Unauthorized`) or when `session_status` shows no authenticated session.
+- When auth fails, show the error and ask before triggering login.
+- For Delio and Frisco network capture / remote debugging, use only port `9222`.
+- Open the provider page in the default browser profile so existing logged-in apps are available.
+- If port `9222` is not active, the CLI/MCP may close the current default browser instance and relaunch it on `9222`.
+- After opening the page, keep it open for **3 seconds** before attempting to capture auth artifacts.
+- Delio capture source: auth cookies (`authToken`, `idToken`, `refreshToken`) and related cookie header. Frisco capture source: access token / refresh token / user_id plus cookies when available.
+- After capture, run a live verify against the provider.
+- If verify fails, reload the page, wait **3 seconds**, then capture once more and verify again.
+- There is **no fallback auth path** for this shopping flow. Do not switch to `session_from_curl` or another recovery method unless the user explicitly changes the policy. If this flow fails, shopping is blocked.
 
 ## Prerequisites
 
-1. `./bin/frisco session verify` — if it fails, guide the user through `session login` or `session from-curl`.
-2. If binary missing: `make build`.
-3. Gather context from the user:
+1. Run `session_status` for the chosen provider first.
+2. If the user explicitly wants MCP, use MCP for product/cart work; use CLI only to diagnose or fix MCP, not to complete the shopping flow.
+3. Only if `session_status` shows no authenticated session, or a real MCP/API request returns `401` / `UNAUTHENTICATED`, ask before `session_login` or `session_from_curl`.
+4. If binary missing: `make build`.
+5. Gather context from the user:
    - Dietary guidelines, restrictions, or just meal ideas.
    - How many people and which days (e.g., "weekend for 2").
    - Budget expectations (if any).
@@ -139,7 +158,12 @@ Use this to verify the order matches the plan and to inform future planning sess
 
 ## Principles
 
-- **Use the Go CLI** — `products pick`, `products search`, `cart add --search`, `cart show --sort-by`. No external scripts.
+- **Respect the requested interface** — if the user asked for MCP, do not silently switch to CLI to finish the task. Use CLI only to debug/fix MCP unless the user explicitly allows otherwise.
+- **Login only on real auth failure** — do not trigger `session_login` while `session_status` still reports an authenticated session unless an actual request fails with auth errors.
+- **Delio and Frisco login flows differ** — Delio is cookie-based; Frisco requires access/refresh/user_id capture.
+- **Verify after capture** — if the first verify fails, reload once, wait 3s, capture again, and re-verify once.
+- **No fallback means blocked** — if the approved login flow fails, do not improvise alternate auth recovery; report that shopping is blocked.
+- **Use the Go CLI when allowed** — `products pick`, `products search`, `cart add --search`, `cart show --sort-by`. No external scripts.
 - **Confirm before cart changes** — always show what will happen and wait for OK.
 - **Minimize waste** — adapt the plan to use what's bought in full.
 - **Respect dietary restrictions** — never substitute excluded ingredients, even if cheaper.

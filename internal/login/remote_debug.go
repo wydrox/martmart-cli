@@ -54,7 +54,15 @@ type remoteDebugFetchResult struct {
 	Text   string `json:"text"`
 }
 
-var errNoRemoteDebugEndpoint = errors.New("no browser remote debugging endpoint available")
+type remoteDebugBrowserInfo struct {
+	BrowserApp         string
+	BrowserUserDataDir string
+	ProfileDirectory   string
+}
+
+var errNoRemoteDebugEndpoint = errors.New("no browser remote debugging endpoint available on port 9222")
+
+const remoteDebugCaptureWait = 3 * time.Second
 
 func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, error) {
 	provider := session.NormalizeProvider(opts.Provider)
@@ -77,91 +85,146 @@ func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, erro
 	if loginURL == "" {
 		loginURL = defaultStartURL(provider)
 	}
-	timeoutSec := opts.TimeoutSec
-	if timeoutSec <= 0 {
-		timeoutSec = 180
-	}
-
 	debugBase, version, err := firstAvailableRemoteDebugEndpoint()
+	var browserInfo *remoteDebugBrowserInfo
 	if err != nil {
-		return nil, err
+		debugBase, browserInfo, err = ensurePreferredBrowserRemoteDebugOn9222(ctx, opts)
+		if err != nil {
+			return nil, err
+		}
+		version, err = waitForRemoteDebugVersion(ctx, debugBase, 20*time.Second)
+		if err != nil {
+			return nil, err
+		}
 	}
 
+	loginDebugf(opts, "using remote debug endpoint %s for %s", debugBase, provider)
 	if err := openLoginPageOnRemoteDebugBrowser(ctx, version.WebSocketDebuggerURL, loginURL); err != nil {
 		return nil, err
 	}
 
-	// Ensure the login tab is actually reachable by remote debugging before we wait
-	// for auth artifacts. If it disappears immediately, we surface a clear error
-	// instead of waiting only to return a generic timeout.
-	seenOpenTarget := false
-	openDeadline := time.Now().Add(3 * time.Second)
-	for time.Now().Before(openDeadline) {
-		if targetInfo, err := findProviderRemoteDebugTarget(debugBase, provider); err != nil {
-			return nil, fmt.Errorf("could not verify opened login tab: %w", err)
-		} else if targetInfo != nil {
-			seenOpenTarget = true
-			break
-		}
-		time.Sleep(300 * time.Millisecond)
+	targetInfo, err := waitForProviderRemoteDebugTarget(ctx, debugBase, provider, 10*time.Second)
+	if err != nil {
+		return nil, err
 	}
-	if !seenOpenTarget {
-		return nil, fmt.Errorf("opened browser tab for %s was not detected in remote debug target list; try increasing --timeout or check the browser did not close immediately", providerDisplayName(provider))
+	if err := waitRemoteDebugCaptureWindow(ctx, opts, remoteDebugCaptureWait); err != nil {
+		return nil, err
 	}
 
-	deadline := time.Now().Add(time.Duration(timeoutSec) * time.Second)
+	result, firstErr := captureAndSaveRemoteDebugSession(ctx, opts, provider, s, baseURL, loginURL, version.WebSocketDebuggerURL, targetInfo.ID)
+	if firstErr == nil {
+		applyRemoteDebugBrowserInfo(result, browserInfo)
+		return result, nil
+	}
+	loginDebugf(opts, "first %s capture/verify failed: %v", provider, firstErr)
+
+	if err := reloadRemoteDebugTarget(ctx, version.WebSocketDebuggerURL, targetInfo.ID, loginURL); err != nil {
+		return nil, fmt.Errorf("first %s capture/verify failed: %v; reload failed: %w", providerDisplayName(provider), firstErr, err)
+	}
+	retargeted, err := waitForProviderRemoteDebugTarget(ctx, debugBase, provider, 10*time.Second)
+	if err != nil {
+		return nil, fmt.Errorf("first %s capture/verify failed: %v; provider tab not found after reload: %w", providerDisplayName(provider), firstErr, err)
+	}
+	if err := waitRemoteDebugCaptureWindow(ctx, opts, remoteDebugCaptureWait); err != nil {
+		return nil, err
+	}
+	result, secondErr := captureAndSaveRemoteDebugSession(ctx, opts, provider, s, baseURL, loginURL, version.WebSocketDebuggerURL, retargeted.ID)
+	if secondErr == nil {
+		applyRemoteDebugBrowserInfo(result, browserInfo)
+		return result, nil
+	}
+	return nil, fmt.Errorf("%s login capture/verify failed after one reload retry: first error: %v; second error: %w", providerDisplayName(provider), firstErr, secondErr)
+}
+
+func applyRemoteDebugBrowserInfo(result *Result, info *remoteDebugBrowserInfo) {
+	if result == nil || info == nil {
+		return
+	}
+	if strings.TrimSpace(info.BrowserApp) != "" {
+		result.BrowserApp = strings.TrimSpace(info.BrowserApp)
+	}
+	if strings.TrimSpace(info.BrowserUserDataDir) != "" {
+		result.BrowserUserDataDir = strings.TrimSpace(info.BrowserUserDataDir)
+	}
+	if strings.TrimSpace(info.ProfileDirectory) != "" {
+		result.ProfileDirectory = strings.TrimSpace(info.ProfileDirectory)
+	}
+}
+
+func waitForProviderRemoteDebugTarget(ctx context.Context, debugBase, provider string, timeout time.Duration) (*remoteDebugTarget, error) {
+	deadline := time.Now().Add(timeout)
 	var lastErr error
-
 	for time.Now().Before(deadline) {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
 		}
-
 		targetInfo, err := findProviderRemoteDebugTarget(debugBase, provider)
+		if err == nil && targetInfo != nil {
+			return targetInfo, nil
+		}
 		if err != nil {
 			lastErr = err
-		} else {
-			switch provider {
-			case session.ProviderDelio:
-				if targetInfo == nil {
-					lastErr = errors.New("open a logged-in Delio tab in your current browser and keep it open for session capture")
-					break
-				}
-				capture, err := captureDelioSessionFromRemoteTarget(ctx, version.WebSocketDebuggerURL, targetInfo.ID, loginURL)
-				if err == nil && hasDelioAuthCookie(capture.CookieHeader) {
-					return saveDelioSessionFromCapture(s, baseURL, "", capture)
-				}
-				if err != nil {
-					lastErr = err
-				} else {
-					lastErr = errors.New("Delio auth cookies not detected in the open browser tab yet")
-				}
-			default:
-				targetID := ""
-				if targetInfo != nil {
-					targetID = targetInfo.ID
-				}
-				capture, err := captureFriscoSessionFromRemoteTarget(ctx, version.WebSocketDebuggerURL, targetID, loginURL)
-				if err == nil && (capture.AccessToken != "" || capture.RefreshToken != "") {
-					return saveFriscoSessionFromCapture(s, baseURL, "", capture)
-				}
-				if err != nil {
-					lastErr = err
-				} else {
-					lastErr = errors.New("Frisco auth data not detected in the current browser yet")
-				}
-			}
 		}
-
-		time.Sleep(1 * time.Second)
+		time.Sleep(250 * time.Millisecond)
 	}
-
-	if lastErr == nil {
-		lastErr = fmt.Errorf("timed out waiting for a logged-in %s tab on the browser remote debugging endpoint", providerDisplayName(provider))
+	if lastErr != nil {
+		return nil, fmt.Errorf("could not find %s page on remote debug endpoint: %w", providerDisplayName(provider), lastErr)
 	}
-	return nil, lastErr
+	return nil, fmt.Errorf("opened browser tab for %s was not detected on the remote debug target list", providerDisplayName(provider))
+}
+
+func waitRemoteDebugCaptureWindow(ctx context.Context, opts Options, d time.Duration) error {
+	loginDebugf(opts, "waiting %s before auth capture", d.Round(100*time.Millisecond))
+	t := time.NewTimer(d)
+	defer t.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-t.C:
+		return nil
+	}
+}
+
+func captureAndSaveRemoteDebugSession(ctx context.Context, opts Options, provider string, s *session.Session, baseURL, loginURL, browserWSURL, targetID string) (*Result, error) {
+	switch provider {
+	case session.ProviderDelio:
+		capture, err := captureDelioSessionFromRemoteTarget(ctx, browserWSURL, targetID, loginURL)
+		if err != nil {
+			return nil, err
+		}
+		if !hasDelioAuthCookie(capture.CookieHeader) {
+			return nil, errors.New("Delio auth cookies not detected in the open browser tab after 3s")
+		}
+		return saveDelioSessionFromCapture(s, baseURL, "", capture)
+	default:
+		capture, err := captureFriscoSessionFromRemoteTarget(ctx, browserWSURL, targetID, loginURL)
+		if err != nil {
+			return nil, err
+		}
+		if capture.AccessToken == "" && capture.RefreshToken == "" {
+			return nil, errors.New("Frisco access/refresh token not detected in the open browser tab after 3s")
+		}
+		return saveFriscoSessionFromCapture(s, baseURL, "", capture)
+	}
+}
+
+func reloadRemoteDebugTarget(ctx context.Context, browserWSURL, targetID, loginURL string) error {
+	if strings.TrimSpace(targetID) == "" {
+		return openLoginPageOnRemoteDebugBrowser(ctx, browserWSURL, loginURL)
+	}
+	allocCtx, cancelAlloc := chromedp.NewRemoteAllocator(ctx, browserWSURL)
+	defer cancelAlloc()
+	taskCtx, cancelTask := chromedp.NewContext(allocCtx, chromedp.WithTargetID(target.ID(targetID)))
+	defer cancelTask()
+	if err := chromedp.Run(taskCtx, chromedp.Reload()); err == nil {
+		return nil
+	}
+	if err := chromedp.Run(taskCtx, chromedp.Navigate(loginURL)); err == nil {
+		return nil
+	}
+	return openLoginPageOnRemoteDebugBrowser(ctx, browserWSURL, loginURL)
 }
 
 func openLoginPageOnRemoteDebugBrowser(ctx context.Context, browserWSURL, loginURL string) error {
@@ -315,23 +378,10 @@ func firstAvailableRemoteDebugEndpoint() (string, *remoteDebugVersion, error) {
 }
 
 func remoteDebugBaseURLs() []string {
-	seen := map[string]struct{}{}
-	out := []string{}
-	for _, raw := range []string{
-		strings.TrimSpace(strings.TrimRight(urlFromEnv("MARTMART_REMOTE_DEBUG_URL"), "/")),
+	return []string{
 		"http://127.0.0.1:9222",
 		"http://localhost:9222",
-	} {
-		if raw == "" {
-			continue
-		}
-		if _, ok := seen[raw]; ok {
-			continue
-		}
-		seen[raw] = struct{}{}
-		out = append(out, raw)
 	}
-	return out
 }
 
 func urlFromEnv(key string) string {
@@ -387,7 +437,13 @@ func captureDelioSessionFromRemoteTarget(ctx context.Context, browserWSURL, targ
 	allocCtx, cancelAlloc := chromedp.NewRemoteAllocator(ctx, browserWSURL)
 	defer cancelAlloc()
 
-	taskCtx, cancelTask := chromedp.NewContext(allocCtx, chromedp.WithTargetID(target.ID(targetID)))
+	var taskCtx context.Context
+	var cancelTask context.CancelFunc
+	if strings.TrimSpace(targetID) != "" {
+		taskCtx, cancelTask = chromedp.NewContext(allocCtx, chromedp.WithTargetID(target.ID(targetID)))
+	} else {
+		taskCtx, cancelTask = chromedp.NewContext(allocCtx)
+	}
 	defer cancelTask()
 
 	headersCh := make(chan map[string]string, 2)
@@ -447,6 +503,9 @@ func captureDelioSessionFromRemoteTarget(ctx context.Context, browserWSURL, targ
 		}),
 	)
 	if err != nil {
+		if strings.TrimSpace(targetID) != "" && isNoTargetRemoteDebugErr(err) {
+			return captureDelioSessionFromRemoteTarget(ctx, browserWSURL, "", loginURL)
+		}
 		return nil, err
 	}
 
@@ -543,6 +602,9 @@ func captureFriscoSessionFromRemoteTarget(ctx context.Context, browserWSURL, tar
 		}),
 	)
 	if err != nil {
+		if strings.TrimSpace(targetID) != "" && isNoTargetRemoteDebugErr(err) {
+			return captureFriscoSessionFromRemoteTarget(ctx, browserWSURL, "", loginURL)
+		}
 		return nil, err
 	}
 
@@ -572,6 +634,14 @@ func captureFriscoSessionFromRemoteTarget(ctx context.Context, browserWSURL, tar
 		RefreshToken: strings.TrimSpace(result.RefreshToken),
 		UserID:       strings.TrimSpace(result.UserID),
 	}, nil
+}
+
+func isNoTargetRemoteDebugErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(strings.TrimSpace(err.Error()))
+	return strings.Contains(msg, "no target with given id found")
 }
 
 func networkHeadersToStringMap(headers network.Headers) map[string]string {

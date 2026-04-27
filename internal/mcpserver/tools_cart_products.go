@@ -11,6 +11,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/wydrox/martmart-cli/internal/delio"
 	"github.com/wydrox/martmart-cli/internal/httpclient"
 	"github.com/wydrox/martmart-cli/internal/session"
 	"github.com/wydrox/martmart-cli/internal/shared"
@@ -54,36 +55,45 @@ func mcpAvailableProviders() []string {
 	return session.SupportedProviders()
 }
 
+var (
+	mcpDelioCurrentCartFn        = delio.CurrentCart
+	mcpDelioExtractCurrentCartFn = delio.ExtractCurrentCart
+	mcpDelioUpdateCurrentCartFn  = delio.UpdateCurrentCart
+	mcpDelioExtractUpdatedCartFn = delio.ExtractUpdatedCart
+	mcpDelioSearchProductsFn     = delio.SearchProducts
+	mcpDelioGetProductFn         = delio.GetProduct
+)
+
 // registerCartAndProductsTools registers all cart and product MCP tools.
 func registerCartAndProductsTools(server *mcp.Server) {
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "cart_show",
-		Description: "Fetch the current shopping cart for a Frisco user (GET /app/commerce/api/v1/users/{id}/cart). Uses ~/.martmart-cli/frisco-session.json unless user_id is set.",
+		Description: "Fetch the current shopping cart for Frisco or Delio. Frisco uses /app/commerce/api/v1/users/{id}/cart; Delio uses the currentCart GraphQL query.",
 	}, mcpCPCartShow)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "cart_add",
-		Description: "Add or set product quantity in the cart (PUT cart with products[]. Same as martmart cart add.",
+		Description: "Add or set product quantity in the cart. Frisco uses PUT /cart with products[]; Delio uses UpdateCurrentCart and SKU quantities.",
 	}, mcpCPCartAdd)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "cart_remove",
-		Description: "Remove a product from the cart by setting quantity to 0 (PUT cart). Same as martmart cart remove.",
+		Description: "Remove a product from the cart by setting quantity to 0. Frisco uses PUT /cart; Delio uses UpdateCurrentCart with a negative SKU delta.",
 	}, mcpCPCartRemove)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "products_search",
-		Description: "Search the product catalog (GET .../offer/products/query). Optional category_id narrows by Frisco categoryId (same as frisco products search --category-id). Mirrors martmart products search.",
+		Description: "Search the product catalog for Frisco or Delio. Frisco uses /offer/products/query; Delio uses the ProductSearch GraphQL query. category_id and delivery_method apply to Frisco only.",
 	}, mcpCPProductsSearch)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "products_by_ids",
-		Description: "Fetch products by repeated productIds query params. Mirrors martmart products by-ids.",
+		Description: "Fetch products by provider product IDs. Frisco uses repeated productIds query params; Delio resolves each SKU via the Product GraphQL query.",
 	}, mcpCPProductsByIDs)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "products_nutrition",
-		Description: "Fetch product content from /app/content/api/v1/products/get/{id}. By default returns extracted nutrition block if found; set raw true for full API JSON.",
+		Description: "Fetch product nutrition/content when the provider exposes it. Full content API support currently applies to Frisco; Delio returns a clear unsupported error.",
 	}, mcpCPProductsNutrition)
 }
 
@@ -94,7 +104,18 @@ type mcpCPCartShowIn struct {
 }
 
 func mcpCPCartShow(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartShowIn) (*mcp.CallToolResult, mcpCPFriscoToolOut, error) {
-	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
+	provider, s, err := loadSessionOnlyAuth(in.Provider)
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
+	}
+	if provider == session.ProviderDelio {
+		result, err := mcpDelioCurrentCartFn(s)
+		if err != nil {
+			return nil, mcpCPFriscoToolOut{}, err
+		}
+		return mcpCPWrapFriscoResult(result)
+	}
+	uid, err := session.RequireUserID(s, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -118,13 +139,27 @@ func mcpCPCartAdd(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartAddIn) 
 	if strings.TrimSpace(in.ProductID) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("product_id is required")
 	}
-	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
+	provider, s, err := loadSessionOnlyAuth(in.Provider)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
 	qty := 1
 	if in.Quantity != nil {
 		qty = *in.Quantity
+	}
+	if qty < 0 {
+		return nil, mcpCPFriscoToolOut{}, errors.New("quantity must be >= 0")
+	}
+	if provider == session.ProviderDelio {
+		result, err := mcpDelioSetCartQuantity(s, in.ProductID, qty)
+		if err != nil {
+			return nil, mcpCPFriscoToolOut{}, err
+		}
+		return mcpCPWrapFriscoResult(result)
+	}
+	uid, err := session.RequireUserID(s, in.UserID)
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
 	}
 	path := fmt.Sprintf("/app/commerce/api/v1/users/%s/cart", uid)
 	body := map[string]any{
@@ -153,7 +188,18 @@ func mcpCPCartRemove(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartRemo
 	if strings.TrimSpace(in.ProductID) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("product_id is required")
 	}
-	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
+	provider, s, err := loadSessionOnlyAuth(in.Provider)
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
+	}
+	if provider == session.ProviderDelio {
+		result, err := mcpDelioSetCartQuantity(s, in.ProductID, 0)
+		if err != nil {
+			return nil, mcpCPFriscoToolOut{}, err
+		}
+		return mcpCPWrapFriscoResult(result)
+	}
+	uid, err := session.RequireUserID(s, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -188,7 +234,7 @@ func mcpCPProductsSearch(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProd
 	if strings.TrimSpace(in.Search) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("search is required")
 	}
-	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
+	provider, s, err := loadSessionOnlyAuth(in.Provider)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -196,9 +242,26 @@ func mcpCPProductsSearch(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProd
 	if in.PageIndex != nil {
 		pageIndex = *in.PageIndex
 	}
+	if pageIndex <= 0 {
+		pageIndex = 1
+	}
 	pageSize := 84
 	if in.PageSize != nil {
 		pageSize = *in.PageSize
+	}
+	if pageSize <= 0 {
+		pageSize = 84
+	}
+	if provider == session.ProviderDelio {
+		result, err := mcpDelioSearchProductsFn(s, in.Search, pageSize, (pageIndex-1)*pageSize, nil)
+		if err != nil {
+			return nil, mcpCPFriscoToolOut{}, err
+		}
+		return mcpCPWrapFriscoResult(result)
+	}
+	uid, err := session.RequireUserID(s, in.UserID)
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
 	}
 	deliveryMethod := "Van"
 	if in.DeliveryMethod != nil && *in.DeliveryMethod != "" {
@@ -236,7 +299,34 @@ func mcpCPProductsByIDs(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProdu
 	if len(in.ProductIDs) == 0 {
 		return nil, mcpCPFriscoToolOut{}, errors.New("product_ids must contain at least one id")
 	}
-	s, uid, err := loadSessionAuth(in.Provider, in.UserID)
+	provider, s, err := loadSessionOnlyAuth(in.Provider)
+	if err != nil {
+		return nil, mcpCPFriscoToolOut{}, err
+	}
+	if provider == session.ProviderDelio {
+		products := make([]map[string]any, 0, len(in.ProductIDs))
+		for _, pid := range in.ProductIDs {
+			pid = strings.TrimSpace(pid)
+			if pid == "" {
+				continue
+			}
+			payload, err := mcpDelioGetProductFn(s, "", pid, nil)
+			if err != nil {
+				return nil, mcpCPFriscoToolOut{}, err
+			}
+			product, err := delio.ExtractProduct(payload)
+			if err != nil {
+				return nil, mcpCPFriscoToolOut{}, err
+			}
+			products = append(products, product)
+		}
+		return mcpCPWrapFriscoResult(map[string]any{
+			"provider":    session.ProviderDelio,
+			"product_ids": in.ProductIDs,
+			"products":    products,
+		})
+	}
+	uid, err := session.RequireUserID(s, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
@@ -263,16 +353,12 @@ func mcpCPProductsNutrition(_ context.Context, _ *mcp.CallToolRequest, in mcpCPP
 	if strings.TrimSpace(in.ProductID) == "" {
 		return nil, mcpCPFriscoToolOut{}, errors.New("product_id is required")
 	}
-	provider, err := mcpResolveProvider(in.Provider)
+	provider, s, err := loadSessionOnlyAuth(in.Provider)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
-	s, err := session.LoadProvider(provider)
-	if err != nil {
-		return nil, mcpCPFriscoToolOut{}, err
-	}
-	if !session.IsAuthenticated(s) {
-		return nil, mcpCPFriscoToolOut{}, errNotAuthenticated
+	if provider == session.ProviderDelio {
+		return nil, mcpCPFriscoToolOut{}, errors.New("products_nutrition is currently supported for Frisco only; Delio does not expose a compatible content API in MartMart MCP yet")
 	}
 	path := fmt.Sprintf("/app/content/api/v1/products/get/%s", in.ProductID)
 	result, err := httpclient.RequestJSON(s, "GET", path, httpclient.RequestOpts{})
@@ -304,25 +390,103 @@ var errNotAuthenticated = errors.New(
 		"or use session_from_curl with a cURL copied from DevTools",
 )
 
-// loadSessionAuth loads the provider session and verifies it has authentication credentials.
-// Tools that don't require auth should resolve the provider and call session.LoadProvider directly.
-func loadSessionAuth(provider string, explicitUserID string) (*session.Session, string, error) {
+func loadSessionOnlyAuth(provider string) (string, *session.Session, error) {
 	provider, err := mcpResolveProvider(provider)
 	if err != nil {
-		return nil, "", err
+		return "", nil, err
 	}
 	s, err := session.LoadProvider(provider)
 	if err != nil {
-		return nil, "", err
+		return "", nil, err
 	}
 	if !session.IsAuthenticated(s) {
-		return nil, "", errNotAuthenticated
+		return "", nil, errNotAuthenticated
+	}
+	return provider, s, nil
+}
+
+// loadSessionAuth loads the provider session and verifies it has authentication credentials.
+func loadSessionAuth(provider string, explicitUserID string) (*session.Session, string, error) {
+	_, s, err := loadSessionOnlyAuth(provider)
+	if err != nil {
+		return nil, "", err
 	}
 	uid, err := session.RequireUserID(s, explicitUserID)
 	if err != nil {
 		return nil, "", err
 	}
 	return s, uid, nil
+}
+
+func mcpDelioSetCartQuantity(s *session.Session, sku string, targetQty int) (any, error) {
+	sku = strings.TrimSpace(sku)
+	if sku == "" {
+		return nil, errors.New("product_id is required")
+	}
+	if targetQty < 0 {
+		return nil, errors.New("quantity must be >= 0")
+	}
+	current, err := mcpDelioCurrentCartFn(s)
+	if err != nil {
+		return nil, err
+	}
+	cart, err := mcpDelioExtractCurrentCartFn(current)
+	if err != nil {
+		return nil, err
+	}
+	currentQty := mcpDelioCartItemQuantity(cart, sku)
+	delta := targetQty - currentQty
+	if delta == 0 {
+		return current, nil
+	}
+	result, err := mcpDelioUpdateCurrentCartFn(s, mcpCPString(cart["id"]), []map[string]any{{
+		"AddLineItem": map[string]any{"quantity": delta, "sku": sku},
+	}})
+	if err != nil {
+		return nil, err
+	}
+	if _, err := mcpDelioExtractUpdatedCartFn(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func mcpDelioCartItemQuantity(cart map[string]any, sku string) int {
+	sku = strings.TrimSpace(sku)
+	if cart == nil || sku == "" {
+		return 0
+	}
+	items, _ := cart["lineItems"].([]any)
+	for _, item := range items {
+		row, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		product, _ := row["product"].(map[string]any)
+		if !strings.EqualFold(mcpCPString(product["sku"]), sku) {
+			continue
+		}
+		switch q := row["quantity"].(type) {
+		case int:
+			return q
+		case int64:
+			return int(q)
+		case float64:
+			return int(q)
+		}
+	}
+	return 0
+}
+
+func mcpCPString(v any) string {
+	switch x := v.(type) {
+	case nil:
+		return ""
+	case string:
+		return strings.TrimSpace(x)
+	default:
+		return strings.TrimSpace(fmt.Sprint(v))
+	}
 }
 
 // mcpCPWrapFriscoResult marshals v into a CallToolResult and the structured
