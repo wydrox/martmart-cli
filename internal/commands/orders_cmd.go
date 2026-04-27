@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"sort"
 	"strings"
 	"text/tabwriter"
 
@@ -88,42 +87,6 @@ func extractOrderProducts(order map[string]any) []orderProduct {
 		out = append(out, op)
 	}
 	return out
-}
-
-// printOrderProductsTable renders products as a tabwriter table and prints a
-// summary line. sortBy may be "total", "name", or "" (API order).
-func printOrderProductsTable(products []orderProduct, sortBy string) {
-	switch strings.ToLower(sortBy) {
-	case "total":
-		sort.Slice(products, func(i, j int) bool {
-			return products[i].Total > products[j].Total
-		})
-	case "name":
-		sort.Slice(products, func(i, j int) bool {
-			return strings.ToLower(products[i].Name) < strings.ToLower(products[j].Name)
-		})
-	}
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	_, _ = fmt.Fprintln(w, "NAME\tQTY\tPRICE\tTOTAL\tGRAMMAGE\tUNIT")
-	for _, p := range products {
-		qty := fmt.Sprintf("%.0f", p.Quantity)
-		price := fmt.Sprintf("%.2f", p.Price)
-		total := fmt.Sprintf("%.2f", p.Total)
-		grammage := ""
-		if p.Grammage != 0 {
-			grammage = fmt.Sprintf("%g", p.Grammage)
-		}
-		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n",
-			p.Name, qty, price, total, grammage, p.Unit)
-	}
-	_ = w.Flush()
-
-	var orderTotal float64
-	for _, p := range products {
-		orderTotal += p.Total
-	}
-	fmt.Printf("\nOrder total: %.2f PLN (%d items)\n",
-		math.Round(orderTotal*100)/100, len(products))
 }
 
 // extractOrdersList extracts an orders slice from various API response shapes.

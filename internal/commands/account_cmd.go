@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"sort"
 	"strings"
 	"text/tabwriter"
 
@@ -61,53 +60,6 @@ func newAccountProfileCmd() *cobra.Command {
 	return c
 }
 
-// printProfileTable renders a user profile API response as a key-value table.
-func printProfileTable(v any) error {
-	profile, ok := v.(map[string]any)
-	if !ok {
-		return printJSON(v)
-	}
-
-	// Build Name from fullName.firstName + lastName.
-	name := "—"
-	if fn, ok := profile["fullName"].(map[string]any); ok {
-		first := cellValue(fn["firstName"])
-		last := cellValue(fn["lastName"])
-		parts := []string{}
-		if first != "—" {
-			parts = append(parts, first)
-		}
-		if last != "—" {
-			parts = append(parts, last)
-		}
-		if len(parts) > 0 {
-			name = strings.Join(parts, " ")
-		}
-	}
-
-	// Extract registeredAt as YYYY-MM-DD.
-	registered := cellValue(profile["registeredAt"])
-	if len(registered) >= 10 {
-		registered = registered[:10]
-	}
-
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	rows := []struct{ label, value string }{
-		{"Name", name},
-		{"Email", cellValue(profile["email"])},
-		{"Phone", cellValue(profile["phoneNumber"])},
-		{"Postcode", cellValue(profile["postcode"])},
-		{"Language", cellValue(profile["language"])},
-		{"Profile", cellValue(profile["profileType"])},
-		{"Adult", cellValue(profile["isAdult"])},
-		{"Registered", registered},
-	}
-	for _, r := range rows {
-		_, _ = fmt.Fprintf(w, "%s\t%s\n", r.label, r.value)
-	}
-	return w.Flush()
-}
-
 func newAccountAddressesCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "addresses",
@@ -144,31 +96,6 @@ func newAccountAddressesListCmd() *cobra.Command {
 	}
 	c.Flags().StringVar(&userID, "user-id", "", "")
 	return c
-}
-
-// printAddressesTable renders a shipping address list as a tabwriter table.
-func printAddressesTable(v any) error {
-	list, ok := v.([]any)
-	if !ok {
-		return printJSON(v)
-	}
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	_, _ = fmt.Fprintln(w, "id\trecipient\tstreet\tcity\tpostcode\tphone")
-	for _, item := range list {
-		row, ok := item.(map[string]any)
-		if !ok {
-			continue
-		}
-		id := cellValue(row["id"])
-		addr, _ := row["shippingAddress"].(map[string]any)
-		recipient := cellValue(addr["recipient"])
-		street := formatStreet(addr)
-		city := cellValue(addr["city"])
-		postcode := cellValue(addr["postcode"])
-		phone := cellValue(addr["phoneNumber"])
-		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n", id, recipient, street, city, postcode, phone)
-	}
-	return w.Flush()
 }
 
 // formatStreet builds a human-readable street string from an address map.
@@ -366,21 +293,6 @@ func fetchConsents(s *session.Session, uid string) (map[string]any, error) {
 	return consents, nil
 }
 
-// printConsentsTable renders a consent key→bool map as a sorted tabwriter table.
-func printConsentsTable(consents map[string]any) error {
-	keys := make([]string, 0, len(consents))
-	for k := range consents {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	_, _ = fmt.Fprintln(w, "key\tenabled")
-	for _, k := range keys {
-		_, _ = fmt.Fprintf(w, "%s\t%v\n", k, consents[k])
-	}
-	return w.Flush()
-}
-
 func newAccountConsentsUpdateCmd() *cobra.Command {
 	var userID, payloadFile string
 	c := &cobra.Command{
@@ -480,40 +392,6 @@ func newAccountPaymentsCmd() *cobra.Command {
 	c.Flags().IntVar(&pageSize, "page-size", 25, "")
 	c.Flags().StringVar(&userID, "user-id", "", "")
 	return c
-}
-
-// printPaymentsTable renders a paginated payments API response as a tabwriter table.
-func printPaymentsTable(v any) error {
-	page, ok := v.(map[string]any)
-	if !ok {
-		return printJSON(v)
-	}
-
-	// Pagination info.
-	pageIndex := int(toFloat(page["pageIndex"]))
-	pageCount := int(toFloat(page["pageCount"]))
-	totalCount := int(toFloat(page["totalCount"]))
-	fmt.Printf("Page %d/%d (%d total)\n\n", pageIndex, pageCount, totalCount)
-
-	items := toSlice(page["items"])
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	_, _ = fmt.Fprintln(w, "date\tstatus\tchannel\tcard\torderId")
-	for _, item := range items {
-		row, ok := item.(map[string]any)
-		if !ok {
-			continue
-		}
-		date := cellValue(row["createdAt"])
-		if len(date) >= 10 {
-			date = date[:10]
-		}
-		status := cellValue(row["status"])
-		channel := cellValue(row["channelName"])
-		card := cellValue(row["creditCardBrand"])
-		orderID := cellValue(row["orderId"])
-		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", date, status, channel, card, orderID)
-	}
-	return w.Flush()
 }
 
 func newAccountMembershipCmd() *cobra.Command {
@@ -683,32 +561,6 @@ func newAccountMembershipPointsHistoryCmd() *cobra.Command {
 	c.Flags().IntVar(&pageSize, "page-size", 25, "")
 	c.Flags().StringVar(&userID, "user-id", "", "")
 	return c
-}
-
-// printPointsHistoryTable renders a paginated membership points response as a tabwriter table.
-func printPointsHistoryTable(v any) error {
-	page, ok := v.(map[string]any)
-	if !ok {
-		return printJSON(v)
-	}
-	items := toSlice(page["items"])
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	_, _ = fmt.Fprintln(w, "date\toperation\tpoints\torderId")
-	for _, item := range items {
-		row, ok := item.(map[string]any)
-		if !ok {
-			continue
-		}
-		date := cellValue(row["createdAt"])
-		if len(date) >= 10 {
-			date = date[:10]
-		}
-		operation := cellValue(row["operation"])
-		points := cellValue(row["membershipPoints"])
-		orderID := cellValue(row["orderId"])
-		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", date, operation, points, orderID)
-	}
-	return w.Flush()
 }
 
 // toFloat coerces a numeric any value to float64, returning 0 for unrecognised types.
