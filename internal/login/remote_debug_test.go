@@ -24,6 +24,59 @@ func makeJWTForTest(t *testing.T, claims map[string]any) string {
 	return base64.RawURLEncoding.EncodeToString(headerJSON) + "." + base64.RawURLEncoding.EncodeToString(payloadJSON) + ".sig"
 }
 
+func TestOpenLoginPageViaRemoteDebugHTTP_UsesPutWithRawURLQuery(t *testing.T) {
+	var gotMethod string
+	var gotRawQuery string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/json/new" {
+			t.Fatalf("path = %q, want /json/new", r.URL.Path)
+		}
+		gotMethod = r.Method
+		gotRawQuery = r.URL.RawQuery
+		if r.Method != http.MethodPut {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+		_ = json.NewEncoder(w).Encode(remoteDebugTarget{
+			ID:  "target-1",
+			URL: "https://delio.com.pl/",
+		})
+	}))
+	defer server.Close()
+
+	id, err := openLoginPageViaRemoteDebugHTTP(server.URL, "https://delio.com.pl/")
+	if err != nil {
+		t.Fatalf("openLoginPageViaRemoteDebugHTTP: %v", err)
+	}
+	if id != "target-1" {
+		t.Fatalf("id = %q, want target-1", id)
+	}
+	if gotMethod != http.MethodPut {
+		t.Fatalf("method = %q, want PUT", gotMethod)
+	}
+	if gotRawQuery != "https%3A%2F%2Fdelio.com.pl%2F" {
+		t.Fatalf("raw query = %q, want encoded target URL without url=", gotRawQuery)
+	}
+}
+
+func TestOpenLoginPageViaRemoteDebugHTTP_RejectsAboutBlankTarget(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(remoteDebugTarget{
+			ID:  "target-blank",
+			URL: "about:blank",
+		})
+	}))
+	defer server.Close()
+
+	_, err := openLoginPageViaRemoteDebugHTTP(server.URL, "https://delio.com.pl/")
+	if err == nil {
+		t.Fatal("openLoginPageViaRemoteDebugHTTP returned nil error, want about:blank rejection")
+	}
+	if !strings.Contains(err.Error(), "about:blank") {
+		t.Fatalf("error = %v, want about:blank", err)
+	}
+}
+
 func TestRefreshFriscoAccessToken_UpdatesSessionFromTokenResponse(t *testing.T) {
 	newToken := makeJWTForTest(t, map[string]any{"user_id": "u-123"})
 

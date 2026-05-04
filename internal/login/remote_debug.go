@@ -327,25 +327,74 @@ func openLoginPageViaRemoteDebugHTTP(debugBase, loginURL string) (string, error)
 		return "", fmt.Errorf("unsupported login URL scheme %q", parsed.Scheme)
 	}
 
-	endpoint := debugBase + "/json/new?url=" + url.QueryEscape(parsed.String())
-	client := &http.Client{Timeout: 2 * time.Second}
-	resp, err := client.Get(endpoint)
-	if err != nil {
-		return "", err
+	// Chrome's DevTools endpoint expects the target URL as the raw query string
+	// ("/json/new?<url>"). Recent Chromium builds also require PUT; using
+	// "/json/new?url=<url>" can return a valid target id for about:blank, which
+	// makes login capture wait forever for a provider page that was never opened.
+	encodedLoginURL := url.QueryEscape(parsed.String())
+	requests := []struct {
+		method   string
+		endpoint string
+	}{
+		{method: http.MethodPut, endpoint: debugBase + "/json/new?" + encodedLoginURL},
+		{method: http.MethodGet, endpoint: debugBase + "/json/new?" + encodedLoginURL},
 	}
+
+	client := &http.Client{Timeout: 2 * time.Second}
+	var lastErr error
+	for _, reqSpec := range requests {
+		req, err := http.NewRequest(reqSpec.method, reqSpec.endpoint, nil)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		resp, err := client.Do(req)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		opened, err := decodeRemoteDebugNewTargetResponse(resp, reqSpec.method, reqSpec.endpoint, parsed)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		return opened.ID, nil
+	}
+	if lastErr != nil {
+		return "", lastErr
+	}
+	return "", errors.New("remote debug /json/new failed")
+}
+
+func decodeRemoteDebugNewTargetResponse(resp *http.Response, method, endpoint string, expected *url.URL) (*remoteDebugTarget, error) {
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", fmt.Errorf("GET %s returned %s", endpoint, resp.Status)
+		return nil, fmt.Errorf("%s %s returned %s", method, endpoint, resp.Status)
 	}
 
 	var opened remoteDebugTarget
 	if err := json.NewDecoder(resp.Body).Decode(&opened); err != nil {
-		return "", fmt.Errorf("decode /json/new response: %w", err)
+		return nil, fmt.Errorf("decode /json/new response: %w", err)
 	}
 	if strings.TrimSpace(opened.ID) == "" {
-		return "", fmt.Errorf("remote debug /json/new did not return a target id")
+		return nil, fmt.Errorf("remote debug /json/new did not return a target id")
 	}
-	return opened.ID, nil
+	if !remoteDebugTargetURLMatches(opened.URL, expected) {
+		return nil, fmt.Errorf("remote debug /json/new opened %q instead of %q", strings.TrimSpace(opened.URL), expected.String())
+	}
+	return &opened, nil
+}
+
+func remoteDebugTargetURLMatches(openedURL string, expected *url.URL) bool {
+	openedURL = strings.TrimSpace(openedURL)
+	if openedURL == "" || expected == nil {
+		return false
+	}
+	opened, err := url.Parse(openedURL)
+	if err != nil {
+		return false
+	}
+	return strings.EqualFold(opened.Scheme, expected.Scheme) && strings.EqualFold(opened.Host, expected.Host)
 }
 
 func providerDisplayName(provider string) string {
