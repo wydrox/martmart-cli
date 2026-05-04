@@ -1,9 +1,0 @@
-{
-  "result": {
-    "provider": "frisco",
-    "user_id": "646456",
-    "status": "placed",
-    "order_id": "ord-123",
-    "readback": { "order_id": "ord-123", "order": { "status": "Placed" }, "payments": [] }
-  }
-}
