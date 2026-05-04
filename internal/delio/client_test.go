@@ -1,6 +1,88 @@
 package delio
 
-import "testing"
+import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/wydrox/martmart-cli/internal/session"
+)
+
+func TestResolveCoordinatesCachesCurrentCartCoordinates(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.URL.Path != "/api/proxy/delio" {
+			t.Fatalf("unexpected path %s", r.URL.Path)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"currentCart": map[string]any{
+			"shippingAddress": map[string]any{"lat": 52.2297, "long": 21.0122},
+		}}})
+	}))
+	defer server.Close()
+
+	origSave := saveSessionProvider
+	var saved *session.Session
+	saveSessionProvider = func(provider string, s *session.Session) error {
+		if provider != session.ProviderDelio {
+			t.Fatalf("provider=%q want delio", provider)
+		}
+		copy := *s
+		saved = &copy
+		return nil
+	}
+	t.Cleanup(func() { saveSessionProvider = origSave })
+
+	s := &session.Session{BaseURL: server.URL, Headers: map[string]string{"Cookie": "sid=1"}}
+	coords, err := ResolveCoordinates(s, nil)
+	if err != nil {
+		t.Fatalf("ResolveCoordinates: %v", err)
+	}
+	if coords.Lat != 52.2297 || coords.Long != 21.0122 {
+		t.Fatalf("coords=%#v", coords)
+	}
+	if s.DeliveryCoordinates == nil || s.DeliveryCoordinates.Lat != 52.2297 || s.DeliveryCoordinates.Long != 21.0122 {
+		t.Fatalf("session coordinates not cached: %#v", s.DeliveryCoordinates)
+	}
+	if saved == nil || saved.DeliveryCoordinates == nil {
+		t.Fatal("expected session save with cached coordinates")
+	}
+}
+
+func TestResolveCoordinatesFallsBackToCachedSessionCoordinates(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch r.URL.Path {
+		case "/api/proxy/delio":
+			_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"currentCart": map[string]any{}}})
+		case "/api/proxy/onebrand":
+			_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"defaultShippingAddress": map[string]any{}}})
+		default:
+			t.Fatalf("unexpected path %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	origSave := saveSessionProvider
+	saveSessionProvider = func(provider string, s *session.Session) error {
+		t.Fatal("did not expect save when using cached fallback")
+		return nil
+	}
+	t.Cleanup(func() { saveSessionProvider = origSave })
+
+	s := &session.Session{
+		BaseURL:             server.URL,
+		Headers:             map[string]string{"Cookie": "sid=1"},
+		DeliveryCoordinates: &session.GeoCoordinates{Lat: 50.0614, Long: 19.9366},
+	}
+	coords, err := ResolveCoordinates(s, nil)
+	if err != nil {
+		t.Fatalf("ResolveCoordinates: %v", err)
+	}
+	if coords.Lat != 50.0614 || coords.Long != 19.9366 {
+		t.Fatalf("coords=%#v", coords)
+	}
+}
 
 func TestExtractUpdatedCart(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
@@ -154,8 +236,14 @@ func TestPaymentWrapperValidation(t *testing.T) {
 		{name: "create payment missing cart", call: func() error { _, err := CreatePayment(nil, " "); return err }, want: "missing cartId"},
 		{name: "payment methods missing cart", call: func() error { _, err := PaymentMethods(nil, "", "pay_1"); return err }, want: "missing cartId"},
 		{name: "payment methods missing payment", call: func() error { _, err := PaymentMethods(nil, "cart_1", " "); return err }, want: "missing paymentId"},
-		{name: "make payment missing cart", call: func() error { _, err := MakePayment(nil, "", "pay_1", map[string]any{"paymentChannel": "Web"}); return err }, want: "missing cartId"},
-		{name: "make payment missing payment", call: func() error { _, err := MakePayment(nil, "cart_1", "", map[string]any{"paymentChannel": "Web"}); return err }, want: "missing paymentId"},
+		{name: "make payment missing cart", call: func() error {
+			_, err := MakePayment(nil, "", "pay_1", map[string]any{"paymentChannel": "Web"})
+			return err
+		}, want: "missing cartId"},
+		{name: "make payment missing payment", call: func() error {
+			_, err := MakePayment(nil, "cart_1", "", map[string]any{"paymentChannel": "Web"})
+			return err
+		}, want: "missing paymentId"},
 		{name: "make payment missing config", call: func() error { _, err := MakePayment(nil, "cart_1", "pay_1", nil); return err }, want: "missing paymentConfig"},
 	}
 

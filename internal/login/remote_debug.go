@@ -37,9 +37,10 @@ type remoteDebugTarget struct {
 }
 
 type remoteDebugDelioCapture struct {
-	Headers      map[string]string
-	CookieHeader string
-	UserID       string
+	Headers             map[string]string
+	CookieHeader        string
+	UserID              string
+	DeliveryCoordinates *session.GeoCoordinates
 }
 
 type remoteDebugFriscoCapture struct {
@@ -573,9 +574,10 @@ func captureDelioSessionFromRemoteTarget(ctx context.Context, browserWSURL, targ
 	}
 
 	capture := &remoteDebugDelioCapture{
-		Headers:      filterDelioSessionHeaders(headers),
-		CookieHeader: strings.TrimSpace(cookieHeader),
-		UserID:       extractDelioUserIDFromCookieHeader(cookieHeader),
+		Headers:             filterDelioSessionHeaders(headers),
+		CookieHeader:        strings.TrimSpace(cookieHeader),
+		UserID:              extractDelioUserIDFromCookieHeader(cookieHeader),
+		DeliveryCoordinates: delioCoordinatesFromFetchResult(fetchResult),
 	}
 	if capture.CookieHeader == "" {
 		capture.CookieHeader = strings.TrimSpace(headerMapValue(headers, "Cookie"))
@@ -584,6 +586,21 @@ func captureDelioSessionFromRemoteTarget(ctx context.Context, browserWSURL, targ
 		capture.UserID = extractDelioUserIDFromCookieHeader(capture.CookieHeader)
 	}
 	return capture, nil
+}
+
+func delioCoordinatesFromFetchResult(result remoteDebugFetchResult) *session.GeoCoordinates {
+	if result.Status < 200 || result.Status >= 300 || strings.TrimSpace(result.Text) == "" {
+		return nil
+	}
+	var payload any
+	if err := json.Unmarshal([]byte(result.Text), &payload); err != nil {
+		return nil
+	}
+	coords := delio.ExtractCurrentCartCoordinates(payload)
+	if coords == nil {
+		return nil
+	}
+	return &session.GeoCoordinates{Lat: coords.Lat, Long: coords.Long}
 }
 
 func captureFriscoSessionFromRemoteTarget(ctx context.Context, browserWSURL, targetID, loginURL string) (*remoteDebugFriscoCapture, error) {
@@ -807,6 +824,9 @@ func saveDelioSessionFromCapture(s *session.Session, baseURL, profileDirectory s
 	s.RefreshToken = nil
 	if strings.TrimSpace(capture.UserID) != "" {
 		s.UserID = strings.TrimSpace(capture.UserID)
+	}
+	if capture.DeliveryCoordinates != nil {
+		s.DeliveryCoordinates = capture.DeliveryCoordinates
 	}
 	if err := verifyDelioCapturedSession(s); err != nil {
 		return nil, err

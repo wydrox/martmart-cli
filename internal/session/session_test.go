@@ -946,11 +946,12 @@ func TestLoadSave_RoundTrip(t *testing.T) {
 	setTempSession(t, dir)
 
 	want := &Session{
-		BaseURL:      "https://www.frisco.pl",
-		Token:        "tok_abc",
-		RefreshToken: "ref_xyz",
-		UserID:       "42",
-		Headers:      map[string]string{"Accept": "application/json"},
+		BaseURL:             "https://www.frisco.pl",
+		Token:               "tok_abc",
+		RefreshToken:        "ref_xyz",
+		UserID:              "42",
+		Headers:             map[string]string{"Accept": "application/json"},
+		DeliveryCoordinates: &GeoCoordinates{Lat: 52.2297, Long: 21.0122},
 	}
 
 	if err := Save(want); err != nil {
@@ -976,6 +977,9 @@ func TestLoadSave_RoundTrip(t *testing.T) {
 	}
 	if got.Headers["Accept"] != "application/json" {
 		t.Errorf("Headers[Accept]: got %q, want application/json", got.Headers["Accept"])
+	}
+	if got.DeliveryCoordinates == nil || got.DeliveryCoordinates.Lat != 52.2297 || got.DeliveryCoordinates.Long != 21.0122 {
+		t.Errorf("DeliveryCoordinates: got %#v", got.DeliveryCoordinates)
 	}
 }
 

@@ -53,6 +53,7 @@ func TestCartAddSearchWithMemoryFrisco(t *testing.T) {
 		reset := stubCartSearchGlobals()
 		defer reset()
 		now := time.Date(2026, 4, 21, 10, 0, 0, 0, time.UTC)
+		cartSearchNow = func() time.Time { return now }
 		live := now.Add(-24 * time.Hour)
 		var searchCalls, ingestCalls int
 		catalogGetQueryBestEffort = func(provider, queryNorm string) (*catalog.QueryRecord, error) {
@@ -110,6 +111,7 @@ func TestCartAddSearchWithMemoryFrisco(t *testing.T) {
 		reset := stubCartSearchGlobals()
 		defer reset()
 		now := time.Date(2026, 4, 21, 10, 0, 0, 0, time.UTC)
+		cartSearchNow = func() time.Time { return now }
 		live := now.Add(-time.Hour)
 		var addCalls, searchCalls int
 		catalogGetQueryBestEffort = func(provider, queryNorm string) (*catalog.QueryRecord, error) {

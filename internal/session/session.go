@@ -43,13 +43,20 @@ func init() {
 	sessionFile = filepath.Join(sessionDir, "frisco-session.json")
 }
 
+// GeoCoordinates stores a provider delivery/search point in a persisted session.
+type GeoCoordinates struct {
+	Lat  float64 `json:"lat"`
+	Long float64 `json:"long"`
+}
+
 // Session is persisted per provider in ~/.martmart-cli/.
 type Session struct {
-	BaseURL      string            `json:"base_url"`
-	Headers      map[string]string `json:"headers"`
-	Token        any               `json:"token"`
-	UserID       any               `json:"user_id"`
-	RefreshToken any               `json:"refresh_token"`
+	BaseURL             string            `json:"base_url"`
+	Headers             map[string]string `json:"headers"`
+	Token               any               `json:"token"`
+	UserID              any               `json:"user_id"`
+	RefreshToken        any               `json:"refresh_token"`
+	DeliveryCoordinates *GeoCoordinates   `json:"delivery_coordinates,omitempty"`
 }
 
 func defaultSession() *Session {

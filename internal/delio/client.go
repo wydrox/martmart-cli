@@ -195,27 +195,65 @@ func coordinatesFromMap(m map[string]any) *Coordinates {
 	return coords
 }
 
+var saveSessionProvider = session.SaveProvider
+
+// ExtractCurrentCartCoordinates returns currentCart.shippingAddress coordinates when present.
+func ExtractCurrentCartCoordinates(payload any) *Coordinates {
+	cart, err := ExtractCurrentCart(payload)
+	if err != nil {
+		return nil
+	}
+	return coordinatesFromMap(mapField(cart, "shippingAddress"))
+}
+
+func coordinatesFromSession(s *session.Session) *Coordinates {
+	if s == nil || s.DeliveryCoordinates == nil {
+		return nil
+	}
+	coords := &Coordinates{Lat: s.DeliveryCoordinates.Lat, Long: s.DeliveryCoordinates.Long}
+	if !coords.valid() {
+		return nil
+	}
+	return coords
+}
+
+func rememberCoordinates(s *session.Session, coords *Coordinates) {
+	if s == nil || !coords.valid() {
+		return
+	}
+	if s.DeliveryCoordinates != nil && math.Abs(s.DeliveryCoordinates.Lat-coords.Lat) < 1e-9 && math.Abs(s.DeliveryCoordinates.Long-coords.Long) < 1e-9 {
+		return
+	}
+	s.DeliveryCoordinates = &session.GeoCoordinates{Lat: coords.Lat, Long: coords.Long}
+	_ = saveSessionProvider(session.ProviderDelio, s)
+}
+
 // ResolveCoordinates uses explicit coordinates when given, otherwise attempts
-// to infer them from the current cart shippingAddress or default shipping address.
+// to infer them from the current cart shippingAddress or default shipping address,
+// and finally falls back to the last coordinates cached in the Delio session.
 func ResolveCoordinates(s *session.Session, explicit *Coordinates) (*Coordinates, error) {
 	if explicit != nil && explicit.valid() {
+		rememberCoordinates(s, explicit)
 		return explicit, nil
 	}
 	if payload, err := CurrentCart(s); err == nil {
-		if cart, err := ExtractCurrentCart(payload); err == nil {
-			if coords := coordinatesFromMap(mapField(cart, "shippingAddress")); coords != nil {
-				return coords, nil
-			}
+		if coords := ExtractCurrentCartCoordinates(payload); coords != nil {
+			rememberCoordinates(s, coords)
+			return coords, nil
 		}
 	}
 	if payload, err := CustomerShippingAddress(s); err == nil {
 		if addr, err := ExtractDefaultShippingAddress(payload); err == nil {
 			if coords := coordinatesFromMap(addr); coords != nil {
+				rememberCoordinates(s, coords)
 				return coords, nil
 			}
 		}
 	}
-	return nil, errors.New("missing Delio coordinates: pass --lat and --long or import a session with saved shipping address")
+	if coords := coordinatesFromSession(s); coords != nil {
+		return coords, nil
+	}
+	return nil, errors.New("missing Delio coordinates: pass --lat and --long, import a session with saved shipping address, or run a successful Delio lookup to cache them")
 }
 
 // SearchProducts performs Delio ProductSearch.

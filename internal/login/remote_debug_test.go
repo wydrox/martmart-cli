@@ -77,6 +77,16 @@ func TestOpenLoginPageViaRemoteDebugHTTP_RejectsAboutBlankTarget(t *testing.T) {
 	}
 }
 
+func TestDelioCoordinatesFromFetchResult(t *testing.T) {
+	coords := delioCoordinatesFromFetchResult(remoteDebugFetchResult{
+		Status: http.StatusOK,
+		Text:   `{"data":{"currentCart":{"shippingAddress":{"lat":52.2297,"long":21.0122}}}}`,
+	})
+	if coords == nil || coords.Lat != 52.2297 || coords.Long != 21.0122 {
+		t.Fatalf("coords=%#v", coords)
+	}
+}
+
 func TestRefreshFriscoAccessToken_UpdatesSessionFromTokenResponse(t *testing.T) {
 	newToken := makeJWTForTest(t, map[string]any{"user_id": "u-123"})
 

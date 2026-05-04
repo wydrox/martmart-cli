@@ -69,6 +69,10 @@ func ParseError(err error) (*ErrorDetails, bool) {
 	if err == nil {
 		return nil, false
 	}
+	var direct *ErrorDetails
+	if errors.As(err, &direct) && direct != nil && direct.Status != 0 {
+		return direct, true
+	}
 	var details ErrorDetails
 	if unmarshalErr := json.Unmarshal([]byte(err.Error()), &details); unmarshalErr != nil {
 		return nil, false
