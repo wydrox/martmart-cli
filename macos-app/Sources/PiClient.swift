@@ -49,7 +49,11 @@ struct PiClient: Sendable {
                         let process = Process()
                         box.process = process
                         process.executableURL = executableURL
-                        process.arguments = arguments
+                        if executableURL.path == "/usr/bin/env" {
+                            process.arguments = ["pi"] + arguments
+                        } else {
+                            process.arguments = arguments
+                        }
                         let output = Pipe()
                         let error = Pipe()
                         process.standardOutput = output
