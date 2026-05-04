@@ -95,6 +95,48 @@ func TestDelioPreviewNormalizesCheckoutState(t *testing.T) {
 	}
 }
 
+func TestDelioPreviewUsesShippingAddressWhenBillingMissing(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatalf("decode request: %v", err)
+		}
+		switch body["operationName"] {
+		case "CurrentCart":
+			_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"currentCart": map[string]any{
+				"id":                   "cart-delio-ship",
+				"lineItems":            []any{map[string]any{"id": "l1"}},
+				"deliveryScheduleSlot": map[string]any{"dateFrom": "2026-04-22T18:00:00+02:00", "dateTo": "2026-04-22T20:00:00+02:00"},
+			}}})
+		case "CustomerDefaultBillingAddress":
+			_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"customerDefaultBillingAddress": nil}})
+		case "CustomerShippingAddress":
+			_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"defaultShippingAddress": map[string]any{
+				"firstName": "Ada", "lastName": "Lovelace", "streetName": "Main", "streetNumber": "1", "postalCode": "00-001", "city": "Warsaw", "countryCode": "PL",
+			}}})
+		case "PaymentSettings":
+			_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"paymentSettings": map[string]any{"adyenClientKey": "test_key"}}})
+		default:
+			t.Fatalf("unexpected operation: %v", body["operationName"])
+		}
+	}))
+	defer server.Close()
+
+	preview, err := NewDelioClient().Preview(&session.Session{BaseURL: server.URL, UserID: "d-1", Headers: map[string]string{"Cookie": "authtoken=abc"}}, PreviewOptions{Provider: session.ProviderDelio})
+	if err != nil {
+		t.Fatalf("Preview: %v", err)
+	}
+	for _, issue := range preview.Issues {
+		if issue.Code == "missing_billing_address" {
+			t.Fatalf("did not expect missing_billing_address when default shipping address exists: %+v", preview.Issues)
+		}
+	}
+	if preview.Raw["billingAddressSource"] != "defaultShippingAddress" {
+		t.Fatalf("billingAddressSource = %v, want defaultShippingAddress", preview.Raw["billingAddressSource"])
+	}
+}
+
 func TestDelioFinalizeRedirectActionRequired(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

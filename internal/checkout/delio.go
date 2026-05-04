@@ -60,6 +60,18 @@ func (c *DelioClient) Preview(s *session.Session, opts PreviewOptions) (*Checkou
 			}
 		}
 	}
+	if !billingReady {
+		if shippingPayload, shipErr := delio.CustomerShippingAddress(s); shipErr == nil {
+			raw["defaultShippingAddress"] = shippingPayload
+			if extracted, extractErr := delio.ExtractDefaultShippingAddress(shippingPayload); extractErr == nil {
+				billingAddress = delioShippingAddressAsBillingFallback(extracted)
+				billingReady = len(billingAddress) > 0
+				if billingReady {
+					raw["billingAddressSource"] = "defaultShippingAddress"
+				}
+			}
+		}
+	}
 	if len(billingAddress) > 0 {
 		raw["effectiveBillingAddress"] = billingAddress
 	}
@@ -267,6 +279,21 @@ func delioDefaultBillingAddress(payload map[string]any) map[string]any {
 		return nested
 	}
 	return payload
+}
+
+func delioShippingAddressAsBillingFallback(payload map[string]any) map[string]any {
+	if payload == nil {
+		return nil
+	}
+	out := map[string]any{}
+	for _, key := range []string{
+		"firstName", "lastName", "streetName", "streetNumber", "postalCode", "city", "countryCode", "apartment", "email",
+	} {
+		if value := payload[key]; value != nil && strings.TrimSpace(fmt.Sprint(value)) != "" {
+			out[key] = value
+		}
+	}
+	return out
 }
 
 func delioReturnURL(s *session.Session) string {
