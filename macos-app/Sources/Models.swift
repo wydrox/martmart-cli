@@ -179,6 +179,8 @@ struct ShoppingAction: Identifiable, Codable, Hashable {
 struct PiResponse: Hashable {
     var text: String
     var actions: [ShoppingAction]
+    var productCards: [ProductCard] = []
+    var usedRealPi: Bool = false
 }
 
 struct ChatMessage: Identifiable, Hashable {

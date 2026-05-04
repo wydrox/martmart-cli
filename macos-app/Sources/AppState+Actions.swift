@@ -6,10 +6,17 @@ extension AppState {
         messages.append(ChatMessage(role: .user, text: text))
         isLoading = true
         let response = await pi.respond(to: text, provider: selectedProvider)
-        messages.append(ChatMessage(role: .assistant, text: response.text))
+        let piBadge = response.usedRealPi ? "pi: " : "fallback: "
+        messages.append(ChatMessage(role: .assistant, text: piBadge + response.text))
         pendingActions = response.actions.filter(\.requiresExplicitApproval)
 
-        if response.actions.contains(where: { $0.kind == .searchProducts }) {
+        if !response.productCards.isEmpty {
+            productCards = response.productCards.sorted { lhs, rhs in
+                let l = NSDecimalNumber(decimal: lhs.promoPrice?.amount ?? lhs.price.amount).doubleValue
+                let r = NSDecimalNumber(decimal: rhs.promoPrice?.amount ?? rhs.price.amount).doubleValue
+                return l < r
+            }
+        } else if response.actions.contains(where: { $0.kind == .searchProducts }) {
             productCards = []
         }
         let automatic = response.actions.filter { !$0.requiresExplicitApproval }
