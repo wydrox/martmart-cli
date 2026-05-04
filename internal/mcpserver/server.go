@@ -17,6 +17,7 @@ func New() *mcp.Server {
 	registerUpMenuTools(server)
 	registerCartAndProductsTools(server)
 	registerOrdersAndReservationTools(server)
+	registerCheckoutTools(server)
 	registerAccountSessionAuthTools(server)
 
 	return server

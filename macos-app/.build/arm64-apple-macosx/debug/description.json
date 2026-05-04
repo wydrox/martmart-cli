@@ -1,0 +1,1099 @@
+{
+  "builtTestProducts" : [
+    {
+      "binaryPath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.xctest/Contents/MacOS/MartMartShoppingChatPackageTests",
+      "packagePath" : "/Users/rafalw/dev/martmart-cli/macos-app",
+      "productName" : "MartMartShoppingChatPackageTests"
+    }
+  ],
+  "copyCommands" : {
+    "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat_MartMartShoppingChatTests.bundle/Fixtures" : {
+      "inputs" : [
+        {
+          "kind" : "directory",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Tests/Fixtures"
+        }
+      ],
+      "outputs" : [
+        {
+          "kind" : "directory",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat_MartMartShoppingChatTests.bundle/Fixtures"
+        }
+      ]
+    }
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.MartMartShoppingChat-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/sources",
+      "importPath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppLog.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppState+Actions.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppState.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CartErrorMapper.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CatalogStore.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CheckoutMapper.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/DesignSystem.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ImageCache.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/MartMartClient.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/MartMartShoppingChatApp.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/Models.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/OrderMapper.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/PiClient.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ProductSearchMapper.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ReservationSlotMapper.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/RootView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/SessionStatusMapper.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ShoppingAction+Commands.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/Views.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "MartMartShoppingChat",
+      "moduleOutputPath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/Modules/MartMartShoppingChat.swiftmodule",
+      "objects" : [
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppLog.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState+Actions.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CartErrorMapper.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CatalogStore.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CheckoutMapper.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/DesignSystem.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ImageCache.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartClient.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartShoppingChatApp.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Models.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/OrderMapper.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/PiClient.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ProductSearchMapper.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ReservationSlotMapper.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/RootView.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/SessionStatusMapper.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ShoppingAction+Commands.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Views.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "MartMartShoppingChat_main",
+        "-swift-version",
+        "6",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "macos_app"
+      ],
+      "outputFileMapPath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppLog.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState+Actions.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CartErrorMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CatalogStore.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CheckoutMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/DesignSystem.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ImageCache.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartClient.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartShoppingChatApp.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Models.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/OrderMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/PiClient.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ProductSearchMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ReservationSlotMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/RootView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/SessionStatusMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ShoppingAction+Commands.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Views.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/Modules/MartMartShoppingChat.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppLog.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppState+Actions.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppState.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CartErrorMapper.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CatalogStore.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CheckoutMapper.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/DesignSystem.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ImageCache.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/MartMartClient.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/MartMartShoppingChatApp.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/Models.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/OrderMapper.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/PiClient.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ProductSearchMapper.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ReservationSlotMapper.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/RootView.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/SessionStatusMapper.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ShoppingAction+Commands.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Sources/Views.swift"
+      ],
+      "tempsPath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.MartMartShoppingChatPackageTests-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/sources",
+      "importPath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.derived/runner.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/Modules/MartMartShoppingChatTests.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "MartMartShoppingChatPackageTests",
+      "moduleOutputPath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/Modules/MartMartShoppingChatPackageTests.swiftmodule",
+      "objects" : [
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/runner.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/include/MartMartShoppingChatPackageTests-Swift.h",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "macos_app"
+      ],
+      "outputFileMapPath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/runner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/Modules/MartMartShoppingChatPackageTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.derived/runner.swift"
+      ],
+      "tempsPath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.MartMartShoppingChatTests-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/sources",
+      "importPath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Tests/FixtureDecodingTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Tests/PiClientTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/DerivedSources/resource_bundle_accessor.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<MartMartShoppingChatTests-arm64-apple-macosx-debug.module-resources>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "MartMartShoppingChatTests",
+      "moduleOutputPath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/Modules/MartMartShoppingChatTests.swiftmodule",
+      "objects" : [
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/FixtureDecodingTests.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/PiClientTests.swift.o",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/resource_bundle_accessor.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE",
+        "-module-cache-path",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-swift-version",
+        "6",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "macos_app"
+      ],
+      "outputFileMapPath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/FixtureDecodingTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/PiClientTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/resource_bundle_accessor.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/Modules/MartMartShoppingChatTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/rafalw/dev/martmart-cli/macos-app/Tests/FixtureDecodingTests.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/Tests/PiClientTests.swift",
+        "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/DerivedSources/resource_bundle_accessor.swift"
+      ],
+      "tempsPath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "MartMartShoppingChat" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "MartMartShoppingChat",
+      "-package-name",
+      "macos_app",
+      "-c",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppLog.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppState+Actions.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppState.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CartErrorMapper.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CatalogStore.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CheckoutMapper.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/DesignSystem.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ImageCache.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/MartMartClient.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/MartMartShoppingChatApp.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/Models.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/OrderMapper.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/PiClient.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ProductSearchMapper.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ReservationSlotMapper.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/RootView.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/SessionStatusMapper.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ShoppingAction+Commands.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Sources/Views.swift",
+      "-I",
+      "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "MartMartShoppingChat_main",
+      "-swift-version",
+      "6",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "macos_app",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "MartMartShoppingChatPackageTests" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "MartMartShoppingChatPackageTests",
+      "-package-name",
+      "macos_app",
+      "-c",
+      "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.derived/runner.swift",
+      "-I",
+      "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/include/MartMartShoppingChatPackageTests-Swift.h",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "macos_app",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "MartMartShoppingChatTests" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "MartMartShoppingChatTests",
+      "-package-name",
+      "macos_app",
+      "-c",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Tests/FixtureDecodingTests.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/Tests/PiClientTests.swift",
+      "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/DerivedSources/resource_bundle_accessor.swift",
+      "-I",
+      "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE",
+      "-module-cache-path",
+      "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-swift-version",
+      "6",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "macos_app",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "MartMartShoppingChat" : [
+
+    ],
+    "MartMartShoppingChatPackageTests" : [
+      "MartMartShoppingChatTests",
+      "MartMartShoppingChat"
+    ],
+    "MartMartShoppingChatTests" : [
+      "MartMartShoppingChat"
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+    "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.derived/runner.swift" : {
+      "inputs" : [
+
+      ],
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.derived/runner.swift"
+        }
+      ]
+    }
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat-entitlement.plist" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<entitlement-plist>"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<com.apple.security.get-task-allow>"
+        }
+      ],
+      "outputFilePath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat-entitlement.plist"
+    },
+    "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppLog.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppState+Actions.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppState.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CartErrorMapper.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CatalogStore.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CheckoutMapper.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/DesignSystem.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ImageCache.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/MartMartClient.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/MartMartShoppingChatApp.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/Models.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/OrderMapper.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/PiClient.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ProductSearchMapper.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ReservationSlotMapper.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/RootView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/SessionStatusMapper.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ShoppingAction+Commands.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Sources/Views.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/sources"
+    },
+    "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppLog.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState+Actions.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CartErrorMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CatalogStore.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CheckoutMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/DesignSystem.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ImageCache.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartClient.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartShoppingChatApp.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Models.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/OrderMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/PiClient.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ProductSearchMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ReservationSlotMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/RootView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/SessionStatusMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ShoppingAction+Commands.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Views.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.product/Objects.LinkFileList"
+    },
+    "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.derived/runner.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/sources"
+    },
+    "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppLog.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState+Actions.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CartErrorMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CatalogStore.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CheckoutMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/DesignSystem.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ImageCache.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartClient.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartShoppingChatApp.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Models.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/OrderMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/PiClient.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ProductSearchMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ReservationSlotMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/RootView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/SessionStatusMapper.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ShoppingAction+Commands.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Views.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/runner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/FixtureDecodingTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/PiClientTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/resource_bundle_accessor.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.product/Objects.LinkFileList"
+    },
+    "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Tests/FixtureDecodingTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/Tests/PiClientTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/DerivedSources/resource_bundle_accessor.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatTests.build/sources"
+    },
+    "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}

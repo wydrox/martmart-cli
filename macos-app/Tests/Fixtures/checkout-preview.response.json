@@ -1,0 +1,13 @@
+{
+  "preview": {
+    "provider": "frisco",
+    "user_id": "646456",
+    "cart_id": "cart-1",
+    "item_count": 6,
+    "total": { "amount": 33.93, "currency": "PLN" },
+    "reservation": { "starts_at": "2026-05-05T10:00:00+02:00", "ends_at": "2026-05-05T12:00:00+02:00", "delivery_method": "Van" },
+    "payment": { "method": "CARD", "channel": "Adyen", "status": "ready" },
+    "ready_to_finalize": true,
+    "issues": []
+  }
+}

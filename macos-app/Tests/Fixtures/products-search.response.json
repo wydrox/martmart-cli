@@ -1,0 +1,31 @@
+{
+  "products": [
+    {
+      "id": "154030",
+      "provider": "frisco",
+      "sku": "154030",
+      "name": "Coca-Cola Zero 330 ml",
+      "brand": "COCA-COLA",
+      "image_url": "https://res.cloudinary.com/example/coke-zero.png",
+      "price": { "amount": 4.59, "currency": "PLN" },
+      "promo_price": { "amount": 3.49, "currency": "PLN", "condition": "buy 6" },
+      "deposit": { "amount": 0.5, "currency": "PLN" },
+      "measure": { "value": 330, "unit": "ml", "display": "330 ml" },
+      "available": true,
+      "available_quantity": 3761
+    },
+    {
+      "id": "A0021543",
+      "provider": "delio",
+      "sku": "A0021543",
+      "name": "Napój gazowany Coca Cola Zero",
+      "brand": "COCA-COLA",
+      "image_url": "https://images.prod.lait.app/example/coke-zero.png",
+      "price": { "amount": 4.29, "currency": "PLN" },
+      "deposit": { "amount": 0.5, "currency": "PLN" },
+      "measure": { "value": 330, "unit": "ml", "display": "330 ml" },
+      "available": true,
+      "available_quantity": 640
+    }
+  ]
+}

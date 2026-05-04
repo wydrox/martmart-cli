@@ -1,0 +1,23 @@
+{
+  "provider": "frisco",
+  "cart_id": "cart-1",
+  "items": [
+    {
+      "product": { "id": "154030", "provider": "frisco", "name": "Coca-Cola Zero 330 ml", "image_url": "https://res.cloudinary.com/example/coke-zero.png" },
+      "quantity": 6,
+      "unit_price": { "amount": 4.59, "currency": "PLN" },
+      "promo_unit_price": { "amount": 3.49, "currency": "PLN" },
+      "line_total": { "amount": 20.94, "currency": "PLN" },
+      "deposit_total": { "amount": 3.0, "currency": "PLN" },
+      "available": true,
+      "warnings": []
+    }
+  ],
+  "totals": {
+    "items": { "amount": 20.94, "currency": "PLN" },
+    "delivery": { "amount": 9.99, "currency": "PLN" },
+    "deposits": { "amount": 3.0, "currency": "PLN" },
+    "grand": { "amount": 33.93, "currency": "PLN" }
+  },
+  "warnings": []
+}

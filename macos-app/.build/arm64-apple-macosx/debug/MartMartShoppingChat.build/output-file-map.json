@@ -1,0 +1,138 @@
+{
+  "": {
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/primary.swiftdeps"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppLog.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppLog.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppLog.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppLog~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppLog.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppLog.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppState+Actions.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState+Actions.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState+Actions.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState+Actions~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState+Actions.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState+Actions.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/AppState.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/AppState.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CartErrorMapper.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CartErrorMapper.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CartErrorMapper.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CartErrorMapper~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CartErrorMapper.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CartErrorMapper.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CatalogStore.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CatalogStore.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CatalogStore.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CatalogStore~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CatalogStore.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CatalogStore.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/CheckoutMapper.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CheckoutMapper.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CheckoutMapper.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CheckoutMapper~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CheckoutMapper.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/CheckoutMapper.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/DesignSystem.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/DesignSystem.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/DesignSystem.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/DesignSystem~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/DesignSystem.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/DesignSystem.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ImageCache.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ImageCache.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ImageCache.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ImageCache~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ImageCache.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ImageCache.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/MartMartClient.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartClient.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartClient.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartClient~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartClient.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartClient.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/MartMartShoppingChatApp.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartShoppingChatApp.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartShoppingChatApp.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartShoppingChatApp~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartShoppingChatApp.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/MartMartShoppingChatApp.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/Models.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Models.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Models.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Models~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Models.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Models.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/OrderMapper.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/OrderMapper.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/OrderMapper.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/OrderMapper~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/OrderMapper.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/OrderMapper.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/PiClient.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/PiClient.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/PiClient.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/PiClient~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/PiClient.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/PiClient.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ProductSearchMapper.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ProductSearchMapper.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ProductSearchMapper.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ProductSearchMapper~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ProductSearchMapper.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ProductSearchMapper.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ReservationSlotMapper.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ReservationSlotMapper.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ReservationSlotMapper.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ReservationSlotMapper~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ReservationSlotMapper.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ReservationSlotMapper.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/RootView.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/RootView.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/RootView.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/RootView~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/RootView.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/RootView.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/SessionStatusMapper.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/SessionStatusMapper.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/SessionStatusMapper.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/SessionStatusMapper~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/SessionStatusMapper.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/SessionStatusMapper.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/ShoppingAction+Commands.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ShoppingAction+Commands.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ShoppingAction+Commands.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ShoppingAction+Commands~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ShoppingAction+Commands.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/ShoppingAction+Commands.dia"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/Sources/Views.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Views.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Views.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Views~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Views.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChat.build/Views.dia"
+  }
+}

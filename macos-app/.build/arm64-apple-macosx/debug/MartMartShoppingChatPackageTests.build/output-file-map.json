@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/primary.swiftdeps"
+  },
+  "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.derived/runner.swift": {
+    "dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/runner.d",
+    "object": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/runner.swift.o",
+    "swiftmodule": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/runner~partial.swiftmodule",
+    "swift-dependencies": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/runner.swiftdeps",
+    "diagnostics": "/Users/rafalw/dev/martmart-cli/macos-app/.build/arm64-apple-macosx/debug/MartMartShoppingChatPackageTests.build/runner.dia"
+  }
+}
