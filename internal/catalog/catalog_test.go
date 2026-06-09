@@ -382,6 +382,48 @@ func TestQueryNormBuildersAndTTL(t *testing.T) {
 	}
 }
 
+func TestNormalizeFriscoOrderUsesOrderSource(t *testing.T) {
+	seenAt := time.Date(2026, 6, 9, 12, 0, 0, 0, time.UTC)
+	records, err := normalizeBySource("frisco", SourceOrder, map[string]any{
+		"products": []any{map[string]any{
+			"productId": "p-order-1",
+			"product": map[string]any{
+				"name":  "Order Milk",
+				"price": map[string]any{"value": 7.99},
+			},
+		}},
+	}, seenAt)
+	if err != nil {
+		t.Fatalf("normalizeBySource order: %v", err)
+	}
+	if len(records) != 1 || records[0].Source != SourceOrder || records[0].ExternalID != "p-order-1" {
+		t.Fatalf("unexpected order records: %#v", records)
+	}
+}
+
+func TestNormalizeDelioCartAcceptsUpdateCartPayload(t *testing.T) {
+	seenAt := time.Date(2026, 6, 9, 12, 0, 0, 0, time.UTC)
+	records, err := NormalizeDelioCart(map[string]any{
+		"data": map[string]any{"updateCart": map[string]any{
+			"lineItems": []any{map[string]any{
+				"quantity":   float64(1),
+				"totalPrice": map[string]any{"centAmount": float64(599), "currencyCode": "PLN"},
+				"product": map[string]any{
+					"sku":   "sku-update-1",
+					"name":  "Updated Yogurt",
+					"price": map[string]any{"value": map[string]any{"centAmount": float64(599), "currencyCode": "PLN"}},
+				},
+			}},
+		}},
+	}, seenAt)
+	if err != nil {
+		t.Fatalf("NormalizeDelioCart updateCart: %v", err)
+	}
+	if len(records) != 1 || records[0].ExternalID != "sku-update-1" || records[0].Source != SourceCart {
+		t.Fatalf("unexpected updateCart records: %#v", records)
+	}
+}
+
 func openTestDB(t *testing.T) *DB {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "catalog.db")

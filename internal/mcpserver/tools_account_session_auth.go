@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/wydrox/martmart-cli/internal/delio"
 	"github.com/wydrox/martmart-cli/internal/httpclient"
 	"github.com/wydrox/martmart-cli/internal/login"
 	"github.com/wydrox/martmart-cli/internal/session"
@@ -737,13 +739,18 @@ func sessionStatusEntry(provider string, s *session.Session, sourcePath string) 
 	if cookieSaved {
 		authMechanisms = append(authMechanisms, "cookie")
 	}
-	return map[string]any{
+	authenticated := session.IsAuthenticated(s)
+	apiHealthChecked, apiHealthy, apiAuthFailure, apiHealthError := sessionStatusAPIHealth(provider, s, sourcePath)
+	if apiAuthFailure {
+		authenticated = false
+	}
+	entry := map[string]any{
 		"provider":               provider,
 		"base_url":               s.BaseURL,
 		"default_base_url":       session.DefaultBaseURLForProvider(provider),
 		"session_file":           sourcePath,
 		"session_saved":          sourcePath != "",
-		"authenticated":          session.IsAuthenticated(s),
+		"authenticated":          authenticated,
 		"user_id":                session.UserIDString(s),
 		"token_saved":            tokenSaved,
 		"authorization_saved":    authorizationSaved,
@@ -751,8 +758,59 @@ func sessionStatusEntry(provider string, s *session.Session, sourcePath string) 
 		"cookie_saved":           cookieSaved,
 		"header_keys":            mcpASAHeaderKeysSorted(s.Headers),
 		"auth_mechanisms":        authMechanisms,
-		"interactive_login_hint": provider != session.ProviderUpMenu && !session.IsAuthenticated(s),
+		"interactive_login_hint": provider != session.ProviderUpMenu && !authenticated,
+		"api_health_checked":     apiHealthChecked,
 	}
+	if apiHealthChecked {
+		entry["api_healthy"] = apiHealthy
+		if apiHealthError != "" {
+			entry["api_health_error"] = apiHealthError
+		}
+	}
+	return entry
+}
+
+func sessionStatusAPIHealth(provider string, s *session.Session, sourcePath string) (checked, healthy, authFailure bool, errSummary string) {
+	provider = session.NormalizeProvider(provider)
+	if sourcePath == "" || !session.IsAuthenticated(s) {
+		return false, false, false, ""
+	}
+	switch provider {
+	case session.ProviderFrisco:
+		uid, err := session.RequireUserID(s, "")
+		if err != nil {
+			return true, false, false, err.Error()
+		}
+		_, err = httpclient.RequestJSON(s, "GET", fmt.Sprintf("/app/commerce/api/v1/users/%s/cart", uid), httpclient.RequestOpts{})
+		return summarizeSessionHealthError(err)
+	case session.ProviderDelio:
+		payload, err := delio.CurrentCart(s)
+		if err == nil {
+			_, err = delio.ExtractCurrentCart(payload)
+		}
+		return summarizeSessionHealthError(err)
+	default:
+		return false, false, false, ""
+	}
+}
+
+func summarizeSessionHealthError(err error) (checked, healthy, authFailure bool, errSummary string) {
+	if err == nil {
+		return true, true, false, ""
+	}
+	if details, ok := httpclient.ParseError(err); ok {
+		errSummary = fmt.Sprintf("%d %s", details.Status, strings.TrimSpace(details.Reason))
+		if details.Status == http.StatusUnauthorized || details.Status == http.StatusForbidden {
+			return true, false, true, errSummary
+		}
+		return true, false, false, errSummary
+	}
+	msg := strings.TrimSpace(err.Error())
+	lower := strings.ToLower(msg)
+	if strings.Contains(lower, "unauthorized") || strings.Contains(lower, "unauthenticated") || strings.Contains(lower, "invalid_grant") {
+		return true, false, true, msg
+	}
+	return true, false, false, msg
 }
 
 // sessionFromCurlIn is the input type for the session_from_curl tool.

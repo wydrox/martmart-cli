@@ -1,6 +1,8 @@
 package mcpserver
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -306,8 +308,12 @@ func TestMCPResolveProvider_Invalid(t *testing.T) {
 }
 
 func TestSessionStatusEntry(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"id":"123"}`))
+	}))
+	defer server.Close()
 	s := &session.Session{
-		BaseURL:      session.DefaultBaseURL,
+		BaseURL:      server.URL,
 		Headers:      map[string]string{"Authorization": "Bearer abc", "Cookie": "a=b"},
 		Token:        "abc",
 		UserID:       "123",
@@ -333,6 +339,29 @@ func TestSessionStatusEntry(t *testing.T) {
 	headerKeys, ok := got["header_keys"].([]string)
 	if !ok || len(headerKeys) != 2 {
 		t.Fatalf("expected 2 header keys, got %T %v", got["header_keys"], got["header_keys"])
+	}
+}
+
+func TestSessionStatusEntryMarksFrisco401Unauthenticated(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	}))
+	defer server.Close()
+
+	s := &session.Session{
+		BaseURL: server.URL,
+		Headers: map[string]string{
+			"Authorization": "Bearer stale",
+		},
+		Token:  "stale",
+		UserID: "123",
+	}
+	got := sessionStatusEntry(session.ProviderFrisco, s, "/tmp/frisco-session.json")
+	if got["authenticated"] != false {
+		t.Fatalf("expected stale 401 session to be unauthenticated, got %#v", got)
+	}
+	if got["api_health_checked"] != true || got["api_healthy"] != false {
+		t.Fatalf("expected failed api health check, got %#v", got)
 	}
 }
 

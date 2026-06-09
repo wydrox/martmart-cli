@@ -1,6 +1,7 @@
 package catalog
 
 import (
+	"errors"
 	"time"
 
 	"github.com/wydrox/martmart-cli/internal/delio"
@@ -38,7 +39,11 @@ func NormalizeDelioGet(payload any, seenAt time.Time) ([]ProductRecord, error) {
 }
 
 func NormalizeDelioCart(payload any, seenAt time.Time) ([]ProductRecord, error) {
-	cart, err := delio.ExtractCurrentCart(payload)
+	return normalizeDelioCartLike(payload, SourceCart, seenAt)
+}
+
+func normalizeDelioCartLike(payload any, source string, seenAt time.Time) ([]ProductRecord, error) {
+	cart, err := delioCartLikeFromPayload(payload)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +53,7 @@ func NormalizeDelioCart(payload any, seenAt time.Time) ([]ProductRecord, error) 
 	for _, item := range items {
 		line := asMap(item)
 		product := asMap(line["product"])
-		rec, ok := delioRecordFromProduct(product, SourceCart, seenAt, line)
+		rec, ok := delioRecordFromProduct(product, source, seenAt, line)
 		if !ok {
 			continue
 		}
@@ -58,6 +63,19 @@ func NormalizeDelioCart(payload any, seenAt time.Time) ([]ProductRecord, error) 
 		out = append(out, rec)
 	}
 	return out, nil
+}
+
+func delioCartLikeFromPayload(payload any) (map[string]any, error) {
+	root := asMap(payload)
+	data := asMap(root["data"])
+	for _, container := range []map[string]any{data, root} {
+		for _, key := range []string{"currentCart", "updateCart", "order"} {
+			if cart := asMap(container[key]); len(cart) > 0 {
+				return cart, nil
+			}
+		}
+	}
+	return nil, errors.New("missing Delio cart-like object in response")
 }
 
 func delioRecordFromProduct(product map[string]any, source string, seenAt time.Time, raw any) (ProductRecord, bool) {

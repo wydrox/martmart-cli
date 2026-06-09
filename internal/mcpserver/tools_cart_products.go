@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -62,7 +63,24 @@ var (
 	mcpDelioExtractUpdatedCartFn = delio.ExtractUpdatedCart
 	mcpDelioSearchProductsFn     = delio.SearchProducts
 	mcpDelioGetProductFn         = delio.GetProduct
+
+	cartMutationLocksMu sync.Mutex
+	cartMutationLocks   = map[string]*sync.Mutex{}
 )
+
+func lockCartMutation(provider, userID string) func() {
+	key := session.NormalizeProvider(provider) + ":" + strings.TrimSpace(userID)
+	cartMutationLocksMu.Lock()
+	lock := cartMutationLocks[key]
+	if lock == nil {
+		lock = &sync.Mutex{}
+		cartMutationLocks[key] = lock
+	}
+	cartMutationLocksMu.Unlock()
+
+	lock.Lock()
+	return lock.Unlock
+}
 
 // registerCartAndProductsTools registers all cart and product MCP tools.
 func registerCartAndProductsTools(server *mcp.Server) {
@@ -113,6 +131,7 @@ func mcpCPCartShow(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartShowIn
 		if err != nil {
 			return nil, mcpCPFriscoToolOut{}, err
 		}
+		mcpIngestCartBestEffort(provider, result)
 		return mcpCPWrapFriscoResult(result)
 	}
 	uid, err := session.RequireUserID(s, in.UserID)
@@ -124,6 +143,7 @@ func mcpCPCartShow(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartShowIn
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
+	mcpIngestCartBestEffort(provider, result)
 	return mcpCPWrapFriscoResult(result)
 }
 
@@ -151,16 +171,21 @@ func mcpCPCartAdd(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartAddIn) 
 		return nil, mcpCPFriscoToolOut{}, errors.New("quantity must be >= 0")
 	}
 	if provider == session.ProviderDelio {
+		unlock := lockCartMutation(provider, session.UserIDString(s))
+		defer unlock()
 		result, err := mcpDelioSetCartQuantity(s, in.ProductID, qty)
 		if err != nil {
 			return nil, mcpCPFriscoToolOut{}, err
 		}
+		mcpIngestCartBestEffort(provider, result)
 		return mcpCPWrapFriscoResult(result)
 	}
 	uid, err := session.RequireUserID(s, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
+	unlock := lockCartMutation(provider, uid)
+	defer unlock()
 	path := fmt.Sprintf("/app/commerce/api/v1/users/%s/cart", uid)
 	body := map[string]any{
 		"products": []any{
@@ -174,6 +199,7 @@ func mcpCPCartAdd(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartAddIn) 
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
+	mcpIngestCartBestEffort(provider, result)
 	return mcpCPWrapFriscoResult(result)
 }
 
@@ -193,16 +219,21 @@ func mcpCPCartRemove(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartRemo
 		return nil, mcpCPFriscoToolOut{}, err
 	}
 	if provider == session.ProviderDelio {
+		unlock := lockCartMutation(provider, session.UserIDString(s))
+		defer unlock()
 		result, err := mcpDelioSetCartQuantity(s, in.ProductID, 0)
 		if err != nil {
 			return nil, mcpCPFriscoToolOut{}, err
 		}
+		mcpIngestCartBestEffort(provider, result)
 		return mcpCPWrapFriscoResult(result)
 	}
 	uid, err := session.RequireUserID(s, in.UserID)
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
+	unlock := lockCartMutation(provider, uid)
+	defer unlock()
 	path := fmt.Sprintf("/app/commerce/api/v1/users/%s/cart", uid)
 	body := map[string]any{
 		"products": []any{
@@ -216,6 +247,7 @@ func mcpCPCartRemove(_ context.Context, _ *mcp.CallToolRequest, in mcpCPCartRemo
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
+	mcpIngestCartBestEffort(provider, result)
 	return mcpCPWrapFriscoResult(result)
 }
 
@@ -257,6 +289,7 @@ func mcpCPProductsSearch(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProd
 		if err != nil {
 			return nil, mcpCPFriscoToolOut{}, err
 		}
+		mcpIngestSearchBestEffort(provider, in.Search, result)
 		return mcpCPWrapFriscoResult(result)
 	}
 	uid, err := session.RequireUserID(s, in.UserID)
@@ -285,6 +318,7 @@ func mcpCPProductsSearch(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProd
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
+	mcpIngestSearchBestEffort(provider, in.Search, result)
 	return mcpCPWrapFriscoResult(result)
 }
 
@@ -314,6 +348,7 @@ func mcpCPProductsByIDs(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProdu
 			if err != nil {
 				return nil, mcpCPFriscoToolOut{}, err
 			}
+			mcpIngestGetBestEffort(provider, payload)
 			product, err := delio.ExtractProduct(payload)
 			if err != nil {
 				return nil, mcpCPFriscoToolOut{}, err
@@ -339,6 +374,7 @@ func mcpCPProductsByIDs(_ context.Context, _ *mcp.CallToolRequest, in mcpCPProdu
 	if err != nil {
 		return nil, mcpCPFriscoToolOut{}, err
 	}
+	mcpIngestGetBestEffort(provider, result)
 	return mcpCPWrapFriscoResult(result)
 }
 

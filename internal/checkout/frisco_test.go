@@ -14,7 +14,7 @@ import (
 func TestFriscoPreview(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		if r.URL.Path != "/app/commerce/api/v1/users/u1/express-checkout/cart" {
+		if r.URL.Path != "/app/commerce/api/v1/users/u1/cart" {
 			t.Fatalf("unexpected path: %s", r.URL.Path)
 		}
 		if r.Method != http.MethodGet {
@@ -79,7 +79,7 @@ func TestFriscoFinalizeGuardMismatch(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		switch r.URL.Path {
-		case "/app/commerce/api/v1/users/u1/express-checkout/cart":
+		case "/app/commerce/api/v1/users/u1/cart":
 			_ = json.NewEncoder(w).Encode(map[string]any{
 				"cartId":      "cart-1",
 				"items":       []any{map[string]any{"id": "a"}},
@@ -87,7 +87,7 @@ func TestFriscoFinalizeGuardMismatch(t *testing.T) {
 				"reservation": map[string]any{"startsAt": "2026-04-22T06:00:00Z", "endsAt": "2026-04-22T07:00:00Z"},
 				"payment":     map[string]any{"method": "CARD"},
 			})
-		case "/app/commerce/api/v1/users/u1/express-checkout/cart/order":
+		case "/app/commerce/api/v1/users/u1/cart/order":
 			postCalled = true
 			t.Fatal("finalize POST should not be called on guard mismatch")
 		default:
@@ -115,7 +115,7 @@ func TestFriscoFinalizeActionRequired(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		calls = append(calls, r.Method+" "+r.URL.Path)
 		switch r.URL.Path {
-		case "/app/commerce/api/v1/users/u1/express-checkout/cart":
+		case "/app/commerce/api/v1/users/u1/cart":
 			_ = json.NewEncoder(w).Encode(map[string]any{
 				"cartId":      "cart-1",
 				"items":       []any{map[string]any{"id": "a"}},
@@ -123,7 +123,7 @@ func TestFriscoFinalizeActionRequired(t *testing.T) {
 				"reservation": map[string]any{"startsAt": "2026-04-22T06:00:00Z", "endsAt": "2026-04-22T07:00:00Z"},
 				"payment":     map[string]any{"method": "CARD"},
 			})
-		case "/app/commerce/api/v1/users/u1/express-checkout/cart/order":
+		case "/app/commerce/api/v1/users/u1/cart/order":
 			_ = json.NewEncoder(w).Encode(map[string]any{
 				"orderId": "ord-1",
 				"status":  "RedirectRequired",
@@ -162,7 +162,7 @@ func TestFriscoFinalizeSuccessReadback(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		calls = append(calls, r.Method+" "+r.URL.Path)
 		switch r.URL.Path {
-		case "/app/commerce/api/v1/users/u1/express-checkout/cart":
+		case "/app/commerce/api/v1/users/u1/cart":
 			_ = json.NewEncoder(w).Encode(map[string]any{
 				"cartId":      "cart-1",
 				"items":       []any{map[string]any{"id": "a"}},
@@ -170,7 +170,7 @@ func TestFriscoFinalizeSuccessReadback(t *testing.T) {
 				"reservation": map[string]any{"startsAt": "2026-04-22T06:00:00Z", "endsAt": "2026-04-22T07:00:00Z"},
 				"payment":     map[string]any{"method": "CARD", "status": "Ready"},
 			})
-		case "/app/commerce/api/v1/users/u1/express-checkout/cart/order":
+		case "/app/commerce/api/v1/users/u1/cart/order":
 			_ = json.NewEncoder(w).Encode(map[string]any{"orderId": "ord-123", "status": "Placed"})
 		case "/app/commerce/api/v1/users/u1/orders/ord-123":
 			_ = json.NewEncoder(w).Encode(map[string]any{"id": "ord-123", "status": "Placed", "total": 10.00})

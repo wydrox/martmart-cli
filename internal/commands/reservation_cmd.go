@@ -254,6 +254,53 @@ func extractReservableWindows(data any) []map[string]any {
 	return out
 }
 
+// filterOpenReservableWindows removes stale reservable windows from non-raw output
+// and from reserve selection. Frisco may return windows that have already started
+// or whose reservation cutoff (closesAt/finalAt) has passed; trying to reserve those
+// fails with ReservationCannotReserve.
+func filterOpenReservableWindows(windows []map[string]any, now time.Time) []map[string]any {
+	if now.IsZero() {
+		now = time.Now()
+	}
+	out := make([]map[string]any, 0, len(windows))
+	for _, w := range windows {
+		if start, ok := parseReservationTime(w["startsAt"]); ok && !start.After(now) {
+			continue
+		}
+		if cutoff, ok := reservationCutoff(w); ok && !cutoff.After(now) {
+			continue
+		}
+		out = append(out, w)
+	}
+	return out
+}
+
+func reservationCutoff(window map[string]any) (time.Time, bool) {
+	var cutoff time.Time
+	for _, key := range []string{"closesAt", "finalAt"} {
+		candidate, ok := parseReservationTime(window[key])
+		if !ok {
+			continue
+		}
+		if cutoff.IsZero() || candidate.Before(cutoff) {
+			cutoff = candidate
+		}
+	}
+	return cutoff, !cutoff.IsZero()
+}
+
+func parseReservationTime(v any) (time.Time, bool) {
+	s, ok := nonEmptyStr(v)
+	if !ok {
+		return time.Time{}, false
+	}
+	parsed, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		return time.Time{}, false
+	}
+	return parsed, true
+}
+
 // dateAndHHMMFromISO splits an ISO 8601 timestamp into a date part (YYYY-MM-DD)
 // and an HH:MM time part.
 func dateAndHHMMFromISO(ts string) (datePart, hhmm string) {
@@ -335,6 +382,7 @@ func newReservationSlotsCmd() *cobra.Command {
 			}
 			allDays := map[string]any{}
 			var pretty []map[string]any
+			now := time.Now()
 			for i := 0; i < days; i++ {
 				d := baseDate.AddDate(0, 0, i)
 				path := fmt.Sprintf("/app/commerce/api/v2/users/%s/calendar/Van/%d/%d/%d",
@@ -350,7 +398,7 @@ func newReservationSlotsCmd() *cobra.Command {
 				allDays[dayKey] = dayData
 				pretty = append(pretty, map[string]any{
 					"date":  dayKey,
-					"slots": extractDeliveryWindows(dayData),
+					"slots": filterOpenReservableWindows(extractReservableWindows(dayData), now),
 				})
 			}
 			if rawOut {
@@ -418,7 +466,7 @@ func newReservationReserveCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			windows := extractReservableWindows(dayData)
+			windows := filterOpenReservableWindows(extractReservableWindows(dayData), time.Now())
 			if len(windows) == 0 {
 				return errors.New("no reservable slots for given date")
 			}

@@ -108,7 +108,8 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 		return nil, err
 	}
 	loginDebugf(opts, "remote debugging endpoint ready: %s", debugBase)
-	if err := openLoginPageOnRemoteDebugBrowser(ctx, version.WebSocketDebuggerURL, loginURL); err != nil {
+	openedTargetID, err := openLoginPageOnRemoteDebugBrowser(ctx, version.WebSocketDebuggerURL, loginURL)
+	if err != nil {
 		if opts.keepBrowserOnFailureEnabled() {
 			shouldCleanup = false
 		}
@@ -153,6 +154,9 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 					result.BrowserUserDataDir = profile.UserDataDir
 				}
 				keepLoginPageOpenBriefly(opts, openedAt)
+				if saveErr == nil {
+					closeRemoteDebugTargetBestEffort(ctx, version.WebSocketDebuggerURL, openedTargetID)
+				}
 				return result, saveErr
 			}
 			if err != nil {
@@ -174,6 +178,9 @@ func runWithExistingBrowser(ctx context.Context, opts Options) (*Result, error) 
 					result.BrowserUserDataDir = profile.UserDataDir
 				}
 				keepLoginPageOpenBriefly(opts, openedAt)
+				if saveErr == nil {
+					closeRemoteDebugTargetBestEffort(ctx, version.WebSocketDebuggerURL, openedTargetID)
+				}
 				return result, saveErr
 			}
 			if err != nil {
@@ -457,8 +464,6 @@ func launchBrowserWithRemoteDebug(profile *browserProfile, opts Options) (string
 		"--profile-directory=" + profile.ProfileDirectory,
 		"--no-first-run",
 		"--no-default-browser-check",
-		"--new-window",
-		"about:blank",
 	}
 	loginDebugf(opts, "launching browser executable=%s remote_debug_port=%s snapshot_user_data=%s profile=%s", profile.ExecPath, remoteDebugPort, profile.SnapshotUserData, profile.ProfileDirectory)
 	cmd := exec.Command(profile.ExecPath, args...)
@@ -479,6 +484,27 @@ func launchBrowserWithRemoteDebug(profile *browserProfile, opts Options) (string
 		}
 	}
 	return debugBase, cleanup, nil
+}
+
+func launchTemporaryRemoteDebugBrowser(ctx context.Context, opts Options) (string, *remoteDebugBrowserInfo, func(), func(), error) {
+	profile, err := detectPreferredBrowserProfile(opts)
+	if err != nil {
+		return "", nil, nil, nil, err
+	}
+	browserProfile, cleanupProfile, err := prepareActiveBrowserSnapshot(profile)
+	if err != nil {
+		return "", nil, nil, nil, err
+	}
+	debugBase, cleanupBrowser, err := launchBrowserWithRemoteDebug(browserProfile, opts)
+	if err != nil {
+		cleanupProfile()
+		return "", nil, nil, nil, err
+	}
+	return debugBase, &remoteDebugBrowserInfo{
+		BrowserApp:         profile.AppName,
+		BrowserUserDataDir: profile.UserDataDir,
+		ProfileDirectory:   profile.ProfileDirectory,
+	}, cleanupProfile, cleanupBrowser, nil
 }
 
 func ensurePreferredBrowserRemoteDebugOn9222(ctx context.Context, opts Options) (string, *remoteDebugBrowserInfo, error) {
@@ -621,8 +647,6 @@ func launchBrowserOnRemoteDebugPort(profile *activeBrowserProfile, port string, 
 		"--profile-directory="+profile.ProfileDirectory,
 		"--no-first-run",
 		"--no-default-browser-check",
-		"--new-window",
-		"about:blank",
 	)
 	loginDebugf(opts, "launching %s via open with remote_debug_port=%s user_data_dir=%s profile=%s", profile.AppName, strings.TrimSpace(port), profile.UserDataDir, profile.ProfileDirectory)
 	if out, err := exec.Command("open", args...).CombinedOutput(); err != nil {

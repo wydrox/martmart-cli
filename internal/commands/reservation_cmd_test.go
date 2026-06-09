@@ -2,6 +2,7 @@ package commands
 
 import (
 	"testing"
+	"time"
 )
 
 func TestTruthy(t *testing.T) {
@@ -95,5 +96,39 @@ func TestExtractReservableWindows(t *testing.T) {
 	got := extractReservableWindows(data)
 	if len(got) != 1 {
 		t.Fatalf("expected 1 reservable window, got %d", len(got))
+	}
+}
+
+func TestFilterOpenReservableWindows(t *testing.T) {
+	now := time.Date(2026, 6, 9, 11, 49, 0, 0, time.FixedZone("CEST", 2*60*60))
+	windows := []map[string]any{
+		{
+			"startsAt":       "2026-06-09T10:30:00+02:00",
+			"endsAt":         "2026-06-09T11:30:00+02:00",
+			"deliveryMethod": "Van",
+			"warehouse":      "WAW",
+			"closesAt":       "2026-06-08T21:00:00+02:00",
+		},
+		{
+			"startsAt":       "2026-06-09T15:00:00+02:00",
+			"endsAt":         "2026-06-09T16:00:00+02:00",
+			"deliveryMethod": "Van",
+			"warehouse":      "WAW",
+			"closesAt":       "2026-06-09T12:30:00+02:00",
+		},
+		{
+			"startsAt":       "2026-06-10T06:00:00+02:00",
+			"endsAt":         "2026-06-10T07:00:00+02:00",
+			"deliveryMethod": "Van",
+			"warehouse":      "WAW",
+			"finalAt":        "2026-06-09T21:00:00+02:00",
+		},
+	}
+	got := filterOpenReservableWindows(windows, now)
+	if len(got) != 2 {
+		t.Fatalf("expected 2 open windows, got %d", len(got))
+	}
+	if got[0]["startsAt"] != "2026-06-09T15:00:00+02:00" {
+		t.Fatalf("first open window = %v", got[0]["startsAt"])
 	}
 }

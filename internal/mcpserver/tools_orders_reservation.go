@@ -318,6 +318,7 @@ func orToolOrdersDetails(_ context.Context, _ *mcp.CallToolRequest, in orOrdersD
 	if err != nil {
 		return nil, orOrdersDetailsOut{}, err
 	}
+	mcpIngestOrderBestEffort(session.ProviderFrisco, result)
 	return nil, orOrdersDetailsOut{APIResponse: orNormalizeAPIResponse(result)}, nil
 }
 

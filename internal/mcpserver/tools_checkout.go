@@ -74,6 +74,9 @@ func toolCheckoutPreview(_ context.Context, _ *mcp.CallToolRequest, in checkoutP
 	if err != nil {
 		return nil, checkoutPreviewOut{}, err
 	}
+	if preview != nil {
+		mcpIngestCartBestEffort(provider, preview.Raw)
+	}
 	return nil, checkoutPreviewOut{Preview: preview}, nil
 }
 
@@ -89,6 +92,9 @@ func toolCheckoutFinalize(_ context.Context, _ *mcp.CallToolRequest, in checkout
 	preview, err := client.Preview(s, checkoutcore.PreviewOptions{Provider: provider, UserID: in.UserID})
 	if err != nil {
 		return nil, checkoutFinalizeOut{}, err
+	}
+	if preview != nil {
+		mcpIngestCartBestEffort(provider, preview.Raw)
 	}
 	guard := checkoutGuardFromFinalizeInput(in)
 	if guard == nil {

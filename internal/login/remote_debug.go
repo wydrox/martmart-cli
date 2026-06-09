@@ -88,8 +88,16 @@ func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, erro
 	}
 	debugBase, version, err := firstAvailableRemoteDebugEndpoint()
 	var browserInfo *remoteDebugBrowserInfo
+	var cleanupBrowser func()
+	var cleanupProfile func()
 	if err != nil {
-		debugBase, browserInfo, err = ensurePreferredBrowserRemoteDebugOn9222(ctx, opts)
+		debugBase, browserInfo, cleanupProfile, cleanupBrowser, err = launchTemporaryRemoteDebugBrowser(ctx, opts)
+		if cleanupProfile != nil {
+			defer cleanupProfile()
+		}
+		if cleanupBrowser != nil {
+			defer cleanupBrowser()
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -100,7 +108,8 @@ func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, erro
 	}
 
 	loginDebugf(opts, "using remote debug endpoint %s for %s", debugBase, provider)
-	if err := openLoginPageOnRemoteDebugBrowser(ctx, version.WebSocketDebuggerURL, loginURL); err != nil {
+	openedTargetID, err := openLoginPageOnRemoteDebugBrowser(ctx, version.WebSocketDebuggerURL, loginURL)
+	if err != nil {
 		return nil, err
 	}
 
@@ -114,6 +123,7 @@ func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, erro
 
 	result, firstErr := captureAndSaveRemoteDebugSession(ctx, opts, provider, s, baseURL, loginURL, version.WebSocketDebuggerURL, targetInfo.ID)
 	if firstErr == nil {
+		closeRemoteDebugTargetBestEffort(ctx, version.WebSocketDebuggerURL, openedTargetID)
 		applyRemoteDebugBrowserInfo(result, browserInfo)
 		return result, nil
 	}
@@ -131,6 +141,7 @@ func runWithRemoteDebugBrowser(ctx context.Context, opts Options) (*Result, erro
 	}
 	result, secondErr := captureAndSaveRemoteDebugSession(ctx, opts, provider, s, baseURL, loginURL, version.WebSocketDebuggerURL, retargeted.ID)
 	if secondErr == nil {
+		closeRemoteDebugTargetBestEffort(ctx, version.WebSocketDebuggerURL, openedTargetID)
 		applyRemoteDebugBrowserInfo(result, browserInfo)
 		return result, nil
 	}
@@ -213,7 +224,8 @@ func captureAndSaveRemoteDebugSession(ctx context.Context, opts Options, provide
 
 func reloadRemoteDebugTarget(ctx context.Context, browserWSURL, targetID, loginURL string) error {
 	if strings.TrimSpace(targetID) == "" {
-		return openLoginPageOnRemoteDebugBrowser(ctx, browserWSURL, loginURL)
+		_, err := openLoginPageOnRemoteDebugBrowser(ctx, browserWSURL, loginURL)
+		return err
 	}
 	allocCtx, cancelAlloc := chromedp.NewRemoteAllocator(ctx, browserWSURL)
 	defer cancelAlloc()
@@ -225,19 +237,20 @@ func reloadRemoteDebugTarget(ctx context.Context, browserWSURL, targetID, loginU
 	if err := chromedp.Run(taskCtx, chromedp.Navigate(loginURL)); err == nil {
 		return nil
 	}
-	return openLoginPageOnRemoteDebugBrowser(ctx, browserWSURL, loginURL)
+	_, err := openLoginPageOnRemoteDebugBrowser(ctx, browserWSURL, loginURL)
+	return err
 }
 
-func openLoginPageOnRemoteDebugBrowser(ctx context.Context, browserWSURL, loginURL string) error {
+func openLoginPageOnRemoteDebugBrowser(ctx context.Context, browserWSURL, loginURL string) (string, error) {
 	loginURL = strings.TrimSpace(loginURL)
 	if loginURL == "" {
-		return errors.New("login URL is required")
+		return "", errors.New("login URL is required")
 	}
 
 	var lastOpenErr error
 	if base := remoteDebugBaseFromWebSocket(browserWSURL); base != "" {
-		if _, err := openLoginPageViaRemoteDebugHTTP(base, loginURL); err == nil {
-			return nil
+		if openedID, err := openLoginPageViaRemoteDebugHTTP(base, loginURL); err == nil {
+			return openedID, nil
 		} else {
 			lastOpenErr = err
 		}
@@ -249,7 +262,8 @@ func openLoginPageOnRemoteDebugBrowser(ctx context.Context, browserWSURL, loginU
 	taskCtx, cancelTask := chromedp.NewContext(allocCtx)
 	defer cancelTask()
 
-	// Fallback path: navigate current/first page and, if needed, create a new target.
+	// Fallback path: create a new tab target. Do not navigate an existing tab:
+	// session_login should not steal or replace the user's current page.
 	// Retry briefly, because DevTools target attachment can be momentarily unavailable
 	// right after browser start.
 	var lastErr error
@@ -257,16 +271,11 @@ func openLoginPageOnRemoteDebugBrowser(ctx context.Context, browserWSURL, loginU
 		if i > 0 {
 			time.Sleep(250 * time.Millisecond)
 		}
-		if err := chromedp.Run(taskCtx, chromedp.Navigate(loginURL)); err == nil {
-			return nil
-		} else {
-			lastErr = err
-		}
 
-		targetID, createErr := target.CreateTarget(loginURL).WithNewWindow(true).Do(taskCtx)
+		targetID, createErr := target.CreateTarget(loginURL).Do(taskCtx)
 		if createErr == nil {
 			if err := target.ActivateTarget(targetID).Do(taskCtx); err == nil {
-				return nil
+				return string(targetID), nil
 			} else {
 				lastErr = err
 			}
@@ -277,11 +286,23 @@ func openLoginPageOnRemoteDebugBrowser(ctx context.Context, browserWSURL, loginU
 
 	if lastErr != nil {
 		if lastOpenErr != nil {
-			return fmt.Errorf("could not open login page in remote-debug browser: %w; initial attempt via /json/new failed: %v", lastErr, lastOpenErr)
+			return "", fmt.Errorf("could not open login page in remote-debug browser: %w; initial attempt via /json/new failed: %v", lastErr, lastOpenErr)
 		}
-		return fmt.Errorf("could not open login page in remote-debug browser: %w", lastErr)
+		return "", fmt.Errorf("could not open login page in remote-debug browser: %w", lastErr)
 	}
-	return errors.New("could not open login page in remote-debug browser")
+	return "", errors.New("could not open login page in remote-debug browser")
+}
+
+func closeRemoteDebugTargetBestEffort(ctx context.Context, browserWSURL, targetID string) {
+	targetID = strings.TrimSpace(targetID)
+	if targetID == "" {
+		return
+	}
+	allocCtx, cancelAlloc := chromedp.NewRemoteAllocator(ctx, browserWSURL)
+	defer cancelAlloc()
+	taskCtx, cancelTask := chromedp.NewContext(allocCtx)
+	defer cancelTask()
+	_ = target.CloseTarget(target.ID(targetID)).Do(taskCtx)
 }
 
 func remoteDebugBaseFromWebSocket(raw string) string {

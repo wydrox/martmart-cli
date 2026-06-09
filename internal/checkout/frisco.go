@@ -30,13 +30,13 @@ func NewFriscoClientForTests(httpClient *http.Client) *FriscoClient {
 	return &FriscoClient{request: httpclient.RequestJSON, httpClient: httpClient}
 }
 
-// Preview fetches and normalizes Frisco express-checkout cart data.
+// Preview fetches and normalizes Frisco checkout cart data.
 func (c *FriscoClient) Preview(s *session.Session, opts PreviewOptions) (*CheckoutPreview, error) {
 	provider, uid, err := c.resolveFrisco(s, opts.Provider, opts.UserID)
 	if err != nil {
 		return nil, err
 	}
-	payload, err := c.requestMap(s, http.MethodGet, fmt.Sprintf("/app/commerce/api/v1/users/%s/express-checkout/cart", uid), httpclient.RequestOpts{})
+	payload, err := c.requestMap(s, http.MethodGet, fmt.Sprintf("/app/commerce/api/v1/users/%s/cart", uid), httpclient.RequestOpts{})
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (c *FriscoClient) Preview(s *session.Session, opts PreviewOptions) (*Checko
 	return preview, nil
 }
 
-// Finalize places the Frisco express-checkout order, reads the order back when possible,
+// Finalize places the Frisco cart order, reads the order back when possible,
 // and blocks redirect/3DS flows behind a structured ActionRequiredError by default.
 func (c *FriscoClient) Finalize(s *session.Session, opts FinalizeOptions) (*FinalizeResult, error) {
 	provider, uid, err := c.resolveFrisco(s, opts.Provider, opts.UserID)
@@ -70,7 +70,7 @@ func (c *FriscoClient) Finalize(s *session.Session, opts FinalizeOptions) (*Fina
 	if err := validateGuard(preview, opts.Guard); err != nil {
 		return nil, err
 	}
-	payload, err := c.requestMap(s, http.MethodPost, fmt.Sprintf("/app/commerce/api/v1/users/%s/express-checkout/cart/order", uid), httpclient.RequestOpts{})
+	payload, err := c.requestMap(s, http.MethodPost, fmt.Sprintf("/app/commerce/api/v1/users/%s/cart/order", uid), httpclient.RequestOpts{})
 	if err != nil {
 		return nil, err
 	}

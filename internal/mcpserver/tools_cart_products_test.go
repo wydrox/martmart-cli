@@ -2,10 +2,36 @@ package mcpserver
 
 import (
 	"reflect"
+	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/wydrox/martmart-cli/internal/session"
 )
+
+func TestLockCartMutationSerializesSameCart(t *testing.T) {
+	var active int32
+	var overlapped int32
+	var wg sync.WaitGroup
+	for i := 0; i < 20; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			unlock := lockCartMutation(session.ProviderFrisco, "user-1")
+			defer unlock()
+			if atomic.AddInt32(&active, 1) != 1 {
+				atomic.StoreInt32(&overlapped, 1)
+			}
+			time.Sleep(time.Millisecond)
+			atomic.AddInt32(&active, -1)
+		}()
+	}
+	wg.Wait()
+	if atomic.LoadInt32(&overlapped) != 0 {
+		t.Fatal("same-cart mutations overlapped")
+	}
+}
 
 func TestMcpDelioCartItemQuantity(t *testing.T) {
 	cart := map[string]any{

@@ -31,6 +31,14 @@ func IngestCart(provider string, payload any) error {
 	return upsertNormalized(records)
 }
 
+func IngestOrder(provider string, payload any) error {
+	records, err := normalizeBySource(provider, SourceOrder, payload, time.Now().UTC())
+	if err != nil {
+		return err
+	}
+	return upsertNormalized(records)
+}
+
 func normalizeBySource(provider, source string, payload any, seenAt time.Time) ([]ProductRecord, error) {
 	switch normalizeProvider(provider) {
 	case "frisco":
@@ -41,6 +49,8 @@ func normalizeBySource(provider, source string, payload any, seenAt time.Time) (
 			return NormalizeFriscoGet(payload, seenAt)
 		case SourceCart:
 			return NormalizeFriscoCart(payload, seenAt)
+		case SourceOrder:
+			return normalizeFriscoProducts(payload, SourceOrder, seenAt)
 		}
 	case "delio":
 		switch source {
@@ -50,6 +60,8 @@ func normalizeBySource(provider, source string, payload any, seenAt time.Time) (
 			return NormalizeDelioGet(payload, seenAt)
 		case SourceCart:
 			return NormalizeDelioCart(payload, seenAt)
+		case SourceOrder:
+			return normalizeDelioCartLike(payload, SourceOrder, seenAt)
 		}
 	}
 	return nil, fmt.Errorf("unsupported catalog provider/source: %s/%s", provider, source)
