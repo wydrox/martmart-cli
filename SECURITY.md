@@ -25,4 +25,5 @@ I will acknowledge the report as soon as possible and aim to provide an initial 
 
 - Credentials/tokens are stored locally in `~/.martmart-cli/frisco-session.json` for Frisco and `~/.martmart-cli/delio-session.json` for Delio (with legacy read fallback from older `session.json` locations).
 - Access to that file effectively grants API access in the user context.
+- Files in `~/.martmart-cli/` (session files and `config.json`) are written with `0600` permissions on every save so only the owning user can read them; any pre-existing file with wider permissions is narrowed back to `0600`.
 - `martmart mcp` uses the same local session; run it only in trusted local environments.
